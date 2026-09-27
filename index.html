@@ -25,6 +25,7 @@
 <script src="lekcja-razem.js"></script>
 <script src="lekcja-uplyw.js"></script>
 <script src="cwiczenia.js"></script>
+<script src="samouczki.js"></script>
 <style type="text/tailwindcss">
   @theme reference {
     --color-base-100: var(--color-base-100); --color-base-200: var(--color-base-200); --color-base-300: var(--color-base-300);
@@ -163,10 +164,10 @@
   .wstep.cichy { color: color-mix(in oklab, var(--color-base-content) 75%, transparent); }
   .karta-zegar svg { width: min(76vw, 40vh); height: auto; }
   .napis-karty { margin: 0; font-size: var(--r-glowny); font-weight: 700; line-height: 1.15; min-height: 1.8em;
-                 display: flex; align-items: baseline; justify-content: center; gap: .3em; flex-wrap: wrap; }
+                 display: flex; align-items: baseline; justify-content: center; gap: 0 .3em; flex-wrap: wrap; }
   .napis-karty small { font-size: var(--r-drobny); font-weight: 500; color: color-mix(in oklab, var(--color-base-content) 60%, transparent); }
   .czas { display: inline-flex; flex-direction: column; align-items: center; }
-  .uplyw { margin: 0; color: var(--uplyw); font-weight: 700; font-size: var(--r-przycisk); min-height: 1.3em; }
+  .uplyw { margin: 0; color: var(--uplyw); font-weight: 700; font-size: var(--r-przycisk); line-height: 1.3; height: 1.3em; flex: none; }
   .kafel { width: 100%; max-width: 22rem; background: var(--color-base-100); border-radius: var(--radius-box, 1rem);
            padding: .55rem 1rem; display: flex; flex-direction: column; align-items: center; gap: .1rem; font-size: var(--r-drobny); }
   .kafel b { font-size: var(--r-przycisk); }
@@ -175,10 +176,11 @@
           padding: .5rem 1rem; text-align: center; font-size: var(--r-drobny); line-height: 1.35; }
   .znak { display: block; font-size: var(--r-drobny); font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--color-primary); }
 
-  /* lekcja 4 „Godzina i minuty" (lekcja-razem.js) */
-  .razem-glowny { font-size: var(--r-glowny); min-height: 2.3em; align-content: center; text-align: center; }
-  .razem-albo   { margin: 0; font-size: var(--r-drobny); min-height: 1.35em; color: color-mix(in oklab, var(--color-base-content) 70%, transparent); }
-  .razem-slowa  { margin: 0; font-size: var(--r-przycisk); font-weight: 700; min-height: 1.3em; text-align: center; }
+  /* lekcja 4 „Godzina i minuty" (lekcja-razem.js): stała wysokość napisów (glowny zawsze na 2 linie) — zegar nad nimi
+     nie skacze, gdy napis się zawija albo pustoszeje */
+  .razem-glowny { font-size: var(--r-glowny); height: 2.3em; flex: none; align-content: center; text-align: center; }
+  .razem-albo   { margin: 0; font-size: var(--r-drobny); line-height: 1.35; height: 1.35em; flex: none; color: color-mix(in oklab, var(--color-base-content) 70%, transparent); }
+  .razem-slowa  { margin: 0; font-size: var(--r-przycisk); font-weight: 700; line-height: 1.3; height: 1.3em; flex: none; text-align: center; }
   .razem-cyfry  { margin: 0; font-size: var(--r-przycisk); font-weight: 700; font-variant-numeric: tabular-nums; display: flex; align-items: baseline; gap: .35em; }
   .razem-cyfry small { font-size: var(--r-drobny); font-weight: 500; color: color-mix(in oklab, var(--color-base-content) 60%, transparent); }
 
@@ -240,9 +242,47 @@
   .cw-kolko.dobrze { fill: var(--color-success); }
   .cw-kolko.zle { fill: var(--color-error); }
   .cw-wynik { margin: 0; font-size: var(--r-glowny); font-weight: 700; }
+  .cw-punkty { margin: 0 0 8px; display: flex; flex-direction: column; align-items: center; line-height: 1.2; }
+  .cw-punkty b { font-size: var(--r-glowny); font-variant-numeric: tabular-nums; }
+  .cw-punkty small { font-size: var(--r-drobny); color: color-mix(in oklab, var(--color-base-content) 60%, transparent); }
   .cw-koniec { width: 100%; max-width: 20rem; display: flex; flex-direction: column; gap: 10px; }
   .cw-koniec .btn { font-size: var(--r-przycisk); }
   .cw-koniec .btn:not(.btn-primary) { --btn-color: var(--color-base-100); }
+  /* samouczek (samouczki.js): cała pomoc w jednej ramce (Lasha: „მთლიანი დახმარება უნდა იყოს ჩარჩოში … რომ ეს არაა
+     ჩვეულებრივი საათი") — tło i obrys w kolorze motywu, u góry znak jak „Dobra rada" w lekcjach. W niej zdanie 22
+     (32 się nie mieści, miejsce na 2 wiersze — zegar nie skacze), zegar trochę mniejszy niż w rundzie, pod nim duży
+     napis 32, mały opis 17 i „Dalej" / „Wróć". Wskazówka, o której mowa, miga; podpisy minut (05 … 55) ukryte,
+     zapalają się przy liczeniu. */
+  .sam-ramka { width: min(100%, 24rem); box-sizing: border-box; display: flex; flex-direction: column; align-items: center;
+               gap: 8px; padding: 8px 12px 14px; border-radius: var(--radius-box, 1rem);
+               background: color-mix(in oklab, var(--color-primary) 12%, var(--color-base-100));
+               border: 2px solid color-mix(in oklab, var(--color-primary) 55%, var(--color-base-100)); }
+  .sam-gora { height: 76px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+              text-align: center; }
+  .sam-znak { font-size: var(--r-drobny); font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+              line-height: 1.2; color: var(--color-primary); }
+  .sam-gora p { margin: 0; font-size: var(--r-przycisk); line-height: 1.2; }
+  .sam-zegar svg { display: block; width: min(80vw, 44vh); height: auto; }
+  .sam-pod { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .sam-duzy { margin: 0; font-size: var(--r-glowny); font-weight: 700; line-height: 1.2; min-height: 1.2em; font-variant-numeric: tabular-nums; }
+  .sam-maly { margin: 0; font-size: var(--r-drobny); line-height: 1.35; min-height: 1.35em; font-variant-numeric: tabular-nums;
+              color: color-mix(in oklab, var(--color-base-content) 60%, transparent); }
+  .sam-dalej { width: 12rem; margin-top: 4px; font-size: var(--r-przycisk); }
+  .sam-ukryty { visibility: hidden; }
+  .sam-swieci { animation: sam-miga 1s ease-in-out infinite; }
+  @keyframes sam-miga { 50% { opacity: .2; } }
+  .sam-palec { font-size: 30px; text-anchor: middle; dominant-baseline: hanging; }
+  /* poziom 3: prawa połowa tarczy „po", lewa „za" — w tych kolorach też słowa po / za */
+  :root { --sam-po: #e39a00; --sam-za: #8b55cc; }
+  .sam-po { color: var(--sam-po); }
+  .sam-za { color: var(--sam-za); }
+  .zegar .sam-pol-po { fill: var(--sam-po); fill-opacity: .2; }
+  .zegar .sam-pol-za { fill: var(--sam-za); fill-opacity: .16; }
+  /* poziom 4: tarcza pocięta na 4 kawałki po 15 minut (kawałki — .sektor, jak upływ czasu) */
+  .zegar .sam-ciecie { fill: none; stroke: color-mix(in oklab, var(--color-base-content) 35%, transparent); stroke-width: 1.5; stroke-linecap: round; }
+  /* każdy kawałek swoja zieleń, od jasnej (12 → 3) do ciemnej (9 → 12) */
+  .zegar .sam-cwiartka.c0 { fill-opacity: .16; } .zegar .sam-cwiartka.c1 { fill-opacity: .3; }
+  .zegar .sam-cwiartka.c2 { fill-opacity: .44; } .zegar .sam-cwiartka.c3 { fill-opacity: .58; }
 </style>
 </head>
 <body>
@@ -260,6 +300,10 @@
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
       </label>
       <span class="licznik" id="licznik" hidden></span>
+      <!-- 💡 samouczek poziomu jeszcze raz (samouczki.js) — tylko w rundzie poziomu, który go ma -->
+      <button id="przycisk-pomoc" class="btn btn-ghost btn-square" aria-label="Jak to działa?" hidden>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6M10 22h4"/></svg>
+      </button>
       <!-- 🏠 (Lasha 27.09): jednym dotknięciem na Start, z każdego ekranu; prawy brzeg, za ⚙ / licznikiem; na Starcie ukryty -->
       <button id="przycisk-start" class="btn btn-ghost btn-square" aria-label="Start" hidden>
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
@@ -933,6 +977,7 @@ function pokazWidok() {
   document.getElementById('przycisk-ustawien').hidden = widok !== 'zegar';   // ⚙ tylko przy zegarze
   document.getElementById('przycisk-start').hidden = widok === 'start';       // 🏠 wszędzie poza Startem
   licznikEl.hidden = !wRundzie;
+  document.getElementById('przycisk-pomoc').hidden = !(wRundzie && samouczekJest(poziom));
   if (widok === 'zegar') pokazTryb();   // ✓ w nagłówku w trybach Ustaw
   document.getElementById('tytul').textContent = wLekcji ? LEKCJE[lekcja].nazwa : wRundzie ? POZIOMY[poziom].nazwa
     : WIDOKI.find(([k]) => k === widok)[1];
@@ -940,9 +985,17 @@ function pokazWidok() {
   if (widok === 'start') zbudujStart();
   if (widok === 'karty') { if (wLekcji) zbudujLekcje(); else zbudujListe(); }
   if (widok === 'cwiczenia' && !wRundzie) zbudujPoziomy();
-  if (wRundzie) cwiczenia(cwBox, licznikEl, () => otworzPoziom(-1), poziom);
+  if (wRundzie) cwStart(cwBox, licznikEl, poziom, rundaPoziomu);   // za pierwszym razem najpierw samouczek
   else { cwBox.cwZnak = null; cwBox.textContent = ''; }   // wyjście z rundy: jej spóźniony setTimeout nic już nie zrobi
 }
+
+// runda poziomu; koniec rundy: „Następny poziom" (po ostatnim go nie ma) · „Poziomy" — lista
+function rundaPoziomu() {
+  const nast = poziom + 1 < POZIOMY.length ? poziom + 1 : -1;
+  cwiczenia(cwBox, licznikEl, () => otworzPoziom(-1), poziom, undefined, nast < 0 ? null : () => otworzPoziom(nast));
+}
+// 💡 — samouczek poziomu jeszcze raz; „Wróć" na końcu — runda od nowa
+document.getElementById('przycisk-pomoc').onclick = () => samouczek(cwBox, licznikEl, poziom, rundaPoziomu);
 
 function idzDo(k) {
   if (k !== widok) { widok = k; log(`widok: ${WIDOKI.find(([x]) => x === k)[1]}`); }

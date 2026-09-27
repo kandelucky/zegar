@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Zegar — Ćwiczenia (podgląd)</title>
 <!-- PODGLĄD ćwiczeń przed wpięciem w index.html: sim.html?app=cwiczenia.html (?poziom=2, ?typ=1 Pokaż | 2 Wybierz
-     (poziom 10: 1 Ustaw | 2 nietypowe tarcze | 3 z innych poziomów), ?styl=;
-     w sim.html zakodowane: sim.html?app=cwiczenia.html%3Fpoziom%3D2).
+     (poziom 10: 1 Ustaw | 2 nietypowe tarcze | 3 z innych poziomów), ?styl=,
+     ?samouczek=1 (&krok=N) — samouczek poziomu (samouczki.js); w sim.html zakodowane: sim.html?app=cwiczenia.html%3Fpoziom%3D2).
      Kopiuje z index.html tylko to, czego potrzebuje cwiczenia.js. Po połączeniu — usunąć.
      Łączenie: <script src="cwiczenia.js"> po tarcza.js · widok „Ćwiczenia" w menu ☰ (lista: Godziny …) ·
      licznik w nagłówku · blok CSS „ćwiczenia" niżej. -->
@@ -21,6 +21,7 @@
 <script src="tarcza.js"></script>
 <script src="lekcja-uplyw.js"></script>
 <script src="cwiczenia.js"></script>
+<script src="samouczki.js"></script>
 <style type="text/tailwindcss">
   @theme reference {
     --color-base-100: var(--color-base-100); --color-base-200: var(--color-base-200); --color-base-300: var(--color-base-300);
@@ -95,9 +96,47 @@
   .cw-kolko.dobrze { fill: var(--color-success); }
   .cw-kolko.zle { fill: var(--color-error); }
   .cw-wynik { margin: 0; font-size: var(--r-glowny); font-weight: 700; }
+  .cw-punkty { margin: 0 0 8px; display: flex; flex-direction: column; align-items: center; line-height: 1.2; }
+  .cw-punkty b { font-size: var(--r-glowny); font-variant-numeric: tabular-nums; }
+  .cw-punkty small { font-size: var(--r-drobny); color: color-mix(in oklab, var(--color-base-content) 60%, transparent); }
   .cw-koniec { width: 100%; max-width: 20rem; display: flex; flex-direction: column; gap: 10px; }
   .cw-koniec .btn { font-size: var(--r-przycisk); }
   .cw-koniec .btn:not(.btn-primary) { --btn-color: var(--color-base-100); }
+  /* samouczek (samouczki.js): cała pomoc w jednej ramce (Lasha: „მთლიანი დახმარება უნდა იყოს ჩარჩოში … რომ ეს არაა
+     ჩვეულებრივი საათი") — tło i obrys w kolorze motywu, u góry znak jak „Dobra rada" w lekcjach. W niej zdanie 22
+     (32 się nie mieści, miejsce na 2 wiersze — zegar nie skacze), zegar trochę mniejszy niż w rundzie, pod nim duży
+     napis 32, mały opis 17 i „Dalej" / „Wróć". Wskazówka, o której mowa, miga; podpisy minut (05 … 55) ukryte,
+     zapalają się przy liczeniu. */
+  .sam-ramka { width: min(100%, 24rem); box-sizing: border-box; display: flex; flex-direction: column; align-items: center;
+               gap: 8px; padding: 8px 12px 14px; border-radius: var(--radius-box, 1rem);
+               background: color-mix(in oklab, var(--color-primary) 12%, var(--color-base-100));
+               border: 2px solid color-mix(in oklab, var(--color-primary) 55%, var(--color-base-100)); }
+  .sam-gora { height: 76px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+              text-align: center; }
+  .sam-znak { font-size: var(--r-drobny); font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+              line-height: 1.2; color: var(--color-primary); }
+  .sam-gora p { margin: 0; font-size: var(--r-przycisk); line-height: 1.2; }
+  .sam-zegar svg { display: block; width: min(80vw, 44vh); height: auto; }
+  .sam-pod { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .sam-duzy { margin: 0; font-size: var(--r-glowny); font-weight: 700; line-height: 1.2; min-height: 1.2em; font-variant-numeric: tabular-nums; }
+  .sam-maly { margin: 0; font-size: var(--r-drobny); line-height: 1.35; min-height: 1.35em; font-variant-numeric: tabular-nums;
+              color: color-mix(in oklab, var(--color-base-content) 60%, transparent); }
+  .sam-dalej { width: 12rem; margin-top: 4px; font-size: var(--r-przycisk); }
+  .sam-ukryty { visibility: hidden; }
+  .sam-swieci { animation: sam-miga 1s ease-in-out infinite; }
+  @keyframes sam-miga { 50% { opacity: .2; } }
+  .sam-palec { font-size: 30px; text-anchor: middle; dominant-baseline: hanging; }
+  /* poziom 3: prawa połowa tarczy „po", lewa „za" — w tych kolorach też słowa po / za */
+  :root { --sam-po: #e39a00; --sam-za: #8b55cc; }
+  .sam-po { color: var(--sam-po); }
+  .sam-za { color: var(--sam-za); }
+  .zegar .sam-pol-po { fill: var(--sam-po); fill-opacity: .2; }
+  .zegar .sam-pol-za { fill: var(--sam-za); fill-opacity: .16; }
+  /* poziom 4: tarcza pocięta na 4 kawałki po 15 minut (kawałki — .sektor, jak upływ czasu) */
+  .zegar .sam-ciecie { fill: none; stroke: color-mix(in oklab, var(--color-base-content) 35%, transparent); stroke-width: 1.5; stroke-linecap: round; }
+  /* każdy kawałek swoja zieleń, od jasnej (12 → 3) do ciemnej (9 → 12) */
+  .zegar .sam-cwiartka.c0 { fill-opacity: .16; } .zegar .sam-cwiartka.c1 { fill-opacity: .3; }
+  .zegar .sam-cwiartka.c2 { fill-opacity: .44; } .zegar .sam-cwiartka.c3 { fill-opacity: .58; }
 </style>
 </head>
 <body>
@@ -109,6 +148,10 @@
     </button>
     <span class="text-lg font-bold" id="tytul">Poziom 1</span>
     <span class="licznik" id="licznik"></span>
+    <!-- 💡 samouczek poziomu (samouczki.js); w index.html przed 🏠 -->
+    <button id="pomoc" class="btn btn-ghost btn-square" aria-label="Jak to działa?" hidden>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6M10 22h4"/></svg>
+    </button>
   </header>
   <main id="cw" class="flex-1 min-h-0 overflow-y-auto flex flex-col items-center gap-3 px-4 pb-6"></main>
 </div>
@@ -141,12 +184,18 @@ const typ = Math.min(3, Math.max(0, +q.get('typ') || 0));
 const nrPoz = Math.min(CW_POZIOMY.length, Math.max(1, +q.get('poziom') || 1)) - 1;
 document.getElementById('tytul').textContent = `Poziom ${nrPoz + 1}`;
 const box = document.getElementById('cw'), licznik = document.getElementById('licznik');
-// w aplikacji ← / „Wróć" = lista ćwiczeń; tu runda od nowa
-const start = () => cwiczenia(box, licznik, wroc, nrPoz, typ);
+// w aplikacji ← / „Wróć" = lista ćwiczeń; tu runda od nowa (za pierwszym razem najpierw samouczek)
+const runda = () => cwiczenia(box, licznik, wroc, nrPoz, typ);
+const start = () => cwStart(box, licznik, nrPoz, runda);
 function wroc() { log('← (w aplikacji: lista ćwiczeń) — tu nowa runda'); start(); }
 document.getElementById('wstecz').onclick = wroc;
 window.simBack = wroc;
-start();
+const pomoc = document.getElementById('pomoc');
+pomoc.hidden = !samouczekJest(nrPoz);
+pomoc.onclick = () => samouczek(box, licznik, nrPoz, runda);
+// ?samouczek=1 — samouczek zawsze (także obejrzany); &krok=N — od kroku N
+if (q.has('samouczek') || q.has('krok')) samouczek(box, licznik, nrPoz, runda, (+q.get('krok') || 1) - 1);
+else start();
 </script>
 </body>
 </html>

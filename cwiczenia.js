@@ -8,7 +8,8 @@
 // (Lasha 27.09: „არა ციფრი 1 არამედ 01:00 … ტექსტის ვარიანტიც", wybrał „არეული რაუნდში").
 // Źle → kółko pod liczbą (i wybrany przycisk) na chwilę czerwone, próbuje dalej; dobrze → zielone
 // i po chwili samo następne pytanie.
-// Licznik 3/10 w nagłówku; na końcu „Brawo!", „Jeszcze raz", „Wróć".
+// Licznik 3/10 w nagłówku; na końcu „Brawo!", ile za pierwszym razem („8 / 10"), „Następny poziom", „Jeszcze raz",
+// „Poziomy" (lista poziomów).
 // Poziom 2 — Minuty (plan 10 poziomów, Lasha 27.09 „ok"; podręcznik s. 5, zad. 1a „Ile to minut po pełnej
 // godzinie?"): tylko wskazówka minutowa, godzinowej nie widać; na tarczy zwykłe 1…12, bez 00…55 — właśnie tego
 // dziecko się uczy (7 → 35). Te same dwa typy: Pokaż „20 minut" · Wybierz „Ile minut?" + 20 · 35 · 50.
@@ -442,9 +443,9 @@ const CW_POZIOMY = [
     } }
 ];
 
-// runda; licznik — element na „3/10" w nagłówku; wroc() — przycisk „Wróć" na końcu; nrPoz — od 0 (brak = poziom 1);
-// tylkoTyp 1|2 — do sprawdzania
-function cwiczenia(box, licznik, wroc, nrPoz, tylkoTyp) {
+// runda; licznik — element na „3/10" w nagłówku; wroc() — przycisk „Poziomy" na końcu; nrPoz — od 0 (brak = poziom 1);
+// tylkoTyp 1|2 — do sprawdzania; dalej() — „Następny poziom" na końcu (brak — przycisku nie ma, np. po poziomie 10)
+function cwiczenia(box, licznik, wroc, nrPoz, tylkoTyp, dalej) {
   const znak = box.cwZnak = {};                 // spóźniony setTimeout starej rundy nie pisze do nowej
   const poz = CW_POZIOMY[nrPoz || 0];
   const typy = tylkoTyp ? [poz.typy[tylkoTyp - 1]] : poz.typy;
@@ -452,7 +453,7 @@ function cwiczenia(box, licznik, wroc, nrPoz, tylkoTyp) {
   const kolejka = poz.kolejka ? poz.kolejka(tylkoTyp) : cwTasuj(Array.from({ length: ile }, (_, i) => typy[i % typy.length]));
   const nazwyForm = Object.keys(poz.formy);
   const formy = cwTasuj(Array.from({ length: ile }, (_, i) => nazwyForm[i % nazwyForm.length]));
-  let nr = 0, ost = -1, bledyRazem = 0;
+  let nr = 0, ost = -1, bledyRazem = 0, trafione = 0;   // trafione — bez błędu za pierwszym razem
 
   function pytanie() {
     box.textContent = '';
@@ -469,6 +470,7 @@ function cwiczenia(box, licznik, wroc, nrPoz, tylkoTyp) {
     box.append(p.pyt, p.zegar, p.cel);
     typ.buduj(p, X, bledy => {
       bledyRazem += bledy;
+      if (!bledy) trafione++;
       log(`ćwiczenie ${nr + 1}/${ile} · ${typ.nazwa} ${p.zapis(X)} ✓${bledy ? ` (błędy: ${bledy})` : ''}`);
       setTimeout(() => {
         if (box.cwZnak !== znak) return;
@@ -482,14 +484,21 @@ function cwiczenia(box, licznik, wroc, nrPoz, tylkoTyp) {
   function koniec() {
     box.textContent = '';
     licznik.textContent = '';
-    const jeszcze = h('button', 'btn btn-primary btn-lg', 'Jeszcze raz'), wr = h('button', 'btn btn-lg', 'Wróć');
-    jeszcze.onclick = () => cwiczenia(box, licznik, wroc, nrPoz, tylkoTyp);
-    wr.onclick = wroc;
     const przyciski = h('div', 'cw-koniec');
+    if (dalej) {                                 // główny przycisk — następny poziom; bez niego „Jeszcze raz"
+      const nast = h('button', 'btn btn-primary btn-lg', 'Następny poziom');
+      nast.onclick = dalej;
+      przyciski.append(nast);
+    }
+    const jeszcze = h('button', `btn ${dalej ? '' : 'btn-primary'} btn-lg`, 'Jeszcze raz'), wr = h('button', 'btn btn-lg', 'Poziomy');
+    jeszcze.onclick = () => cwiczenia(box, licznik, wroc, nrPoz, tylkoTyp, dalej);
+    wr.onclick = wroc;
     przyciski.append(jeszcze, wr);
-    box.append(h('p', 'cw-wynik', 'Brawo!'), przyciski);
+    // ile trafione za pierwszym razem (Lasha 27.09 „ოკ"); poziom 9 — przykład, w którym wszystkie trzy kroki bez błędu
+    box.append(h('p', 'cw-wynik', 'Brawo!'),
+               h('p', 'cw-punkty', `<b>${trafione} / ${ile}</b><small>za pierwszym razem</small>`), przyciski);
     if (window.Dzwiek) Dzwiek.brawo();
-    log(`ćwiczenia: koniec rundy, błędy razem: ${bledyRazem}`);
+    log(`ćwiczenia: koniec rundy, za pierwszym razem ${trafione}/${ile}, błędy razem: ${bledyRazem}`);
     simScreen('cwiczenia-koniec');
   }
 
