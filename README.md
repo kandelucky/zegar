@@ -10,5 +10,3 @@ in Polish words: *wpół do czwartej*, *za kwadrans szósta*.
 - **Ćwiczenia**: 7 levels, from full hours to afternoon times (13:00–23:59)
 
 To run it, open `index.html` in a browser. There is no build step, and it works offline.
-
-Made by Lasha Kandelaki.
