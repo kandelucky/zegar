@@ -106,6 +106,6 @@
     if (!wlaczone) return;
     ac();                                    // pierwsze dotknięcie budzi AudioContext — tik działa od pierwszego ruchu
     const b = e.target.closest('button, a, label.btn, summary');
-    if (b && !b.closest('#powiedz, .cw-wybor')) Dzwiek.klik();
+    if (b && !b.closest('#powiedz, .cw-wybor, #sprawdz, .cw-sprawdz')) Dzwiek.klik();
   });
 })();

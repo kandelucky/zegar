@@ -11,6 +11,9 @@
 //             na 12, dociąga do pełnych godzin; 'm' = tylko minutowa, godzinowej nie widać
 //     godzinowa: tm — godzinowa stoi na stałe w tm (0…719), rusza się tylko minutowa
 //             (jak w podręczniku „Dorysuj wskazówkę minutową"); tylko wtedy bez znaczenia
+//     chwyt : 'm' — łapie się zawsze minutowa, godzinowa widać i jedzie za nią (Ćwiczenia, poziom 8)
+//     osobno: true — wskazówki niezależne, każda chodzi sama (Ćwiczenia, poziom 10 „Ustaw"); godzinowa dociąga co 5 minut
+//             (2,5°), więc staje też między liczbami; zmiana(t, puszczone, tg) — tg = gdzie stoi godzinowa (0…719)
 //     sektor: true — minuty od pełnej godziny zaznaczone na zielono (jak w podręczniku)
 //     popo  : true — po południu
 //     po13  : true — po południu (popo) cyfry 13 … 23 zamiast 1 … 11, u góry zostaje 12 (index.html daje to tylko
@@ -167,6 +170,7 @@
     }
 
     let t = o.t || 0, chwyt = null;
+    let tg = t;                              // osobno: godzinowa ma własne miejsce
     const zmiana = o.zmiana || function () {};
 
     // katy = to, co widać teraz — jedz() rusza stąd, także z połowy poprzedniej jazdy
@@ -177,7 +181,7 @@
       min.setAttribute('transform', `rotate(${aM} 100 100)`);
       if (sektor) sektor.setAttribute('d', wycinek(86, ((aM % 360) + 360) % 360));
     }
-    const katG = tt => (stoi != null ? stoi : tt) / 2;
+    const katG = tt => (stoi != null ? stoi : o.osobno ? tg : tt) / 2;
     const katM = tt => tylko === 'g' ? 0 : (tt % 60) * 6;
 
     function rysuj() {
@@ -195,26 +199,29 @@
 
     function przesun(p) {
       if (p.d < 8) return;                   // przy samej osi kąt jest niepewny
-      const co = chwyt === 'm' ? 5 : 60, przed = Math.floor(t / co);
+      const co = chwyt === 'm' ? 5 : 60, ile = () => Math.floor((o.osobno && chwyt === 'g' ? tg : t) / co);
+      const przed = ile();
       if (chwyt === 'm') {
         let d = p.a / 6 - t % 60;
         if (d > 30) d -= 60;
         if (d < -30) d += 60;
-        t = (t + d + 720) % 720;             // minutowa ciągnie za sobą godzinową
+        t = (t + d + 720) % 720;             // minutowa ciągnie za sobą godzinową (osobno — nie)
+      } else if (o.osobno) {
+        tg = p.a * 2;
       } else {
         t = p.a * 2;
       }
-      if (Math.floor(t / co) !== przed && window.Dzwiek) Dzwiek.tik();   // ciągnięta wskazówka minęła liczbę
+      if (ile() !== przed && window.Dzwiek) Dzwiek.tik();   // ciągnięta wskazówka minęła liczbę
       rysuj();
-      zmiana(t, false);
+      zmiana(t, false, tg);
     }
 
     svg.addEventListener('pointerdown', e => {
       const p = punkt(e);
       if (p.d > 98) return;
-      const aG = (t % 720) / 2, aM = (t % 60) * 6;
+      const aG = (o.osobno ? tg : t % 720) / 2, aM = (t % 60) * 6;
       // w środku tarczy łapie ta wskazówka, która jest bliżej palca; dalej zawsze minutowa
-      chwyt = tylko || ((p.d < 60 * k && roznica(p.a, aG) < roznica(p.a, aM)) ? 'g' : 'm');
+      chwyt = tylko || o.chwyt || ((p.d < 60 * k && roznica(p.a, aG) < roznica(p.a, aM)) ? 'g' : 'm');
       svg.setPointerCapture(e.pointerId);
       svg.classList.add('ciagnie');
       przesun(p);
@@ -223,17 +230,19 @@
 
     function pusc() {
       if (!chwyt) return;
+      const godzinowa = o.osobno && chwyt === 'g';   // osobno: dociąga się tylko puszczona wskazówka
       chwyt = null;
       svg.classList.remove('ciagnie');
       const co = tylko === 'g' ? 60 : (o.krok || 5);
-      const od = t, cel = Math.round(t / co) * co, start = performance.now();
+      const od = godzinowa ? tg : t, cel = Math.round(od / co) * co, start = performance.now();
       (function krok(n) {
         if (chwyt) return;
         const q = Math.min(1, (n - start) / 150);
-        t = od + (cel - od) * q;
-        if (q === 1) { t = cel % 720; if (window.Dzwiek) Dzwiek.zatrzask(); }
+        let v = od + (cel - od) * q;
+        if (q === 1) { v = cel % 720; if (window.Dzwiek) Dzwiek.zatrzask(); }
+        if (godzinowa) tg = v; else t = v;
         rysuj();
-        zmiana(t, q === 1);
+        zmiana(t, q === 1, tg);
         if (q < 1) requestAnimationFrame(krok);
       })(start);
     }
@@ -242,12 +251,13 @@
 
     rysuj();
     return {
-      ustaw(nt) { if (!chwyt) { jazda++; t = nt; rysuj(); } },
+      ustaw(nt) { if (!chwyt) { jazda++; t = tg = nt; rysuj(); } },
       // wskazówki jadą płynnie do nt, każda swoją najkrótszą drogą (🎲 losowa godzina); na końcu zatrzask i koniec().
       // Złapana wskazówka przerywa jazdę — wtedy koniec() nie przychodzi (zmiana i tak mówi, gdzie jest).
       jedz(nt, ms, koniec) {
         if (chwyt) return;
         const nr = ++jazda, od = katy, start = performance.now();
+        tg = nt;                             // osobno: obie jadą na nt
         const droga = (a, b) => ((b - a) % 360 + 540) % 360 - 180;   // z a do b najkrótszą drogą, −180…180
         const dG = droga(od.g, katG(nt)), dM = droga(od.m, katM(nt));
         t = nt;

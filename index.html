@@ -53,11 +53,25 @@
   body[data-styl="szkolny"] { --tekst-g: var(--godz); --tekst-m: var(--min); }
   .g { color: var(--tekst-g); }
   .m { color: var(--tekst-m); }
-  /* 100vh − 380px: niżej niebo + napis + karta nie zmieściłyby się na niskim telefonie; na 360×800 nic nie zmienia */
-  #zegar-miejsce svg { width: min(88vw, 58vh, 100vh - 380px); height: auto; }
+  /* 100vh − 430px: niżej tryby + niebo + zadanie ze „Sprawdź" nie zmieściłyby się na niskim telefonie; na 360×800 nic nie zmienia */
+  #zegar-miejsce svg { width: min(88vw, 58vh, 100vh - 430px); height: auto; }
   /* ☀/☾ niebo nad zegarem (niebo.js, Lasha 27.09); odstęp pod nim — na 🎲 i 🔊, które wystają nad tarczę */
   .niebo { flex: none; width: min(100%, 28rem); margin-bottom: 12px; border-radius: var(--radius-box, 1rem); overflow: hidden; }
   .niebo svg { display: block; width: 100%; height: auto; }
+  /* tryby nad niebem (Lasha 27.09): Odczytaj · Słowami · Cyframi · 🔊 */
+  .tryby { flex: none; width: min(100%, 28rem); }
+  .tryby .btn { flex: 1; padding-inline: 0; }
+  /* zadanie pod zegarem w trybach Ustaw: co ustawić + „Sprawdź"; kolory jak odkryta karta, dobrze / źle na chwilę */
+  .zadanie { width: min(100%, 24rem); display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 12px 12px;
+             text-align: center; background: var(--color-base-200); border: 1px solid var(--color-base-300);
+             border-radius: var(--radius-box, 1rem); box-shadow: 0 4px 14px rgb(0 0 0 / .18); transition: background-color .2s, border-color .2s; }
+  .zadanie small { font-size: var(--r-drobny); font-weight: 600; color: color-mix(in oklab, var(--color-base-content) 60%, transparent); }
+  .zadanie b { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: calc(2.5 * var(--r-przycisk));
+               font-size: var(--r-przycisk); line-height: 1.25; }
+  .zadanie b.duze { font-size: var(--r-glowny); font-variant-numeric: tabular-nums; }
+  .zadanie .btn { width: 100%; }
+  .zadanie.dobrze { border-color: var(--color-success); background: color-mix(in oklab, var(--color-success) 22%, var(--color-base-200)); }
+  .zadanie.zle { border-color: var(--color-error); background: color-mix(in oklab, var(--color-error) 18%, var(--color-base-200)); }
   /* 🔊 w prawym górnym rogu zegara (Lasha 27.09) — tarcza jest okrągła, róg kwadratu jest wolny */
   .zegar-rog { position: relative; }
   .zegar-rog #powiedz { position: absolute; top: -12px; right: -12px; }
@@ -206,6 +220,22 @@
   .cw-cel.dwa-wiersze { height: 202px; }
   .dwa-wiersze .cw-wybor { gap: 8px; }
   .dwa-wiersze .cw-wybor .btn { height: 62px; line-height: 1.2; }
+  /* poziom 9: most z podręcznika 13:50 → 14:00 → 14:10 — nad strzałkami skoki, pod spodem razem; niżej 3 przyciski */
+  .cw-cel.most { flex-direction: column; align-items: center; gap: 10px; }
+  .cw-most { width: min(88vw, 50vh); display: grid; grid-template-columns: auto 1fr auto 1fr auto; align-items: center; row-gap: 4px; }
+  .cw-most .czas { grid-row: 2; padding: 2px 8px; font-size: var(--r-przycisk); font-weight: 700; font-variant-numeric: tabular-nums;
+                   background: var(--color-base-100); border: 2px solid var(--color-base-300); border-radius: .5rem; }
+  .cw-most .strz { grid-row: 2; text-align: center; font-size: var(--r-przycisk);
+                   color: color-mix(in oklab, var(--color-base-content) 50%, transparent); }
+  .cw-most .skok, .cw-most .razem { font-size: var(--r-drobny); line-height: 1.5; text-align: center; white-space: nowrap; min-height: 1.5em; }
+  .cw-most .s1 { grid-row: 1; grid-column: 1 / 4; }
+  .cw-most .s2 { grid-row: 1; grid-column: 3 / 6; }
+  .cw-most .razem { grid-row: 3; grid-column: 1 / -1; }
+  .cw-most .teraz b { display: inline-block; min-width: 1.6em; border-radius: .4rem;
+                      background: var(--color-warning); color: var(--color-warning-content); }
+  .cw-most .zrobione { color: var(--color-success); font-weight: 700; }
+  /* poziom 10: Ustaw — obie wskazówki osobno, potem „Sprawdź" (bez klik z dzwieki.js — ma swoje dobrze / źle) */
+  .cw-sprawdz { width: 14rem; font-size: var(--r-przycisk); }
   .cw-kolko { fill-opacity: .45; }
   .cw-kolko.dobrze { fill: var(--color-success); }
   .cw-kolko.zle { fill: var(--color-error); }
@@ -252,6 +282,7 @@
 
     <main id="widok-zegar" class="flex-1 min-h-0 flex flex-col px-4 pb-12" hidden>
       <div class="flex-1 min-h-0 flex flex-col items-center justify-center gap-2">
+        <div class="tryby join" id="tryby"></div>
         <div class="niebo" id="niebo"></div>
         <div class="zegar-rog">
           <div id="zegar-miejsce"></div>
@@ -271,6 +302,12 @@
             </div>
             <div class="zaslona" aria-label="Pokaż godzinę"><b>Która godzina?</b><span id="zaslona-pora"></span><small>Dotknij</small></div>
           </div>
+        </div>
+        <!-- zadanie w trybach Słowami · Cyframi · Ze słuchu (Lasha 27.09): co ustawić + Sprawdź -->
+        <div class="zadanie" id="zadanie" hidden>
+          <small id="zad-etykieta"></small>
+          <b id="zad-tresc"></b>
+          <button id="sprawdz" class="btn btn-primary">Sprawdź</button>
         </div>
       </div>
     </main>
@@ -398,7 +435,7 @@ function mow(tekst) {
 const powiedzEl = document.getElementById('powiedz');
 powiedzEl.hidden = !glos;
 powiedzEl.onclick = () => {
-  const tekst = slowami(tDoby());
+  const tekst = tryb === 'odczytaj' ? slowami(tDoby()) : tekstZadania();   // w trybach Ustaw — zadanie
   mow(tekst);
   log(`powiedz: ${tekst}`);
 };
@@ -441,11 +478,13 @@ let zakryj = zapisane('zegar-zakryj', ZAKRYCIA);
 let odkryta = false;
 const kartaEl = document.getElementById('karta-odp');
 function pokazKarte() {
+  const odczyt = tryb === 'odczytaj';   // w trybach Ustaw zamiast karty jest zadanie
+  kartaEl.hidden = !odczyt;
   kartaEl.classList.toggle('wlaczona', zakryj === 'tak');
   kartaEl.classList.toggle('zakryta', zakryj === 'tak' && !odkryta);
-  document.getElementById('pytanie').hidden = zakryj === 'tak';   // pytanie jest wtedy na karcie
+  document.getElementById('pytanie').hidden = zakryj === 'tak' || !odczyt;   // pytanie jest wtedy na karcie
   // zakryta godzina = 🔊 też milczy (Lasha 27.09): przycisk wyszarzony, rozpoczęte mówienie przerwane
-  const cisza = zakryj === 'tak' && !odkryta;
+  const cisza = odczyt && zakryj === 'tak' && !odkryta;
   powiedzEl.disabled = cisza;
   if (cisza && glos) glos.cancel();
 }
@@ -476,7 +515,7 @@ let popo = tStart >= 720;      // po południu (12:00–23:59)
 function nowyCzas(nt) {
   const przez12 = Math.abs(nt - t) > 360;
   t = nt;
-  if (przez12) { popo = !popo; zegar.popo(popo); zbudujPrzelaczniki(); }
+  if (przez12 && tryb === 'odczytaj') { popo = !popo; zegar.popo(popo); zbudujPrzelaczniki(); }   // w Ustaw pora należy do zadania
 }
 
 function noweSvg(cls) { const s = document.createElementNS(NS, 'svg'); s.setAttribute('class', cls); return s; }
@@ -498,7 +537,7 @@ function zbudujZegar() {
     styl, cyfry, rama: RAMA[styl] || '', t, krok, popo, po13: na13(),
     zmiana(nt, puszczone) {
       nowyCzas(nt);
-      niebo.ustaw(tCiagly());
+      if (tryb === 'odczytaj') niebo.ustaw(tCiagly());   // w trybach Ustaw niebo pokazuje porę zadania
       if (!puszczone) zakryjZnowu();
       pokazNapis();
       if (puszczone) { const tk = tDoby(); log(`ustawiono ${cyfrowo(tk)} — ${slowami(tk)}`); }
@@ -509,6 +548,7 @@ function zbudujZegar() {
 // 🎲 losowa godzina (Lasha 27.09): cała doba, co krok z ⚙, nigdy ta sama co teraz; ☀/☾ idzie sama.
 // Wskazówki jadą tam ~0,5 s, słowa zmieniają się, gdy dojadą; zakryta karta zakrywa się od razu — nowa zagadka.
 document.getElementById('losuj').onclick = () => {
+  if (tryb !== 'odczytaj') { noweZadanie(); return; }   // w trybach Ustaw: inne zadanie
   const n = 1440 / krok, jest = tDoby() / krok;
   const cel = (jest + 1 + Math.floor(Math.random() * (n - 1))) % n * krok;
   t = cel % 720;
@@ -518,11 +558,102 @@ document.getElementById('losuj').onclick = () => {
   zegar.jedz(t, 500, () => { pokazNapis(); log(`losuj: ${cyfrowo(cel)} — ${slowami(cel)}`); });
 };
 
+// ---- tryby ekranu „Zegar" (Lasha 27.09, plan _visual/zegar-tryby-plan): Odczytaj = zegar → nazwa, jak dotąd;
+// Słowami · Cyframi · Ze słuchu = nazwa → zegar: dziecko ustawia wskazówki i naciska „Sprawdź". Bez końca, ✓ w nagłówku.
+// Każde zadanie od 12:00; czas co krok z ⚙, cała doba (bez 12:00 i 0:00 — tam wskazówki już stoją). Sprawdza się tylko
+// tarcza (17:45 = 5:45). Niebo pokazuje porę zadania, nie idzie za wskazówkami. Źle 2 razy → wskazówki same jadą na miejsce.
+// 🔊 czyta zadanie, 🎲 daje inne. Napisy „Ustaw zegar:" / „Dobrze!" / „Popatrz, tak:" — moje.
+const IKONA_GLOS = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>';
+const TRYBY = [['odczytaj', 'Odczytaj'], ['slowa', 'Słowami'], ['cyfry', 'Cyframi'], ['sluch', IKONA_GLOS]];
+let tryb = zapisane('zegar-tryb', TRYBY);
+if (tryb === 'sluch' && !glos) tryb = 'odczytaj';   // bez syntezy mowy nie ma „Ze słuchu"
+let zad = null, trafione = 0;
+const zadanieEl = document.getElementById('zadanie'), zadEtykietaEl = document.getElementById('zad-etykieta'),
+      zadTrescEl = document.getElementById('zad-tresc'), sprawdzEl = document.getElementById('sprawdz');
+const nieboCel = () => tryb === 'odczytaj' || !zad ? tCiagly() : zad.cel;
+const tekstZadania = () => tryb === 'cyfry' ? cyfrowo(zad.cel) : slowami(zad.cel);
+
+function zbudujTryby() {
+  const box = document.getElementById('tryby');
+  box.textContent = '';
+  TRYBY.forEach(([k, nazwa]) => {
+    if (k === 'sluch' && !glos) return;
+    const b = h('button', 'join-item btn btn-sm' + (k === tryb ? ' btn-primary' : ''), nazwa);
+    if (k === 'sluch') b.setAttribute('aria-label', 'Ze słuchu');
+    b.onclick = () => {
+      if (k === tryb) return;
+      tryb = k; trafione = 0; zad = null;
+      try { localStorage.setItem('zegar-tryb', tryb); } catch (e) {}
+      log(`tryb: ${tryb}`);
+      zbudujTryby();
+      if (tryb === 'odczytaj') { niebo.jedz(tCiagly(), 500); ostatni = -1; pokazNapis(); } else noweZadanie();
+      pokazTryb();
+    };
+    box.append(b);
+  });
+}
+
+function pokazTryb() {
+  const ustaw = tryb !== 'odczytaj';
+  zadanieEl.hidden = !ustaw;
+  pokazKarte();
+  if (widok === 'zegar') { licznikEl.hidden = !ustaw; licznikEl.textContent = `✓ ${trafione}`; }
+}
+
+// stan: '' — ustaw · 'zle' — na chwilę czerwone · 'dobrze' · 'pokaz' — po 2 błędach, wskazówki jadą same
+function pokazZadanie(stan = '') {
+  zadanieEl.classList.toggle('dobrze', stan === 'dobrze');
+  zadanieEl.classList.toggle('zle', stan === 'zle' || stan === 'pokaz');
+  zadEtykietaEl.textContent = stan === 'dobrze' ? 'Dobrze!' : stan === 'pokaz' ? 'Popatrz, tak:' : 'Ustaw zegar:';
+  const widac = tryb !== 'sluch' || stan === 'dobrze' || stan === 'pokaz';   // ze słuchu — napis dopiero po odpowiedzi
+  if (widac) zadTrescEl.textContent = tekstZadania(); else zadTrescEl.innerHTML = `${IKONA_GLOS} Posłuchaj`;
+  zadTrescEl.classList.toggle('duze', widac && tryb === 'cyfry');
+  sprawdzEl.disabled = stan === 'dobrze' || stan === 'pokaz';
+}
+zadTrescEl.onclick = () => { if (zad && tryb === 'sluch') mow(slowami(zad.cel)); };   // „🔊 Posłuchaj" też powtarza
+
+function noweZadanie() {
+  const n = 1440 / krok, stare = zad && zad.cel;
+  let cel;
+  do cel = Math.floor(Math.random() * n) * krok; while (cel % 720 === 0 || cel === stare);
+  zad = { cel, bledy: 0, koniec: false };
+  if ((cel >= 720) !== popo) { popo = cel >= 720; zegar.popo(popo); zbudujPrzelaczniki(); }
+  t = 0;
+  zegar.jedz(0, 400);
+  niebo.jedz(cel, 500);
+  pokazZadanie();
+  if (tryb === 'sluch') mow(slowami(cel));
+  log(`zadanie (${tryb}): ${cyfrowo(cel)} — ${slowami(cel)}`);
+}
+
+sprawdzEl.onclick = () => {
+  const z = zad;
+  if (!z || z.koniec) return;
+  const dobrze = Math.round(t) % 720 === z.cel % 720;
+  Dzwiek.ocena(dobrze);
+  log(`sprawdź ${cyfrowo(z.cel)}: ${dobrze ? '✓' : '✗ ' + cyfrowo(tDoby())}`);
+  if (dobrze) {
+    z.koniec = true; trafione++;
+    pokazTryb(); pokazZadanie('dobrze');
+    setTimeout(() => { if (zad === z) noweZadanie(); }, 1400);
+  } else if (++z.bledy < 2) {
+    pokazZadanie('zle');
+    setTimeout(() => { if (zad === z && !z.koniec) pokazZadanie(); }, 700);
+  } else {
+    z.koniec = true;
+    pokazZadanie('pokaz');
+    t = z.cel % 720;
+    zegar.jedz(t, 700);
+    setTimeout(() => { if (zad === z) noweZadanie(); }, 2600);
+  }
+};
+
 function zbudujPrzelaczniki() {
   [['u-krok', KROKI, String(krok), k => {
       krok = +k;
       nowyCzas(Math.round(t / krok) * krok % 720);   // z 1 na 5 wskazówka od razu dociąga (11:58 → 12:00 zmienia połowę)
       zbudujZegar();
+      if (tryb !== 'odczytaj') noweZadanie();   // stare zadanie może nie leżeć na nowym kroku
     }],
    ['u-zapis', ZAPISY, zapis, k => { zapis = k; }],
    ['u-zakryj', ZAKRYCIA, zakryj, k => { zakryj = k; odkryta = false; pokazKarte(); }],
@@ -537,7 +668,7 @@ function zbudujPrzelaczniki() {
       b.onclick = () => {
         if (k === wybrana) return;
         ustaw(k);
-        niebo.jedz(tCiagly(), 500);   // ☀/☾ w ⚙: słońce zachodzi, księżyc wschodzi (albo odwrotnie)
+        niebo.jedz(nieboCel(), 500);   // ☀/☾ w ⚙: słońce zachodzi, księżyc wschodzi (albo odwrotnie)
         try { localStorage.setItem('zegar-krok', krok); localStorage.setItem('zegar-zapis', zapis); localStorage.setItem('zegar-zakryj', zakryj); localStorage.setItem('zegar-po13', po13); } catch (e) {}
         log(`zegar: ${KROKI.find(([x]) => +x === krok)[1]} · ${ZAPISY.find(([x]) => x === zapis)[1]} · ${PORY[+popo][1]} · zakryj: ${zakryj} · po południu: ${PO13.find(([x]) => x === po13)[1]} · dźwięki: ${Dzwiek.wlaczone ? 'tak' : 'nie'}`);
         ostatni = -1;
@@ -674,6 +805,9 @@ const POZIOMY = [
   { nazwa: 'Poziom 5', temat: 'Co 5 minut',  opis: '08:35, 11:10',              t: 8 * 60 + 35, tylko: '' },
   { nazwa: 'Poziom 6', temat: 'Słowami',     opis: 'za pięć siódma',            t: 6 * 60 + 55, tylko: '' },
   { nazwa: 'Poziom 7', temat: 'Po południu', opis: '14:25, 00:40',              t: 2 * 60 + 25, tylko: '' },
+  { nazwa: 'Poziom 8', temat: 'Wcześniej, później', opis: '±10, ±15, ±20 minut', t: 2 * 60 + 5, tylko: '' },
+  { nazwa: 'Poziom 9', temat: 'Ile minut?',  opis: '13:50 → 14:10',             t: 1 * 60 + 50, tylko: '' },
+  { nazwa: 'Poziom 10', temat: 'Mistrz',     opis: '16:30, bez cyfr, XII',      t: 4 * 60 + 30, tylko: '' },
 ];
 let poziom = -1;   // -1 = lista poziomów
 const cwBox = document.getElementById('widok-cw'), licznikEl = document.getElementById('licznik');
@@ -799,6 +933,7 @@ function pokazWidok() {
   document.getElementById('przycisk-ustawien').hidden = widok !== 'zegar';   // ⚙ tylko przy zegarze
   document.getElementById('przycisk-start').hidden = widok === 'start';       // 🏠 wszędzie poza Startem
   licznikEl.hidden = !wRundzie;
+  if (widok === 'zegar') pokazTryb();   // ✓ w nagłówku w trybach Ustaw
   document.getElementById('tytul').textContent = wLekcji ? LEKCJE[lekcja].nazwa : wRundzie ? POZIOMY[poziom].nazwa
     : WIDOKI.find(([k]) => k === widok)[1];
   zbudujNawigacje();
@@ -884,6 +1019,8 @@ if (q.get('ustawienia') === '1' || q.get('wyglad') === '1') { widok = 'zegar'; u
 document.body.dataset.styl = styl;
 zbudujZegar();
 niebo.ustaw(tCiagly());
+zbudujTryby();
+if (tryb !== 'odczytaj') noweZadanie();
 zbudujPrzelaczniki();
 zbudujMenu();
 pokazNapis();
