@@ -1,0 +1,40 @@
+/* ──────────────────────────────────────────────────────────────────────────
+   "szkola" — the parent app's own palette (rodzic.html :root, visual-shell), as a daisyUI theme.
+   Corners are the kit's first ones (Lasha's pick, §191): box 8 px, field / selector 4 px.
+   ────────────────────────────────────────────────────────────────────────── */
+:root:has(input.theme-controller[value=szkola]:checked),
+[data-theme=szkola] {
+  color-scheme: dark;
+
+  --color-base-100: #0e1116;      /* --bg */
+  --color-base-200: #161b22;      /* --panel */
+  --color-base-300: #2a3340;      /* --line — the borders */
+  --color-base-content: #e6edf3;  /* --text */
+
+  --color-primary: #6ea8ff;       /* --accent */
+  --color-primary-content: #0e1116;
+  --color-secondary: #a3b0bd;     /* --muted */
+  --color-secondary-content: #0e1116;
+  --color-accent: #e6b45a;        /* --attn */
+  --color-accent-content: #0e1116;
+  --color-neutral: #1c232d;       /* --panel2 */
+  --color-neutral-content: #e6edf3;
+
+  --color-info: #6ea8ff;
+  --color-info-content: #0e1116;
+  --color-success: #5fbf8f;       /* --ok */
+  --color-success-content: #0e1116;
+  --color-warning: #e6b45a;       /* --attn — the Nowe pill */
+  --color-warning-content: #0e1116;
+  --color-error: #e8706b;         /* --del */
+  --color-error-content: #0e1116;
+
+  --radius-selector: 0.25rem;
+  --radius-field: 0.25rem;
+  --radius-box: 0.5rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}

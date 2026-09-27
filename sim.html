@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ka" data-theme="dark" class="h-full">
+<head>
+<meta charset="utf-8">
+<title>სიმულატორი · Zegar</title>
+<link rel="stylesheet" href="lib/daisyui.css">
+<link rel="stylesheet" href="lib/daisyui-themes.css">
+<link rel="stylesheet" href="theme-milioni.css">
+<link rel="stylesheet" href="theme-szkola.css">
+<link rel="stylesheet" href="theme-dzieci.css">
+<script src="lib/tailwind.js"></script>
+<style type="text/tailwindcss">
+  @theme reference {
+    --color-base-100: var(--color-base-100); --color-base-200: var(--color-base-200); --color-base-300: var(--color-base-300);
+    --color-base-content: var(--color-base-content);
+    --color-primary: var(--color-primary); --color-primary-content: var(--color-primary-content);
+    --color-secondary: var(--color-secondary); --color-secondary-content: var(--color-secondary-content);
+    --color-accent: var(--color-accent); --color-accent-content: var(--color-accent-content);
+    --color-neutral: var(--color-neutral); --color-neutral-content: var(--color-neutral-content);
+    --color-info: var(--color-info); --color-success: var(--color-success);
+    --color-warning: var(--color-warning); --color-error: var(--color-error);
+  }
+
+  /* თემის ღილაკები — თითო თავის ფერებში (data-theme ღილაკზევეა) */
+  #dev #devTheme button { @apply bg-base-100 text-base-content border border-base-content/20 rounded-lg px-2.5 py-1.5 text-xs flex items-center gap-1.5 cursor-pointer; }
+  #dev #devTheme button.on { @apply ring-2 ring-white/70; }
+  #dev #devTheme button i { @apply inline-block w-2.5 h-2.5 rounded-full; }
+  #consoleBody .t { @apply text-base-content/40 mr-2; }
+</style>
+<style>
+  /* ── ტელეფონის ჩარჩო — Sunny-Librus/phone-preview.html-იდან, უცვლელი ── */
+  #stage { flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; min-width: 0; }
+  #phone {
+    background: #0b0d11;
+    border: 3px solid #3a4152;
+    border-radius: 34px;
+    padding: 14px 10px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.55), inset 0 0 0 2px #14161c;
+    position: relative;
+    transform-origin: center center;
+  }
+  #phone::before {
+    content: ""; position: absolute; top: 5px; left: 50%; transform: translateX(-50%);
+    width: 54px; height: 5px; border-radius: 3px; background: #262c38;
+  }
+  #phone::after {
+    content: ""; position: absolute; right: -6px; top: 90px;
+    width: 3px; height: 52px; border-radius: 2px; background: #3a4152;
+  }
+  #glass { border-radius: 14px; overflow: hidden; background: #1d1f21; }
+  #screen { border: none; display: block; background: #fff; }
+
+  #sysbar {
+    display: flex; align-items: center; justify-content: space-between;
+    height: 28px; padding: 0 10px 0 12px;
+    background: #1d1f21; color: #fff;
+    font: 500 12px/1 "Segoe UI", sans-serif;
+    font-variant-numeric: tabular-nums; user-select: none;
+  }
+  #sysbar .sb-l, #sysbar .sb-r { display: flex; align-items: center; gap: 6px; }
+  #sysbar .sb-l { opacity: .9; font-size: 11px; }
+  #sysbar svg { display: block; }
+  #sysbar .bat { width: 20px; height: 10px; border: 1px solid #fff; border-radius: 2px; position: relative; display: inline-block; }
+  #sysbar .bat::after { content: ""; position: absolute; right: -3px; top: 3px; width: 2px; height: 4px; border-radius: 0 1px 1px 0; background: #fff; }
+  #sysbar .bat i { display: block; height: 100%; background: #fff; }
+
+  #navbar { height: 22px; background: #1d1f21; display: flex; align-items: center; justify-content: center; gap: 64px; user-select: none; }
+  #navbar .pill { width: 108px; height: 4px; border-radius: 2px; background: #dfe3ea; }
+  #navbar .btns { display: none; align-items: center; gap: 64px; }
+  #navbar.buttons { height: 44px; }
+  #navbar.buttons .pill { display: none; }
+  #navbar.buttons .btns { display: flex; }
+  #navbar .b-back { width: 0; height: 0; border: 7px solid transparent; border-right: 11px solid #dfe3ea; cursor: pointer; }
+  #navbar .b-home { width: 14px; height: 14px; border: 2px solid #dfe3ea; border-radius: 50%; }
+  #navbar .b-rec  { width: 13px; height: 13px; border: 2px solid #dfe3ea; border-radius: 2px; }
+</style>
+</head>
+<body class="h-full m-0 flex flex-col overflow-hidden bg-base-300 text-base-content">
+
+  <!-- 1. ზედა ზოლი: მოწყობილობა, დატრიალება, გადატვირთვა, ზოლები, W/H -->
+  <div id="bar" class="shrink-0 flex items-center gap-2 flex-wrap px-3 py-2 bg-base-200 border-b border-base-content/10 text-xs text-base-content/60">
+    <label>მოწყობილობა:</label>
+    <select id="device" class="select select-xs w-auto"></select>
+    <button id="rotate" class="btn btn-xs" title="დატრიალება">⟳ დატრიალება</button>
+    <button id="reload" class="btn btn-xs" title="თავიდან ჩატვირთვა">↻ გადატვირთვა</button>
+    <label>ზოლები:</label>
+    <select id="bars" class="select select-xs w-auto" title="ტელეფონის სისტემური ზოლები — ისინი ჭამენ სიმაღლეს, როგორც APK-ში">
+      <option value="gesture">ჟესტები (პილიგი)</option>
+      <option value="buttons">3 ღილაკი</option>
+      <option value="off">გარეშე</option>
+    </select>
+    <label>W:</label><input type="number" id="cw" min="200" max="2000" class="input input-xs w-16">
+    <label>H:</label><input type="number" id="ch" min="200" max="2000" class="input input-xs w-16">
+    <span id="info" class="ml-auto tabular-nums"></span>
+  </div>
+
+  <div class="flex-1 flex min-h-0">
+    <!-- 2. სცენა: ტელეფონი -->
+    <div id="stage">
+      <div id="phone">
+        <div id="glass">
+          <div id="sysbar">
+            <div class="sb-l"><span>⏰ ✉</span></div>
+            <div class="sb-r">
+              <svg width="15" height="12" viewBox="0 0 15 12" fill="#fff" aria-hidden="true">
+                <rect x="0"  y="8"  width="3" height="4"  rx=".5"/>
+                <rect x="4"  y="6"  width="3" height="6"  rx=".5"/>
+                <rect x="8"  y="3"  width="3" height="9"  rx=".5"/>
+                <rect x="12" y="0"  width="3" height="12" rx=".5"/>
+              </svg>
+              <svg width="14" height="11" viewBox="0 0 14 11" fill="#fff" aria-hidden="true">
+                <path d="M7 11 0.6 3.6a9.6 9.6 0 0 1 12.8 0Z"/>
+              </svg>
+              <span>76%</span>
+              <span class="bat"><i style="width:76%"></i></span>
+              <span id="sbClock">7:42</span>
+            </div>
+          </div>
+          <iframe id="screen"></iframe>
+          <div id="navbar">
+            <div class="pill"></div>
+            <div class="btns"><span class="b-back"></span><span class="b-home"></span><span class="b-rec"></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. პულტი (მარჯვნივ). ჯერ: თემა · კონსოლი. -->
+    <section id="dev" class="w-[400px] shrink-0 bg-base-200 border-l border-base-content/10 flex flex-col min-h-0">
+      <div class="flex items-center gap-3 px-3 py-1.5 text-xs text-base-content/60 select-none">
+        <b class="text-base-content">პულტი</b>
+        <div class="tabs tabs-box tabs-xs ml-auto" id="devTabs">
+          <button class="tab" data-tab="theme">თემა</button>
+          <button class="tab tab-active" data-tab="console">კონსოლი</button>
+        </div>
+      </div>
+      <div class="flex-1 overflow-auto px-3 py-2 text-xs text-base-content/60 leading-relaxed min-h-0" id="devBody">
+        <div data-pane="theme" id="devTheme" hidden></div>
+        <div data-pane="console" class="flex flex-col h-full">
+          <div class="flex items-center gap-2 mb-1"><span id="consoleCount">0 ხაზი</span><button id="consoleClear" class="btn btn-xs btn-ghost ml-auto">გასუფთავება</button></div>
+          <div class="flex-1 overflow-auto font-mono text-xs leading-relaxed" id="consoleBody"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+<script>
+  "use strict";
+  // ---- Config: the only lines to change per project ----
+  // APP   = the page shown inside the phone (override once with sim.html?app=other.html)
+  // KEY   = localStorage prefix; every file:// page shares one storage, so give each project its own
+  // THEME = the theme picked on first start
+  var APP = new URLSearchParams(location.search).get("app") || "index.html";
+  var KEY = "zegar";
+  var DEFAULT_THEME = "szkola-krem";
+
+  function $(id) { return document.getElementById(id); }
+  $("screen").src = APP;
+
+  // ---- ტაბები (player.html-ის tabs()) ----
+  function tabs(tabsId, bodyId) {
+    var t = $(tabsId), b = $(bodyId);
+    t.onclick = function (e) {
+      var x = e.target.closest(".tab"); if (!x) return;
+      Array.prototype.forEach.call(t.children, function (y) { y.classList.toggle("tab-active", y === x); });
+      Array.prototype.forEach.call(b.children, function (p) { p.hidden = p.dataset.pane !== x.dataset.tab; });
+    };
+  }
+  tabs("devTabs", "devBody");
+
+  // ---- კონსოლი: აპის log-ები postMessage-ით ----
+  var conBody = $("consoleBody"), lines = 0;
+  function log(msg) {
+    var d = document.createElement("div");
+    d.innerHTML = "<span class=\"t\">" + new Date().toTimeString().slice(0, 8) + "</span>" + msg;
+    conBody.appendChild(d);
+    conBody.scrollTop = conBody.scrollHeight;
+    $("consoleCount").textContent = (++lines) + " ხაზი";
+  }
+  $("consoleClear").onclick = function () { conBody.innerHTML = ""; lines = 0; $("consoleCount").textContent = "0 ხაზი"; };
+
+  // ---- აპთან კავშირი ----
+  var screen = $("screen");
+  function toApp(msg) { if (screen.contentWindow) screen.contentWindow.postMessage(msg, "*"); }
+  window.addEventListener("message", function (e) {
+    var m = e.data || {};
+    if (m.type === "log") log(m.msg);
+    else if (m.type === "ready") toApp({ type: "theme", theme: currentTheme });   // silent: fires on every page load
+    else if (m.type === "snapshot") log("<i>snapshot</i>: ეკრანი " + m.screen);
+    else if (m.type === "error") log("<b class=\"text-error\">შეცდომა</b>: " + m.msg);
+  });
+
+  // ---- თემა (player.html-ის კოდი; აპს postMessage-ით ეგზავნება) ----
+  var THEMES = ["szkola", "szkola-krem", "szkola-blekit", "szkola-noc", "milioni", "milioni-light", "dark", "night", "dim", "business", "dracula", "abyss", "black", "coffee", "forest", "halloween", "luxury", "sunset", "synthwave", "aqua",
+    "light", "silk", "nord", "winter", "corporate", "wireframe", "lofi", "emerald", "garden", "cupcake", "pastel", "fantasy", "valentine",
+    "caramellatte", "autumn", "lemonade", "bumblebee", "retro", "acid", "cyberpunk", "cmyk"];
+  var themeBox = $("devTheme"), currentTheme = DEFAULT_THEME;
+  themeBox.innerHTML = "<div class=\"flex flex-wrap gap-1.5\">" + THEMES.map(function (t) {
+    return "<button data-t=\"" + t + "\" data-theme=\"" + t + "\">" + t +
+      "<i class=\"bg-primary\"></i><i class=\"bg-secondary\"></i><i class=\"bg-accent\"></i></button>";
+  }).join("") + "</div>";
+  function setTheme(t) {
+    currentTheme = t;
+    document.documentElement.setAttribute("data-theme", t);
+    try { localStorage.setItem(KEY + "-theme", t); } catch (e) {}
+    Array.prototype.forEach.call(themeBox.querySelectorAll("button"), function (b) { b.classList.toggle("on", b.dataset.t === t); });
+    toApp({ type: "theme", theme: t });
+  }
+  // Only a real pick writes to the console; the start-up setTheme stays silent.
+  themeBox.onclick = function (e) { var b = e.target.closest("button"); if (b && b.dataset.t !== currentTheme) { setTheme(b.dataset.t); log("თემა: " + b.dataset.t); } };
+  var savedTheme = null; try { savedTheme = localStorage.getItem(KEY + "-theme"); } catch (e) {}
+  setTheme(THEMES.indexOf(savedTheme) !== -1 ? savedTheme : DEFAULT_THEME);
+
+  // ---- მოწყობილობები (phone-preview.html-ის DEVICES, CSS px) ----
+  var DEVICES = [
+    { name: "Galaxy A15 / ტიპური Android (360×800)", w: 360, h: 800 },
+    { name: "ძველი Android (360×640)",               w: 360, h: 640 },
+    { name: "Pixel 8 (412×915)",                     w: 412, h: 915 },
+    { name: "iPhone SE (375×667)",                   w: 375, h: 667 },
+    { name: "iPhone 14 (390×844)",                   w: 390, h: 844 },
+    { name: "iPhone 15 Pro Max (430×932)",           w: 430, h: 932 },
+    { name: "მაღალი ეკრანი (360×880)",               w: 360, h: 880 },
+    { name: "პატარა ტაბლეტი (600×960)",              w: 600, h: 960 },
+    { name: "iPad (768×1024)",                       w: 768, h: 1024 }
+  ];
+  var sel = $("device"), phone = $("phone"), glass = $("glass"), sysbar = $("sysbar"), navbar = $("navbar");
+  var barsSel = $("bars"), cw = $("cw"), ch = $("ch"), info = $("info"), sbClock = $("sbClock");
+  DEVICES.forEach(function (d, i) {
+    var o = document.createElement("option"); o.value = i; o.textContent = d.name; sel.appendChild(o);
+  });
+  var W = DEVICES[0].w, H = DEVICES[0].h;
+
+  // სისტემური ზოლები სიმაღლეს ჭამენ, როგორც APK-ში (adjustMarginsForEdgeToEdge): iframe = H − ზოლები
+  var BAR_H = { status: 28, gesture: 22, buttons: 44 };
+  function bars() { return barsSel.value; }
+  function sysH() { return bars() === "off" ? 0 : BAR_H.status; }
+  function navH() { return bars() === "off" ? 0 : BAR_H[bars()]; }
+
+  function apply() {
+    var on = bars() !== "off";
+    sysbar.style.display = on ? "flex" : "none";
+    navbar.style.display = on ? "flex" : "none";
+    navbar.className = bars() === "buttons" ? "buttons" : "";
+    glass.style.width   = W + "px";
+    screen.style.width  = W + "px";
+    screen.style.height = (H - sysH() - navH()) + "px";
+    cw.value = W; ch.value = H;
+
+    var stage = $("stage");
+    var frameW = W + 26, frameH = H + 34;
+    var scale = Math.min((stage.clientWidth - 40) / frameW, (stage.clientHeight - 40) / frameH, 1);
+    phone.style.transform = "scale(" + scale + ")";
+    var appH = H - sysH() - navH();
+    info.textContent = W + " × " + H + " px · აპი " + W + " × " + appH + " px · მასშტაბი " + Math.round(scale * 100) + "%";
+    clock();
+  }
+  function clock() {
+    var d = new Date();
+    sbClock.textContent = d.getHours() + ":" + String(d.getMinutes()).padStart(2, "0");
+  }
+  setInterval(clock, 15000);
+
+  sel.onchange = function () { var d = DEVICES[sel.value]; W = d.w; H = d.h; localStorage.setItem(KEY + "-sim-device", sel.value); apply(); };
+  // Back (3-button bar): the app does what the phone's Back does (sim-bridge.js → simBack / history.back)
+  navbar.querySelector(".b-back").onclick = function () { toApp({ type: "back" }); log("<i>პულტი</i>: ◀ Back"); };
+  $("rotate").onclick = function () { var t = W; W = H; H = t; apply(); };
+  $("reload").onclick = function () { screen.src = APP + (APP.indexOf("?") === -1 ? "?" : "&") + Date.now(); log("<i>პულტი</i>: აპი გადაიტვირთა"); };
+  barsSel.onchange = function () { localStorage.setItem(KEY + "-sim-bars", barsSel.value); apply(); };
+  cw.onchange = function () { W = +cw.value || W; apply(); };
+  ch.onchange = function () { H = +ch.value || H; apply(); };
+  window.addEventListener("resize", apply);
+
+  var savedDev = localStorage.getItem(KEY + "-sim-device");
+  if (savedDev !== null && DEVICES[+savedDev]) { sel.value = savedDev; W = DEVICES[+savedDev].w; H = DEVICES[+savedDev].h; }
+  barsSel.value = localStorage.getItem(KEY + "-sim-bars") || "gesture";
+  apply();
+</script>
+</body>
+</html>

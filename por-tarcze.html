@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ka" data-theme="szkola-krem">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zegar · ციფერბლატები</title>
+<link rel="stylesheet" href="lib/daisyui.css">
+<link rel="stylesheet" href="lib/daisyui-themes.css">
+<link rel="stylesheet" href="theme-milioni.css">
+<link rel="stylesheet" href="theme-szkola.css">
+<link rel="stylesheet" href="theme-dzieci.css">
+<link rel="stylesheet" href="tarcza.css">
+<script src="tarcza.js"></script>
+<style>
+  html { background: var(--color-base-200); }
+  body { margin: 0; padding: 16px 24px 32px; background: var(--color-base-200); color: var(--color-base-content);
+         font-family: system-ui, "Segoe UI", Roboto, sans-serif; }
+  header { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; margin-bottom: 14px; }
+  h1 { font-size: 18px; margin: 0; }
+  #czas { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .rada { font-size: 13px; opacity: .65; }
+  .siatka { display: grid; grid-template-columns: 120px repeat(5, minmax(130px, 1fr)); gap: 8px 16px; align-items: center; max-width: 1300px; }
+  .kol { text-align: center; font-weight: 600; font-size: 14px; }
+  .wiersz { font-weight: 600; font-size: 14px; }
+  .kol small, .wiersz small { display: block; font-weight: 400; opacity: .55; }
+  .kom { position: relative; }
+  .kom svg { width: 100%; max-width: 220px; margin: 0 auto; }
+  .kod { position: absolute; top: 0; left: 2px; font-size: 13px; font-weight: 600; opacity: .45; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>ციფერბლატები</h1>
+  <span id="czas"></span>
+  <span class="rada">ნებისმიერ საათზე ისარს გადაატრიალებ — ყველა ერთად მოძრაობს.</span>
+  <span class="rada" style="margin-left:auto">ბ-ს ჩარჩო:</span>
+  <div class="join" id="ramy">
+    <button class="btn btn-sm join-item" data-r="">გარეშე</button>
+    <button class="btn btn-sm join-item" data-r="1">1</button>
+    <button class="btn btn-sm join-item" data-r="2">2</button>
+    <button class="btn btn-sm join-item" data-r="3">3</button>
+  </div>
+  <label class="rada">თემა:
+    <select id="motyw" class="select select-sm" style="width:auto"></select>
+  </label>
+</header>
+
+<div class="siatka" id="siatka"></div>
+
+<script>
+  "use strict";
+  const STYLE = [
+    ['szkolny',   'სასწავლო',       'Szkolny'],
+    ['minimalny', 'მინიმალისტური',  'Minimalny'],
+    ['klasyczny', 'კლასიკური',      'Klasyczny']
+  ];
+  const CYFRY = [
+    ['zwykle',   'ჩვეულებრივი',       'Zwykłe'],
+    ['minuty',   'წუთებით',           'Z minutami'],
+    ['brak',     'ციფრების გარეშე',   'Bez cyfr'],
+    ['cztery',   'მხოლოდ 4 ციფრი',    '4 cyfry'],
+    ['rzymskie', 'რომაული',           'Rzymskie']
+  ];
+  const LITERY = ['ა', 'ბ', 'გ'];
+  const MOTYWY = ['szkola-krem', 'szkola-blekit', 'szkola-noc', 'szkola', 'milioni', 'milioni-light', 'light', 'dark'];
+
+  const siatka = document.getElementById('siatka');
+  const czasEl = document.getElementById('czas');
+  const komorki = [];    // { styl, cyfry, kom, z }
+  let t = 8 * 60 + 20;   // 8:20 — przykład z podręcznika („20 minut po ósmej")
+  let rama = '1';        // rama wiersza ბ (minimalny)
+  try { const r = localStorage.getItem('zegar-por-rama'); if (r !== null) rama = r; } catch (e) {}
+  const ramaUrl = new URLSearchParams(location.search).get('rama');   // ?rama=3 — do sprawdzania
+  if (ramaUrl !== null) rama = ramaUrl;
+
+  function zbuduj(c) {
+    const stary = c.kom.querySelector('svg');
+    if (stary) stary.remove();
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    c.kom.appendChild(svg);
+    c.z = Zegar(svg, {
+      styl: c.styl, cyfry: c.cyfry, t, rama: c.styl === 'minimalny' ? rama : '',
+      zmiana(nt) { t = nt; pokazCzas(nt); komorki.forEach(o => { if (o !== c) o.z.ustaw(nt); }); }
+    });
+  }
+
+  function pokazCzas(x) {
+    const c = Math.round(x) % 720;
+    czasEl.textContent = (Math.floor(c / 60) || 12) + ':' + String(c % 60).padStart(2, '0');
+  }
+
+  siatka.appendChild(document.createElement('div'));
+  CYFRY.forEach(([, ka, pl], j) => {
+    const d = document.createElement('div');
+    d.className = 'kol';
+    d.innerHTML = (j + 1) + '. ' + ka + '<small>' + pl + '</small>';
+    siatka.appendChild(d);
+  });
+  STYLE.forEach(([styl, ka, pl], i) => {
+    const w = document.createElement('div');
+    w.className = 'wiersz';
+    w.innerHTML = LITERY[i] + '. ' + ka + '<small>' + pl + '</small>';
+    siatka.appendChild(w);
+    CYFRY.forEach(([cyfry], j) => {
+      const kom = document.createElement('div');
+      kom.className = 'kom';
+      kom.innerHTML = '<span class="kod">' + LITERY[i] + (j + 1) + '</span>';
+      siatka.appendChild(kom);
+      const c = { styl, cyfry, kom, z: null };
+      komorki.push(c);
+      zbuduj(c);
+    });
+  });
+  pokazCzas(t);
+
+  const ramyEl = document.getElementById('ramy');
+  function pokazRame() {
+    ramyEl.querySelectorAll('button').forEach(b => b.classList.toggle('btn-primary', b.dataset.r === rama));
+  }
+  ramyEl.onclick = e => {
+    const b = e.target.closest('button');
+    if (!b || b.dataset.r === rama) return;
+    rama = b.dataset.r;
+    try { localStorage.setItem('zegar-por-rama', rama); } catch (e) {}
+    komorki.filter(c => c.styl === 'minimalny').forEach(zbuduj);
+    pokazRame();
+  };
+  pokazRame();
+
+  const sel = document.getElementById('motyw');
+  sel.innerHTML = MOTYWY.map(m => '<option>' + m + '</option>').join('');
+  function motyw(m) { document.documentElement.setAttribute('data-theme', m); sel.value = m; try { localStorage.setItem('zegar-por-motyw', m); } catch (e) {} }
+  sel.onchange = () => motyw(sel.value);
+  let zapisany = null; try { zapisany = localStorage.getItem('zegar-por-motyw'); } catch (e) {}
+  motyw(MOTYWY.includes(zapisany) ? zapisany : 'szkola-krem');
+</script>
+</body>
+</html>

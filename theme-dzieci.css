@@ -1,0 +1,123 @@
+/* ──────────────────────────────────────────────────────────────────────────
+   Three themes of our own for the child, built to what the guides say
+   (9–11 years: muted, deeper colours, not bright primaries; BDA dyslexia guide:
+   a background that is light but NOT white, text dark but NOT black, no harsh
+   contrast, no red/green pairs). They sit in the picker beside `szkola`.
+
+     szkola-krem    — cream, the closest to the dyslexia guidance
+     szkola-blekit  — cool, pale blue-grey
+     szkola-noc     — soft dark, for the evening (not the hard dark we had)
+
+   Same shape as `szkola` (corners: box 8 px, field / selector 4 px, border 1 px).
+   ────────────────────────────────────────────────────────────────────────── */
+
+:root:has(input.theme-controller[value=szkola-krem]:checked),
+[data-theme=szkola-krem] {
+  color-scheme: light;
+
+  --color-base-100: #f7f1e4;       /* krem — jasne, ale nie białe */
+  --color-base-200: #efe7d6;
+  --color-base-300: #e2d8c3;       /* linie */
+  --color-base-content: #3d3830;   /* ciemne, ale nie czarne */
+
+  --color-primary: #5b8c5a;        /* zieleń stonowana */
+  --color-primary-content: #f7f1e4;
+  --color-secondary: #8a8272;
+  --color-secondary-content: #f7f1e4;
+  --color-accent: #c08a3f;         /* bursztyn */
+  --color-accent-content: #f7f1e4;
+  --color-neutral: #4a463c;
+  --color-neutral-content: #f7f1e4;
+
+  --color-info: #4a7fa5;
+  --color-info-content: #f7f1e4;
+  --color-success: #5b8c5a;
+  --color-success-content: #f7f1e4;
+  --color-warning: #c08a3f;
+  --color-warning-content: #f7f1e4;
+  --color-error: #b5553f;          /* cegła, nie czysta czerwień */
+  --color-error-content: #f7f1e4;
+
+  --radius-selector: 0.25rem;
+  --radius-field: 0.25rem;
+  --radius-box: 0.5rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
+
+:root:has(input.theme-controller[value=szkola-blekit]:checked),
+[data-theme=szkola-blekit] {
+  color-scheme: light;
+
+  --color-base-100: #eef3f8;
+  --color-base-200: #e3eaf2;
+  --color-base-300: #cfdae6;
+  --color-base-content: #33404d;
+
+  --color-primary: #4a7fa5;
+  --color-primary-content: #eef3f8;
+  --color-secondary: #7d8c9c;
+  --color-secondary-content: #eef3f8;
+  --color-accent: #7a6fa8;         /* fiolet stonowany */
+  --color-accent-content: #eef3f8;
+  --color-neutral: #3c4956;
+  --color-neutral-content: #eef3f8;
+
+  --color-info: #4a7fa5;
+  --color-info-content: #eef3f8;
+  --color-success: #4f8f74;
+  --color-success-content: #eef3f8;
+  --color-warning: #c08a3f;
+  --color-warning-content: #eef3f8;
+  --color-error: #b5553f;
+  --color-error-content: #eef3f8;
+
+  --radius-selector: 0.25rem;
+  --radius-field: 0.25rem;
+  --radius-box: 0.5rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
+
+:root:has(input.theme-controller[value=szkola-noc]:checked),
+[data-theme=szkola-noc] {
+  color-scheme: dark;
+
+  --color-base-100: #1e232a;       /* miękka noc — nie czerń */
+  --color-base-200: #262c35;
+  --color-base-300: #333b46;
+  --color-base-content: #c9d1d9;   /* jasne, ale nie białe */
+
+  --color-primary: #6b9bc9;
+  --color-primary-content: #1e232a;
+  --color-secondary: #8b95a1;
+  --color-secondary-content: #1e232a;
+  --color-accent: #d4a960;
+  --color-accent-content: #1e232a;
+  --color-neutral: #2b323b;
+  --color-neutral-content: #c9d1d9;
+
+  --color-info: #6b9bc9;
+  --color-info-content: #1e232a;
+  --color-success: #6aa87f;
+  --color-success-content: #1e232a;
+  --color-warning: #d4a960;
+  --color-warning-content: #1e232a;
+  --color-error: #cc6f62;
+  --color-error-content: #1e232a;
+
+  --radius-selector: 0.25rem;
+  --radius-field: 0.25rem;
+  --radius-box: 0.5rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}

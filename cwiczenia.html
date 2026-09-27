@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pl" data-theme="szkola-krem" class="h-full">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Zegar — Ćwiczenia (podgląd)</title>
+<!-- PODGLĄD ćwiczeń przed wpięciem w index.html: sim.html?app=cwiczenia.html (?poziom=2, ?typ=1 Pokaż | 2 Wybierz, ?styl=;
+     w sim.html zakodowane: sim.html?app=cwiczenia.html%3Fpoziom%3D2).
+     Kopiuje z index.html tylko to, czego potrzebuje cwiczenia.js. Po połączeniu — usunąć.
+     Łączenie: <script src="cwiczenia.js"> po tarcza.js · widok „Ćwiczenia" w menu ☰ (lista: Godziny …) ·
+     licznik w nagłówku · blok CSS „ćwiczenia" niżej. -->
+<link rel="stylesheet" href="lib/daisyui.css">
+<link rel="stylesheet" href="lib/daisyui-themes.css">
+<link rel="stylesheet" href="theme-milioni.css">
+<link rel="stylesheet" href="theme-szkola.css">
+<link rel="stylesheet" href="theme-dzieci.css">
+<link rel="stylesheet" href="tarcza.css">
+<script src="lib/tailwind.js"></script>
+<script src="sim-bridge.js"></script>
+<script src="tarcza.js"></script>
+<script src="cwiczenia.js"></script>
+<style type="text/tailwindcss">
+  @theme reference {
+    --color-base-100: var(--color-base-100); --color-base-200: var(--color-base-200); --color-base-300: var(--color-base-300);
+    --color-base-content: var(--color-base-content);
+    --color-primary: var(--color-primary); --color-primary-content: var(--color-primary-content);
+    --color-secondary: var(--color-secondary); --color-secondary-content: var(--color-secondary-content);
+    --color-accent: var(--color-accent); --color-accent-content: var(--color-accent-content);
+    --color-neutral: var(--color-neutral); --color-neutral-content: var(--color-neutral-content);
+    --color-info: var(--color-info); --color-success: var(--color-success);
+    --color-warning: var(--color-warning); --color-error: var(--color-error);
+  }
+</style>
+<style>
+  /* jak w index.html */
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--color-base-200);
+    color: var(--color-base-content);
+    font-family: system-ui, "Segoe UI", Roboto, sans-serif;
+    user-select: none; -webkit-user-select: none;
+    --tekst-g: var(--color-base-content); --tekst-m: var(--color-base-content);
+    --r-glowny: 32px; --r-przycisk: 22px; --r-drobny: 17px;   /* standard rozmiarów — jak w index.html */
+  }
+  body[data-styl="szkolny"] { --tekst-g: var(--godz); --tekst-m: var(--min); }
+  .g { color: var(--tekst-g); }
+  .m { color: var(--tekst-m); }
+
+  /* ćwiczenia (cwiczenia.js) — do przeniesienia do index.html. Rozmiary = standard aplikacji (Lasha 27.09):
+     główny 32 · przycisk 22 · drobny 17.
+     Nad zegarem ramka z pytaniem, pod nim pole na 3 przyciski (w Pokaż puste) — obie stałej wysokości, więc zegar
+     stoi w tym samym miejscu. Słowa są długie („Dziewiąta") — ich 3 przyciski stoją jeden pod drugim, stąd wysokość pola. */
+  #cw { justify-content: safe center; }
+  .licznik { margin-left: auto; padding-right: .75rem; font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums;
+             color: color-mix(in oklab, var(--color-base-content) 70%, transparent); }
+  .cw-zegar svg { display: block; width: min(88vw, 50vh); height: auto; }
+  .cw-pytanie { width: min(88vw, 50vh); height: 88px; box-sizing: border-box; display: flex; flex-direction: column;
+                align-items: center; justify-content: center; gap: 2px; text-align: center;
+                background: var(--color-base-100); border: 2px solid var(--color-base-300); border-radius: var(--radius-box, 1rem); }
+  .cw-pytanie small { font-size: var(--r-drobny); line-height: 1.35; color: color-mix(in oklab, var(--color-base-content) 60%, transparent); }
+  .cw-pytanie b { font-size: var(--r-glowny); line-height: 1.2; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .cw-cel { height: 168px; display: flex; align-items: flex-start; justify-content: center; }
+  .cw-wybor { display: flex; gap: 12px; }
+  .cw-wybor .btn { width: 6rem; padding-inline: 0; font-size: var(--r-przycisk); font-variant-numeric: tabular-nums; }
+  .slowa .cw-wybor, .zdania .cw-wybor { flex-direction: column; gap: 10px; }
+  .slowa .cw-wybor .btn { width: 14rem; }
+  /* poziom 4: całe zdania („Piętnaście po jedenastej") — w ramce 22 zamiast 32, przyciski prawie na całą szerokość */
+  .zdania .cw-wybor .btn { width: 18rem; }
+  .cw-pytanie.zdania small + b { font-size: var(--r-przycisk); }   /* tylko zdanie w Pokaż; „Która godzina?" zostaje 32 */
+  /* poziom 6: „Dwadzieścia pięć po jedenastej" nie mieści się w 18rem — przyciski na dwa wiersze, wszystkie trzy równe,
+     pole wyższe (3 × 62 + 2 × 8), żeby zegar w rundzie nie skakał (Lasha „ა") */
+  .cw-cel.dwa-wiersze { height: 202px; }
+  .dwa-wiersze .cw-wybor { gap: 8px; }
+  .dwa-wiersze .cw-wybor .btn { height: 62px; line-height: 1.2; }
+  .cw-wybor .btn:not(.btn-success, .btn-error) { --btn-color: var(--color-base-100); }
+  .cw-kolko { fill-opacity: .45; }
+  .cw-kolko.dobrze { fill: var(--color-success); }
+  .cw-kolko.zle { fill: var(--color-error); }
+  .cw-wynik { margin: 0; font-size: var(--r-glowny); font-weight: 700; }
+  .cw-koniec { width: 100%; max-width: 20rem; display: flex; flex-direction: column; gap: 10px; }
+  .cw-koniec .btn { font-size: var(--r-przycisk); }
+  .cw-koniec .btn:not(.btn-primary) { --btn-color: var(--color-base-100); }
+</style>
+</head>
+<body>
+
+<div class="h-full flex flex-col">
+  <header class="flex items-center gap-1 px-2 h-14 shrink-0">
+    <button id="wstecz" class="btn btn-ghost btn-square" aria-label="Wróć do listy">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12H5M11 5l-7 7 7 7"/></svg>
+    </button>
+    <span class="text-lg font-bold" id="tytul">Poziom 1</span>
+    <span class="licznik" id="licznik"></span>
+  </header>
+  <main id="cw" class="flex-1 min-h-0 overflow-y-auto flex flex-col items-center gap-3 px-4 pb-6"></main>
+</div>
+
+<script>
+"use strict";
+// ---- skopiowane z index.html ----
+const NS = 'http://www.w3.org/2000/svg';
+function noweSvg(cls) { const s = document.createElementNS(NS, 'svg'); s.setAttribute('class', cls); return s; }
+function h(tag, cls, html) { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+const RAMA = { minimalny: '3' };
+const GODZ = ['dwunasta','pierwsza','druga','trzecia','czwarta','piąta','szósta','siódma','ósma','dziewiąta','dziesiąta','jedenasta'];
+const GODZ_EJ = ['dwunastej','pierwszej','drugiej','trzeciej','czwartej','piątej','szóstej','siódmej','ósmej','dziewiątej','dziesiątej','jedenastej'];
+const duza = s => s.charAt(0).toUpperCase() + s.slice(1);
+const MINUTY = ['pełna godzina', 'pięć po', 'dziesięć po', 'piętnaście po', 'dwadzieścia po', 'dwadzieścia pięć po',
+                'wpół do', 'za dwadzieścia pięć', 'za dwadzieścia', 'za piętnaście', 'za dziesięć', 'za pięć'];
+function pora(tm) {
+  const g = Math.floor(tm / 60);
+  return g >= 5 && g < 12 ? 'rano' : g >= 12 && g < 18 ? 'po południu' : g >= 18 && g < 23 ? 'wieczorem' : 'w nocy';
+}
+
+// ---- podgląd ----
+const q = new URLSearchParams(location.search);
+let styl = q.get('styl');
+if (!styl) try { styl = localStorage.getItem('zegar-styl'); } catch (e) {}
+if (!['szkolny', 'minimalny', 'klasyczny'].includes(styl)) styl = 'szkolny';
+document.body.dataset.styl = styl;
+
+const typ = Math.min(2, Math.max(0, +q.get('typ') || 0));
+const nrPoz = Math.min(CW_POZIOMY.length, Math.max(1, +q.get('poziom') || 1)) - 1;
+document.getElementById('tytul').textContent = `Poziom ${nrPoz + 1}`;
+const box = document.getElementById('cw'), licznik = document.getElementById('licznik');
+// w aplikacji ← / „Wróć" = lista ćwiczeń; tu runda od nowa
+const start = () => cwiczenia(box, licznik, wroc, nrPoz, typ);
+function wroc() { log('← (w aplikacji: lista ćwiczeń) — tu nowa runda'); start(); }
+document.getElementById('wstecz').onclick = wroc;
+window.simBack = wroc;
+start();
+</script>
+</body>
+</html>
