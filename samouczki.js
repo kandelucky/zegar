@@ -2,7 +2,7 @@
 // plan z czatu „კი"): 3 kroki z „Dalej" (Lasha: „შეამოკლე 3 ნაბიჯამდე"), zegar sam pokazuje, co zdanie mówi (miga
 // wskazówka, kółko pod liczbą, wskazówka jedzie, palec ją ciągnie). Bez głosu (Lasha: „ხმები არ არის საჭირო").
 // Przy pierwszym wejściu w poziom sam, potem przez 💡 w nagłówku.
-// Na razie poziomy 1–4; reszta według tabeli z czatu, każdy po jego „კი".
+// Na razie poziomy 1–6; reszta według tabeli z czatu, każdy po jego „კი".
 // Cała pomoc w jednej ramce (Lasha: „მთლიანი დახმარება უნდა იყოს ჩარჩოში … რომ ეს არაა ჩვეულებრივი საათი"): zdanie (22),
 // zegar, pod nim duży napis (32), mały opis (17) i „Dalej" — w ostatnim kroku „Wróć" → runda (Lasha: „Teraz ty!"
 // „არ არის ინტუიციური").
@@ -58,7 +58,7 @@ function samJedz(s, od, cel, gotowe, o = {}) {
         if (window.Dzwiek) Dzwiek.tik();
         if (o.licz) {                            // wolna klatka może przeskoczyć liczbę — zapalają się wszystkie minione
           for (let i = ost + 1; i <= nL; i++) s.podpis(i);
-          s.wynik(`<span class="m">${nL * 5}</span> minut`);
+          s.wynik(`<span class="m">${nL * 5 % 60}</span> minut`);   // od pełnej godziny (poziom 5: od 8:00)
         }
         ost = nL;
       }
@@ -115,6 +115,10 @@ function samOstatnie4(s) {
 
 // „07:45" — godzina w kolorze godzinowej, minuty w kolorze minutowej
 const samCzas = tm => cwCyfry(tm).replace(/^(\d+):(\d+)$/, '<span class="g">$1</span>:<span class="m">$2</span>');
+// poziom 6: zdanie („Za pięć siódma") z po / za w kolorach połówek tarczy; całe w jednym <span> — .sam-dwa .sam-duzy
+// stawia je na środku miejsca na 2 wiersze
+const samZdanie = tm => `<span>${cwZdanie(tm).replace(/\b(po|za|Za)\b/,
+                                                     w => `<span class="sam-${w.toLowerCase()}">${w}</span>`)}</span>`;
 
 // krok 1 poziomu 4: minutowa jedzie kawałek po kawałku 12 → 3 → 6 → 9 → 12 (od 7:00, do 60 — Lasha), miniony kawałek się zabarwia,
 // pod zegarem „15 minut", „30 minut", „45 minut", „60 minut" i od pierwszego kawałka mały „15 minut to kwadrans."; na końcu kółko
@@ -194,6 +198,35 @@ const CW_SAMOUCZKI = [
       duzy: samCzas(420), maly: 'Siódma',
       pokaz: s => samJedz(s, 420, 450, () => s.wynik(samCzas(450), 'Wpół do ósmej')) },
     { zdanie: 'Przesuwaj <b class="m">długą wskazówkę</b> palcem.', t: 420, pokaz: samKawalek }
+  ] },
+  // 5 · Co 5 minut: najpierw krótka, potem długa; 08:35 jak na liście poziomów. Krok 1 — na pułapkę 09:35, krok 2 — na 08:07
+  { tylko: '', chwyt: 'm', cyfry: 'minuty', kroki: [
+    { zdanie: 'Najpierw <b class="g">krótka</b>: liczba, którą minęła.', t: 515, swieci: 'g', kolko: 8,
+      duzy: '<span class="g">08</span>', maly: 'jeszcze nie 9' },
+    { zdanie: 'Potem <b class="m">długa</b>: licz piątkami.', t: 480,
+      pokaz: s => samJedz(s, 480, 515, () => { s.kolko(7); s.wynik(samCzas(515), '7 to 35 minut, a nie 07'); },
+                          { licz: true }) },
+    { zdanie: 'Przesuwaj <b class="m">długą wskazówkę</b> palcem.', t: 515,
+      pokaz: s => {                              // pod zegarem na żywo „08:40", „08:45" … — najbliższe 5 minut
+        const pisz = nt => s.wynik(samCzas(Math.round(nt / 5) * 5 % 720));
+        pisz(515);
+        s.ciagnij(pisz);
+      } }
+  ] },
+  // 6 · Słowami: po → godzina, którą krótka minęła · za → ta, do której idzie (pułapka „Za pięć szósta"); 6:55 jak na
+  // liście poziomów. dwa — pod zegarem miejsce na 2 wiersze („Dwadzieścia pięć po szóstej" nie mieści się w jednym)
+  { tylko: '', chwyt: 'm', dwa: true, kroki: [
+    // napis przez pokaz, nie duzy: cwZdanie potrzebuje MINUTY / GODZ_EJ, a te strona definiuje dopiero po samouczki.js
+    { zdanie: '<b class="sam-po">Po</b> — godzina, którą krótka minęła.', t: 370, pol: 'po', swieci: 'g', kolko: 6,
+      pokaz: s => s.wynik(samZdanie(370), cwCyfry(370)) },
+    { zdanie: '<b class="sam-za">Za</b> — godzina, do której krótka idzie.', t: 415, pol: 'za',
+      pokaz: s => samKlin(s, 55, 5, () => { s.kolko(7); s.wynik(samZdanie(415), 'za pięć minut będzie siódma'); }) },
+    { zdanie: 'Przesuwaj <b class="m">długą wskazówkę</b> palcem.', t: 415, pol: 'oba',
+      pokaz: s => {                              // pod zegarem na żywo zdanie i cyfry — najbliższe 5 minut
+        const pisz = nt => { const q = Math.round(nt / 5) * 5 % 720; s.wynik(samZdanie(q), cwCyfry(q)); };
+        pisz(415);
+        s.ciagnij(pisz);
+      } }
   ] }
 ];
 
@@ -205,7 +238,8 @@ function samouczek(box, licznik, nrPoz, potem, odKroku = 0) {
   const sam = CW_SAMOUCZKI[nrPoz], kroki = sam.kroki;
   const znak = box.cwZnak = {};                 // spóźnione setTimeout / rAF (rundy albo kroku) nic nie piszą
   box.textContent = '';
-  const ramka = h('div', 'sam-ramka'), pyt = h('div', 'sam-gora'), miejsce = h('div', 'sam-zegar'), cel = h('div', 'sam-pod');
+  const ramka = h('div', 'sam-ramka' + (sam.dwa ? ' sam-dwa' : '')), pyt = h('div', 'sam-gora'),
+        miejsce = h('div', 'sam-zegar'), cel = h('div', 'sam-pod');
   const zdanie = h('p'), duzy = h('p', 'sam-duzy'), maly = h('p', 'sam-maly');
   const dalejB = h('button', 'btn btn-primary btn-lg sam-dalej');
   pyt.append(h('span', 'sam-znak', '💡 Jak to działa?'), zdanie);

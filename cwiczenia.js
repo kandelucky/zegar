@@ -33,6 +33,8 @@
 // Poziom 10 — Mistrz (podręcznik s. 7, zad. 5 i 7 · Dobra rada; Lasha 27.09 „კარგი"): 4 × Ustaw „16:30" — obie wskazówki
 // osobno, godzinowa ma stanąć między 4 a 5, „Sprawdź" · 3 × Wybierz na nietypowej tarczy (12 · 3 · 6 · 9 / bez cyfr /
 // rzymskie) · 3 × pytanie z trzech różnych poziomów 4–9, jak w nich samych.
+// Bonus — Ponad godzinę (Lasha 28.09 „ki"): „Jest 08:20" + „Minęła 1 godzina i 25 minut", od 1 do 5 godzin, co 2 pytania
+// o godzinę więcej. Pokaż — jak Ustaw z poziomu 10, ale od 08:20 · Wybierz — 09:45 · 09:20 (same godziny) · 08:45 (same minuty).
 // W aplikacji: Start → Ćwiczenia → lista poziomów, albo ☰ → Poziom N (do sprawdzania: index.html?poziom=2).
 // Podgląd bez aplikacji: sim.html?app=cwiczenia.html%3Fpoziom%3D2 (?typ=1|2 — tylko jeden typ, ?styl=).
 // Korzysta z globalnych z index.html: NS, h, noweSvg, styl, RAMA, GODZ, GODZ_EJ, duza, MINUTY, pora, log, simScreen,
@@ -341,6 +343,11 @@ const CW_USTAW = { nazwa: 'Ustaw', liczby: Array.from({ length: 288 }, (_, i) =>
     let start;                                   // prawdziwa godzina, ale inna godzina i inne minuty niż T
     do start = cwLos(144) * 5; while (Math.floor(start / 60) === H || start % 60 === M);
     p.pyt.append(h('small', null, 'Ustaw'), h('b', null, p.zapis(T)));
+    cwUstaw(p, start, T, gotowe);
+} };
+// zegar Ustaw (poziom 10, bonus): wskazówki stoją na start (0…719) i chodzą osobno, pod zegarem „Sprawdź"; cel T (bez :00)
+function cwUstaw(p, start, T, gotowe) {
+    const H = Math.floor(T / 60) % 12, M = T % 60;
     let m = start % 60, g = start, bledy = 0;
     const svg = noweSvg('duzy');
     p.zegar.append(svg);
@@ -364,7 +371,7 @@ const CW_USTAW = { nazwa: 'Ustaw', liczby: Array.from({ length: 288 }, (_, i) =>
       gotowe(bledy);
     };
     p.cel.append(b);
-} };
+}
 
 // Wybierz na nietypowej tarczy (poziom 10): tylko 12 · 3 · 6 · 9 / bez cyfr / rzymskie (tarcza.js je ma), każda raz w rundzie.
 // Reszta jak w poziomie 5: dowolne 5 minut bez :00, cyfrą, złe 09:35 · 08:07, bez kółka
@@ -395,6 +402,40 @@ function cwZPoziomu(L) {
       Q.typ.buduj({ ...p, forma: Q.forma, zapis: poz.formy[Q.forma], liczby: Q.liczby, pulapka: poz.pulapka }, Q.X, gotowe);
   } };
 }
+
+// Bonus — Ponad godzinę: X = { T, g, m } — jest T (minuty od północy, od 06:00), minęło g godzin (1…5) i m minut (5…55);
+// wynik T + 60g + m, nie przez północ i nie na :00 (Ustaw — godzinowa między liczbami). Runda coraz dłuższa (Lasha 28.09:
+// „1-დან 5 საათამდე მაგრამ მატებით"): pytania 1–2 → 1 godzina, 3–4 → 2 … 9–10 → 5; w każdej parze Pokaż + Wybierz.
+function cwLosujMinelo(g) {
+  const m = 5 * (1 + cwLos(11));
+  let T;
+  do T = 360 + cwLos((1435 - 60 * g - m - 360) / 5 + 1) * 5; while ((T + m) % 60 === 0);
+  return { T, g, m };
+}
+const cwMinelo = X => X.T + 60 * X.g + X.m;
+// „Minęła 1 godzina" · „Minęły 2 godziny" · „Minęło 5 godzin" (minut 5 … 55 zawsze „minut"); godziny w kolorze
+// godzinowej, minuty — minutowej; w ramce 22 (CSS .cw-pytanie.minelo) — w 32 się nie mieści
+function cwRamkaMinelo(p, X) {
+  const [cz, godz] = X.g === 1 ? ['Minęła', 'godzina'] : X.g < 5 ? ['Minęły', 'godziny'] : ['Minęło', 'godzin'];
+  p.pyt.append(h('small', null, `Jest ${cwCyfry24(X.T)}`),
+               h('b', null, `${cz} <span class="g">${X.g} ${godz}</span> i <span class="m">${X.m} minut</span>`));
+}
+const CW_MINELO = [
+  { nazwa: 'Pokaż', buduj(p, X, gotowe) {       // jak Ustaw z poziomu 10, ale od T: przy 5 godzinach nie trzeba 5 kółek minutową
+      cwRamkaMinelo(p, X);
+      cwUstaw(p, X.T % 720, cwMinelo(X), gotowe);
+  } },
+  { nazwa: 'Wybierz', buduj(p, X, gotowe) {
+      cwRamkaMinelo(p, X);
+      const svg = cwZegar(p.zegar, X.T % 720, null, '');
+      svg.style.pointerEvents = 'none';          // tylko do patrzenia
+      const R = cwMinelo(X), G = X.T + 60 * X.g;
+      // przez pełną godzinę: 08:50 + 1 h 20 → 09:10 (godzina nie przeniesiona) · 09:50 (same godziny);
+      // bez: 08:20 + 1 h 25 → 09:20 (same godziny) · 08:45 (same minuty)
+      const pulapka = () => X.T % 60 + X.m >= 60 ? [R - 60, G] : [G, X.T + X.m];
+      cwWybierz({ ...p, zapis: cwCyfry24, pulapka, liczby: [] }, svg, R, null, gotowe);
+  } }
+];
 
 // poziomy: typy pytań, z czego losować, formy zapisu (w rundzie wymieszane po równo), pułapka w Wybierz (opcjonalnie);
 // typ może mieć własne liczby (poziom 7: Pokaż tylko pełne godziny); losuj() — pytanie zamiast liczby (poziom 8);
@@ -440,7 +481,11 @@ const CW_POZIOMY = [
       const grupy = [[CW_USTAW], CW_NIETYPOWE, cwTasuj([3, 4, 5, 6, 7, 8]).slice(0, 3).map(cwZPoziomu)];
       return cwTasuj(tylko ? Array.from({ length: CW_ILE }, (_, i) => grupy[tylko - 1][i % grupy[tylko - 1].length])
                            : [CW_USTAW, CW_USTAW, CW_USTAW, ...grupy.flat()]);
-    } }
+    } },
+  { typy: CW_MINELO, liczby: [], formy: { minelo: X => `${cwCyfry24(X.T)} +${X.g} h ${X.m} min` },   // 11 · Bonus (log)
+    kolejka: tylko => Array.from({ length: CW_ILE / 2 }, (_, i) =>   // para i → i + 1 godzin, Pokaż i Wybierz w losowej kolejności
+      (tylko ? [CW_MINELO[tylko - 1], CW_MINELO[tylko - 1]] : cwTasuj([...CW_MINELO]))
+        .map(typ => ({ ...typ, losuj: () => cwLosujMinelo(i + 1) }))).flat() }
 ];
 
 // runda; licznik — element na „3/10" w nagłówku; wroc() — przycisk „Poziomy" na końcu; nrPoz — od 0 (brak = poziom 1);

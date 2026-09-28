@@ -91,6 +91,8 @@
   .cw-most .zrobione { color: var(--color-success); font-weight: 700; }
   /* poziom 10: Ustaw — obie wskazówki osobno, potem „Sprawdź" (bez klik z dzwieki.js — ma swoje dobrze / źle) */
   .cw-sprawdz { width: 14rem; font-size: var(--r-przycisk); }
+  /* bonus: „Minęły 2 godziny i 25 minut" w 32 się nie mieści — 22, najwyżej 2 wiersze (17 + 2 × 26 < 88) */
+  .cw-pytanie.minelo b { font-size: var(--r-przycisk); }
   .cw-wybor .btn:not(.btn-success, .btn-error) { --btn-color: var(--color-base-100); }
   .cw-kolko { fill-opacity: .45; }
   .cw-kolko.dobrze { fill: var(--color-success); }
@@ -137,6 +139,9 @@
   /* każdy kawałek swoja zieleń, od jasnej (12 → 3) do ciemnej (9 → 12) */
   .zegar .sam-cwiartka.c0 { fill-opacity: .16; } .zegar .sam-cwiartka.c1 { fill-opacity: .3; }
   .zegar .sam-cwiartka.c2 { fill-opacity: .44; } .zegar .sam-cwiartka.c3 { fill-opacity: .58; }
+  /* poziom 6: duży napis = zdanie, do 2 wierszy („Dwadzieścia pięć po szóstej") — miejsce na 2 zawsze, zegar nie skacze;
+     zdanie w jednym <span> (samZdanie), więc flex tylko je centruje */
+  .sam-dwa .sam-duzy { min-height: 2.4em; display: flex; align-items: center; justify-content: center; text-align: center; }
 </style>
 </head>
 <body>
