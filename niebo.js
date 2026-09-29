@@ -1,7 +1,8 @@
-// niebo.js — pasek nieba nad zegarem (Lasha 27.09: „როდის ხდება მოქმედება უნდა იყოს უფრო ცხადი. საათის ზევით უნდა
+// niebo.js — niebo ze słońcem i księżycem; od 28.09 okienko na tarczy zegara (wcześniej pasek nad nim; Lasha 27.09: „როდის ხდება მოქმედება უნდა იყოს უფრო ცხადი. საათის ზევით უნდა
 // იყოს ანიმაცია ან მზის ან მთავრის ამოსვლის" → plan „კი").
 //
-//   const n = Niebo(box);   — rysuje w box (div) svg 320 × 90
+//   const n = Niebo(box, poKlatce);   — rysuje w box (div albo svg) svg 320 × 90; poKlatce(tm) — po każdym
+//                                       narysowaniu (index.html pisze pod okienkiem porę doby, Lasha 28.09)
 //   n.ustaw(tm)             — tm: minuty od północy (0…1439, może być z ułamkiem), od razu
 //   n.jedz(tm, ms)          — płynnie przez ms, najkrótszą drogą po dobie (najwyżej 12 h); ustaw() przerywa jazdę
 //
@@ -38,7 +39,7 @@
   // f: 0 = wschód (lewo, horyzont), .5 = najwyżej, 1 = zachód (prawo); poza 0…1 — pod ziemią
   const luk = f => [24 + f * (W - 48), HORYZONT - Math.sin(f * Math.PI) * LUK];
 
-  function Niebo(box) {
+  function Niebo(box, poKlatce) {
     const nr = ++ile;
     const svg = el(box, 'svg', { viewBox: `0 0 ${W} ${H}`, 'aria-hidden': 'true' });
     const defs = el(svg, 'defs');
@@ -58,7 +59,6 @@
     el(ksiezyc, 'circle', { r: 10, fill: '#f3efd6', mask: `url(#niebo-sierp-${nr})` });
     // ziemia na wierzchu: słońce i księżyc chowają się za nią
     const ziemia = el(svg, 'path', { d: 'M0 79 Q40 73 80 77 T160 76 T240 78 T320 75 V90 H0 Z' });
-
     let teraz = 0, jazda = 0;
     function rysuj(tm) {
       teraz = tm = ((tm % 1440) + 1440) % 1440;
@@ -73,6 +73,7 @@
       const [kx, ky] = luk(((tm - 1080 + 1440) % 1440) / 720);
       slonce.setAttribute('transform', `translate(${sx} ${sy})`);
       ksiezyc.setAttribute('transform', `translate(${kx} ${ky})`);
+      if (poKlatce) poKlatce(tm);
     }
 
     return {

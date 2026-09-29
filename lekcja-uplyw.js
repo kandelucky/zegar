@@ -1,6 +1,6 @@
-// lekcja-uplyw.js — lekcja 5 „Upływ czasu" (podręcznik s. 16): wskazówka minutowa przesuwa się o 10 i 20 minut,
+// lekcja-uplyw.js — lekcja 6 „Upływ czasu" (podręcznik s. 16): wskazówka minutowa przesuwa się o 10 i 20 minut,
 // przykład z Kubą (13:45 → 14:05, 15 + 5 = 20 minut).
-// Wpisana w LEKCJE w index.html (tam też style „lekcja 5"); podgląd: sim.html?app=index.html%3Flekcja%3D5.
+// Wpisana w LEKCJE w index.html (tam też style „lekcja 6"); podgląd: sim.html?app=index.html%3Flekcja%3D6.
 // Korzysta z globalnych z index.html: h, noweSvg, styl, RAMA, log, Zegar (tarcza.js).
 "use strict";
 

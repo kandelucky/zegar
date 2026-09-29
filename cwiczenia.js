@@ -272,7 +272,7 @@ function cwLosujMost() {
   return { T: (6 + cwLos(17)) * 60 + 60 - a, a, b };
 }
 // zegar poziomu 9 (tylko do patrzenia): dalej(ile) — wskazówki idą naprzód, zielony wycinek od T rośnie za minutową
-// (jak w lekcji 5; uplywWycinek z lekcja-uplyw.js)
+// (jak w lekcji 6; uplywWycinek z lekcja-uplyw.js)
 function cwZegarUplyw(miejsce, T) {
   const svg = noweSvg('duzy');
   miejsce.append(svg);
@@ -293,6 +293,14 @@ function cwZegarUplyw(miejsce, T) {
     })(start);
   };
 }
+// most pod zegarem (poziom 9 i jego samouczek): 13:50 → 14:00 → 14:10, nad strzałkami skoki, pod spodem razem
+function cwMost(T, a, b) {
+  const m = { el: h('div', 'cw-most'), skoki: [h('span', 'skok s1'), h('span', 'skok s2')], razem: h('span', 'razem'),
+              czasy: [T, T + a, T + a + b].map((x, i) => h('span', `czas c${i + 1}`, cwCyfry24(x))),
+              strz: [h('span', 'strz a1', '→'), h('span', 'strz a2', '→')] };
+  m.el.append(...m.skoki, m.czasy[0], m.strz[0], m.czasy[1], m.strz[1], m.czasy[2], m.razem);
+  return m;
+}
 // Oblicz: most z podręcznika (s. 7, zad. 6) 13:50 → 14:00 → 14:10; trzy kroki, każdy 3 przyciski:
 // skok do pełnej godziny · skok dalej · razem. Złe: ① liczba minut wzięta wprost (50) · o 5 za dużo;
 // ② druga strona (50) · o 5 mniej; ③ odejmowanie jak zwykłych liczb (1410 − 1350 = 60) · same minuty (50 − 10 = 40)
@@ -301,12 +309,7 @@ const CW_MOST = [
       const { T, a, b } = X, m1 = T % 60;
       p.pyt.append(h('b', null, 'Ile minut upłynie?'));
       const dalej = cwZegarUplyw(p.zegar, T);
-      const most = h('div', 'cw-most');
-      const skoki = [h('span', 'skok s1'), h('span', 'skok s2')], razem = h('span', 'razem');
-      most.append(skoki[0], skoki[1],
-                  h('span', 'czas c1', cwCyfry24(T)), h('span', 'strz a1', '→'),
-                  h('span', 'czas c2', cwCyfry24(T + a)), h('span', 'strz a2', '→'),
-                  h('span', 'czas c3', cwCyfry24(T + a + b)), razem);
+      const { el: most, skoki, razem } = cwMost(T, a, b);
       const odp = h('div');
       p.cel.append(most, odp);
       const kroki = [

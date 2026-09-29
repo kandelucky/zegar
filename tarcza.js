@@ -18,9 +18,12 @@
 //     popo  : true — po południu
 //     po13  : true — po południu (popo) cyfry 13 … 23 zamiast 1 … 11, u góry zostaje 12 (index.html daje to tylko
 //             cyfrom arabskim: zwykle, minuty)
-//   z.ustaw(t) — ustawia wskazówki z zewnątrz (bez wywołania zmiana)
+//   z.ustaw(t, tg) — ustawia wskazówki z zewnątrz (bez wywołania zmiana); tg — osobno: godzinowa gdzie indziej (domyślnie t)
 //   z.jedz(t, ms, koniec) — jak ustaw, ale wskazówki jadą tam przez ms, każda najkrótszą drogą; potem koniec()
 //   z.popo(b)  — przełącza połowę doby bez przebudowy (działa też w trakcie przeciągania)
+//   z.cyfry(c) — zmienia cyfry bez przebudowy: 'zwykle' | 'cztery' | 'brak' | 'rzymskie' (zegar zbudowany z wszystkimi 12,
+//             nie 'minuty' — ta ma inną skalę); samouczek poziomu 10
+//   z.osobno(b) — włącza / wyłącza osobno bez przebudowy (godzinowa wraca na t); samouczek poziomu 10
 //
 // Dźwięk (dzwieki.js, jeśli jest na stronie): tik, gdy ciągnięta wskazówka minie liczbę; zatrzask po dociągnięciu.
 // Kolory i czcionki: tarcza.css. Wszystko rysowane w viewBox 0 0 200 200, środek 100,100.
@@ -170,7 +173,7 @@
     }
 
     let t = o.t || 0, chwyt = null;
-    let tg = t;                              // osobno: godzinowa ma własne miejsce
+    let tg = t, osobno = !!o.osobno;         // osobno: godzinowa ma własne miejsce
     const zmiana = o.zmiana || function () {};
 
     // katy = to, co widać teraz — jedz() rusza stąd, także z połowy poprzedniej jazdy
@@ -181,7 +184,7 @@
       min.setAttribute('transform', `rotate(${aM} 100 100)`);
       if (sektor) sektor.setAttribute('d', wycinek(86, ((aM % 360) + 360) % 360));
     }
-    const katG = tt => (stoi != null ? stoi : o.osobno ? tg : tt) / 2;
+    const katG = tt => (stoi != null ? stoi : osobno ? tg : tt) / 2;
     const katM = tt => tylko === 'g' ? 0 : (tt % 60) * 6;
 
     function rysuj() {
@@ -199,14 +202,14 @@
 
     function przesun(p) {
       if (p.d < 8) return;                   // przy samej osi kąt jest niepewny
-      const co = chwyt === 'm' ? 5 : 60, ile = () => Math.floor((o.osobno && chwyt === 'g' ? tg : t) / co);
+      const co = chwyt === 'm' ? 5 : 60, ile = () => Math.floor((osobno && chwyt === 'g' ? tg : t) / co);
       const przed = ile();
       if (chwyt === 'm') {
         let d = p.a / 6 - t % 60;
         if (d > 30) d -= 60;
         if (d < -30) d += 60;
         t = (t + d + 720) % 720;             // minutowa ciągnie za sobą godzinową (osobno — nie)
-      } else if (o.osobno) {
+      } else if (osobno) {
         tg = p.a * 2;
       } else {
         t = p.a * 2;
@@ -219,7 +222,7 @@
     svg.addEventListener('pointerdown', e => {
       const p = punkt(e);
       if (p.d > 98) return;
-      const aG = (o.osobno ? tg : t % 720) / 2, aM = (t % 60) * 6;
+      const aG = (osobno ? tg : t % 720) / 2, aM = (t % 60) * 6;
       // w środku tarczy łapie ta wskazówka, która jest bliżej palca; dalej zawsze minutowa
       chwyt = tylko || o.chwyt || ((p.d < 60 * k && roznica(p.a, aG) < roznica(p.a, aM)) ? 'g' : 'm');
       svg.setPointerCapture(e.pointerId);
@@ -230,7 +233,7 @@
 
     function pusc() {
       if (!chwyt) return;
-      const godzinowa = o.osobno && chwyt === 'g';   // osobno: dociąga się tylko puszczona wskazówka
+      const godzinowa = osobno && chwyt === 'g';   // osobno: dociąga się tylko puszczona wskazówka
       chwyt = null;
       svg.classList.remove('ciagnie');
       const co = tylko === 'g' ? 60 : (o.krok || 5);
@@ -249,9 +252,16 @@
     svg.addEventListener('pointerup', pusc);
     svg.addEventListener('pointercancel', pusc);
 
+    // napisy przy liczbach — tylko te, które zbudowano (liczby)
+    let na13 = !!o.po13 && !!o.popo, cyfry = o.cyfry;
+    const napisy = () => liczby.forEach(([h, e]) => {
+      e.textContent = etykieta(h, cyfry, na13) || '';
+      e.classList.toggle('rz', cyfry === 'rzymskie');
+    });
+
     rysuj();
     return {
-      ustaw(nt) { if (!chwyt) { jazda++; t = tg = nt; rysuj(); } },
+      ustaw(nt, ng = nt) { if (!chwyt) { jazda++; t = nt; tg = ng; rysuj(); } },
       // wskazówki jadą płynnie do nt, każda swoją najkrótszą drogą (🎲 losowa godzina); na końcu zatrzask i koniec().
       // Złapana wskazówka przerywa jazdę — wtedy koniec() nie przychodzi (zmiana i tak mówi, gdzie jest).
       jedz(nt, ms, koniec) {
@@ -274,7 +284,9 @@
           requestAnimationFrame(krok);
         })(start);
       },
-      popo(po) { liczby.forEach(([h, e]) => { e.textContent = etykieta(h, o.cyfry, !!o.po13 && po); }); }
+      popo(po) { na13 = !!o.po13 && po; napisy(); },
+      cyfry(c) { cyfry = c; napisy(); },
+      osobno(b) { osobno = !!b; tg = t; rysuj(); }
     };
   }
 

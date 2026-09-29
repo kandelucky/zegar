@@ -22,6 +22,7 @@
 <script src="dzwieki.js"></script>
 <script src="tarcza.js"></script>
 <script src="niebo.js"></script>
+<script src="lekcja-polowy.js"></script>
 <script src="lekcja-razem.js"></script>
 <script src="lekcja-uplyw.js"></script>
 <script src="cwiczenia.js"></script>
@@ -56,10 +57,11 @@
   .m { color: var(--tekst-m); }
   /* 100vh − 430px: niżej tryby + niebo + zadanie ze „Sprawdź" nie zmieściłyby się na niskim telefonie; na 360×800 nic nie zmienia */
   #zegar-miejsce svg { width: min(88vw, 58vh, 100vh - 430px); height: auto; }
-  /* ☀/☾ niebo nad zegarem (niebo.js, Lasha 27.09); odstęp pod nim — na 🎲 i 🔊, które wystają nad tarczę */
-  .niebo { flex: none; width: min(100%, 28rem); margin-bottom: 12px; border-radius: var(--radius-box, 1rem); overflow: hidden; }
-  .niebo svg { display: block; width: 100%; height: auto; }
-  /* tryby nad niebem (Lasha 27.09): Odczytaj · Słowami · Cyframi · 🔊 */
+  /* ☀/☾ okienko nieba na tarczy nad 6 (niebo.js) i pod nim pora doby (Lasha 28.09, wariant ა) */
+  .okno-ramka { fill: none; stroke: color-mix(in oklab, var(--color-base-content) 35%, transparent); stroke-width: 1; }
+  .okno-pora { fill: var(--color-base-content); font: 700 10px system-ui, "Segoe UI", Roboto, sans-serif; }
+  .bez-nieba .okno-niebo, .bez-nieba .okno-ramka { display: none; }   /* 🕓 „Animacja dnia i nocy na tarczy: Wyłączone" — pora zostaje */
+  /* tryby nad zegarem (Lasha 27.09): Odczytaj · Słowami · Cyframi · 🔊 */
   .tryby { flex: none; width: min(100%, 28rem); }
   .tryby .btn { flex: 1; padding-inline: 0; }
   /* zadanie pod zegarem w trybach Ustaw: co ustawić + „Sprawdź"; kolory jak odkryta karta, dobrze / źle na chwilę */
@@ -74,15 +76,16 @@
   .zadanie.dobrze { border-color: var(--color-success); background: color-mix(in oklab, var(--color-success) 22%, var(--color-base-200)); }
   .zadanie.zle { border-color: var(--color-error); background: color-mix(in oklab, var(--color-error) 18%, var(--color-base-200)); }
   /* 🔊 w prawym górnym rogu zegara (Lasha 27.09) — tarcza jest okrągła, róg kwadratu jest wolny */
-  .zegar-rog { position: relative; }
+  .zegar-rog { position: relative; margin-top: 12px; }   /* odstęp od trybów — 🎲 i 🔊 wystają nad tarczę */
   .zegar-rog #powiedz { position: absolute; top: -12px; right: -12px; }
   .zegar-rog #losuj { position: absolute; top: -12px; left: -12px; }   /* 🎲 w lewym rogu, naprzeciw 🔊 */
   #pytanie { font-size: var(--r-drobny); }
   .napis { font-size: var(--r-glowny); font-weight: 700; text-align: center; margin: 0; line-height: 1.2; min-height: 2.4em; }
   .napis.cyfry { font-variant-numeric: tabular-nums; }   /* cyfry nie skaczą przy przeciąganiu */
-  /* pora doby tuż pod słowami; blok ma stałą wysokość (2 linie napisu + pora) — 🔊 pod nim nie skacze */
-  .napis-blok { font-size: var(--r-glowny); min-height: calc(2.4em + 23px); text-align: center; }
+  /* blok ma stałą wysokość (2 linie napisu) — 🔊 pod nim nie skacze; pora doby — na niebie */
+  .napis-blok { font-size: var(--r-glowny); min-height: 2.4em; text-align: center; }
   .napis-blok .napis { min-height: 0; }
+  /* pora doby pod słowami na Starcie */
   .pora { margin: 0; min-height: 23px; font-size: var(--r-drobny); line-height: 23px; color: color-mix(in oklab, var(--color-base-content) 60%, transparent); }
   /* „Zakryj godzinę" (⚙): karta „Która godzina?" nad odpowiedzią; zakryta = obrócona o 180°, dotyk obraca tam i z powrotem */
   .karta-odp { width: min(100%, 24rem); perspective: 900px; }
@@ -93,17 +96,15 @@
                         color: var(--color-primary-content); box-shadow: 0 4px 14px rgb(0 0 0 / .18);
                         background: repeating-linear-gradient(135deg, transparent 0 14px, rgb(255 255 255 / .12) 14px 28px), var(--color-primary); }
   .karta-odp .zaslona b { font-size: var(--r-glowny); line-height: 1.1; }
-  .karta-odp .zaslona span { font-size: var(--r-przycisk); font-weight: 700; line-height: 1.2; }   /* pora: rano, wieczorem … */
   .karta-odp .zaslona small { font-size: var(--r-drobny); font-weight: 600; letter-spacing: .04em; opacity: .85; }
   .karta-odp.wlaczona .zaslona { display: flex; }
   .karta-odp.zakryta .obrot { transform: rotateY(180deg); }
   .karta-odp.bez-animacji .obrot { transition: none; }
-  /* odkryta strona też jest kartą — kolory z motywu; odpowiedź na środku (pusta pora nie spycha jej w górę) */
+  /* odkryta strona też jest kartą — kolory z motywu; odpowiedź na środku */
   .karta-odp.wlaczona .napis-blok { display: flex; flex-direction: column; align-items: center; justify-content: center;
-                                    min-height: calc(2.4em + 23px + 16px); padding: 8px 12px;
+                                    min-height: calc(2.4em + 16px); padding: 8px 12px;
                                     background: var(--color-base-200); border: 1px solid var(--color-base-300);
                                     border-radius: var(--radius-box, 1rem); box-shadow: 0 4px 14px rgb(0 0 0 / .18); cursor: pointer; }
-  .karta-odp.wlaczona .pora:empty { display: none; }
   /* ⚙ ustawienia zegara: szuflada z prawej */
   .ustaw-tytul { margin: 0; padding: 0 1rem .25rem; font-size: 18px; font-weight: 700; }
   .ustaw-glowa { display: flex; align-items: center; justify-content: space-between; padding-right: .5rem; }
@@ -176,7 +177,19 @@
           padding: .5rem 1rem; text-align: center; font-size: var(--r-drobny); line-height: 1.35; }
   .znak { display: block; font-size: var(--r-drobny); font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--color-primary); }
 
-  /* lekcja 4 „Godzina i minuty" (lekcja-razem.js): stała wysokość napisów (glowny zawsze na 2 linie) — zegar nad nimi
+  /* lekcja 4 „Po i za" (lekcja-polowy.js): prawa połowa „po", lewa „za" (kolory jak w samouczku poziomu 3); świeci ta,
+     na której stoi minutowa, i jej napis — przy 12 i 6 tylko napis */
+  .zegar .polowa-po { fill: var(--sam-po); fill-opacity: .12; transition: fill-opacity .15s; }
+  .zegar .polowa-za { fill: var(--sam-za); fill-opacity: .12; transition: fill-opacity .15s; }
+  .zegar .polowa-po.swieci, .zegar .polowa-za.swieci { fill-opacity: .36; }
+  .polowy-gora { width: min(100%, 22rem); display: flex; justify-content: space-between; margin-bottom: -6px; }
+  .polowy-gora span, .polowy-6 { font-size: var(--r-przycisk); font-weight: 700; opacity: .4; transition: opacity .15s; }
+  .polowy-gora .za { color: var(--sam-za); }
+  .polowy-gora .po { color: var(--sam-po); }
+  .polowy-gora .swieci, .polowy-6.swieci { opacity: 1; }
+  .polowy-6 { margin: -6px 0 0; }
+
+  /* lekcja 5 „Godzina i minuty" (lekcja-razem.js): stała wysokość napisów (glowny zawsze na 2 linie) — zegar nad nimi
      nie skacze, gdy napis się zawija albo pustoszeje */
   .razem-glowny { font-size: var(--r-glowny); height: 2.3em; flex: none; align-content: center; text-align: center; }
   .razem-albo   { margin: 0; font-size: var(--r-drobny); line-height: 1.35; height: 1.35em; flex: none; color: color-mix(in oklab, var(--color-base-content) 70%, transparent); }
@@ -184,7 +197,7 @@
   .razem-cyfry  { margin: 0; font-size: var(--r-przycisk); font-weight: 700; font-variant-numeric: tabular-nums; display: flex; align-items: baseline; gap: .35em; }
   .razem-cyfry small { font-size: var(--r-drobny); font-weight: 500; color: color-mix(in oklab, var(--color-base-content) 60%, transparent); }
 
-  /* lekcja 5 „Upływ czasu" (lekcja-uplyw.js) */
+  /* lekcja 6 „Upływ czasu" (lekcja-uplyw.js) */
   .uplyw-napis { font-variant-numeric: tabular-nums; }
   .przyklad { text-align: left; display: flex; flex-direction: column; align-items: center; gap: .45rem; padding: .6rem 1rem .8rem; }
   .przyklad p { margin: 0; align-self: stretch; }
@@ -269,8 +282,23 @@
   .sam-duzy { margin: 0; font-size: var(--r-glowny); font-weight: 700; line-height: 1.2; min-height: 1.2em; font-variant-numeric: tabular-nums; }
   .sam-maly { margin: 0; font-size: var(--r-drobny); line-height: 1.35; min-height: 1.35em; font-variant-numeric: tabular-nums;
               color: color-mix(in oklab, var(--color-base-content) 60%, transparent); }
-  .sam-dalej { width: 12rem; margin-top: 4px; font-size: var(--r-przycisk); }
+  .sam-dalej, .sam-od-nowa { width: 12rem; margin-top: 4px; font-size: var(--r-przycisk); }
   .sam-ukryty { visibility: hidden; }
+  /* 🏋 Trening (Lasha 28.09): krok samouczka bez „💡 Jak to działa?" i bez „Dalej"; zdanie w 1–2 wierszach */
+  .trening { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; }
+  .trening .sam-znak, .trening .sam-dalej { display: none; }
+  .trening .sam-gora { height: 56px; }
+  .w-treningu .zegar-rog { display: none; }
+  /* „Która godzina?": liczba godziny, którą krótka minęła, powiększona (samIle w samouczki.js) */
+  .trening .sam-teraz { transform: scale(1.45); fill: #ff8c1a; }   /* póki duża — czerwono-pomarańczowa (Lasha 28.09) */
+  .trening .s-cyfra, .trening .m-cyfra, .trening .k-cyfra { transform-box: fill-box; transform-origin: center;
+                                                            transition: transform .2s, fill .2s; }
+  /* „Dwadzieścia pięć po jedenastej wieczorem" bywa w 2 wierszach — miejsce na 2 zawsze, zakładka nie skacze (Lasha 28.09) */
+  .trening .sam-maly { min-height: 2.7em; text-align: center; }
+  /* „Upływ": „1 godz." · „20 min" przy końcu minutowej, za tarczą — przy 3 i 9 wychodzi trochę poza zegar (samUplyw;
+     .zegar ma overflow: visible) */
+  .sam-uplyw { fill: var(--uplyw); font: 700 9px system-ui, "Segoe UI", Roboto, sans-serif; text-anchor: middle;
+               dominant-baseline: central; }
   .sam-swieci { animation: sam-miga 1s ease-in-out infinite; }
   @keyframes sam-miga { 50% { opacity: .2; } }
   .sam-palec { font-size: 30px; text-anchor: middle; dominant-baseline: hanging; }
@@ -301,6 +329,10 @@
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
       </label>
       <span class="text-lg font-bold mr-auto" id="tytul">Start</span>
+      <!-- 🕓 wygląd zegara (Lasha 28.09): przed ⚙, tylko przy zegarze -->
+      <label for="wyglad" id="przycisk-wygladu" class="btn btn-ghost btn-square" aria-label="Wygląd zegara" hidden>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      </label>
       <label for="ustawienia" id="przycisk-ustawien" class="btn btn-ghost btn-square" aria-label="Ustawienia" hidden>
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
       </label>
@@ -332,7 +364,11 @@
     <main id="widok-zegar" class="flex-1 min-h-0 flex flex-col px-4 pb-12" hidden>
       <div class="flex-1 min-h-0 flex flex-col items-center justify-center gap-2">
         <div class="tryby join" id="tryby"></div>
-        <div class="niebo" id="niebo"></div>
+        <!-- 🏋 Trening (Lasha 28.09): małe zakładki i krok samouczka — zamiast zegara, karty i zadania -->
+        <div class="trening" id="trening" hidden>
+          <div class="join" id="treningi"></div>
+          <div class="trening" id="trening-miejsce"></div>
+        </div>
         <div class="zegar-rog">
           <div id="zegar-miejsce"></div>
           <button id="losuj" class="btn btn-primary btn-circle btn-lg" aria-label="Losowa godzina">
@@ -347,9 +383,8 @@
           <div class="obrot">
             <div class="napis-blok">
               <p class="napis" id="napis"></p>
-              <p class="pora" id="pora"></p>
             </div>
-            <div class="zaslona" aria-label="Pokaż godzinę"><b>Która godzina?</b><span id="zaslona-pora"></span><small>Dotknij</small></div>
+            <div class="zaslona" aria-label="Pokaż godzinę"><b>Która godzina?</b><small>Dotknij</small></div>
           </div>
         </div>
         <!-- zadanie w trybach Słowami · Cyframi · Ze słuchu (Lasha 27.09): co ustawić + Sprawdź -->
@@ -390,9 +425,25 @@
       <div class="ustaw-grupa"><span>Pora dnia</span><div class="join" id="u-pora"></div></div>
       <div class="ustaw-grupa" id="g-po13"><span>Cyfry po południu</span><div class="join" id="u-po13"></div></div>
       <div class="ustaw-grupa"><span>Dźwięki</span><div class="join" id="u-dzwieki"></div></div>
-      <ul class="menu w-full text-base">
-        <li><details id="m-wyglad"><summary>Wygląd zegara</summary><ul id="menu-wyglad"></ul></details></li>
-      </ul>
+    </nav>
+  </div>
+</div>
+
+<!-- 🕓 wygląd zegara (Lasha 28.09): osobna szuflada z prawej, jak ⚙ (wcześniej „Wygląd zegara" na dole ⚙) -->
+<div class="drawer drawer-end">
+  <input id="wyglad" type="checkbox" class="drawer-toggle">
+  <div class="drawer-content"></div>
+  <div class="drawer-side z-20">
+    <label for="wyglad" aria-label="Zamknij wygląd zegara" class="drawer-overlay"></label>
+    <nav class="bg-base-100 min-h-full w-80 py-3">
+      <div class="ustaw-glowa">
+        <p class="ustaw-tytul">Wygląd zegara</p>
+        <label for="wyglad" class="btn btn-ghost btn-square" aria-label="Zamknij wygląd zegara">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </label>
+      </div>
+      <ul class="menu w-full text-base" id="menu-wyglad"></ul>
+      <div class="ustaw-grupa"><span>Animacja dnia i nocy na tarczy</span><div class="join" id="u-niebo"></div></div>
     </nav>
   </div>
 </div>
@@ -437,8 +488,6 @@ const slowami = tm => duza(napis(tm).filter(Boolean).join(' ')) + ' ' + pora(tm)
 // czas na tarczy dociągnięty do kroku, w minutach od północy — tarcza liczy 12 h, połowę doby trzyma popo
 const tDoby = () => Math.round((t + (popo ? 720 : 0)) / krok) * krok % 1440;
 
-const poraEl = document.getElementById('pora');
-const zaslonaPoraEl = document.getElementById('zaslona-pora');
 let ostatni = -1;
 function pokazNapis() {
   const tk = tDoby();
@@ -446,10 +495,6 @@ function pokazNapis() {
   ostatni = tk;
   napisEl.textContent = '';
   napisEl.classList.toggle('cyfry', zapis === 'cyfry');
-  // pora zawsze, także przy cyfrach i na zakrytej karcie (Lasha 27.09: dziecko nie czyta jeszcze 24 h, a 5:45 i 17:45
-  // wyglądają na tarczy tak samo)
-  poraEl.textContent = pora(tk);
-  zaslonaPoraEl.textContent = pora(tk);
   if (zapis === 'cyfry') {
     const [gg, mm] = cyfrowo(tk).split(':');
     napisEl.innerHTML = `<span class="g">${gg}</span>:<span class="m">${mm}</span>`;
@@ -523,6 +568,9 @@ let zapis = zapisane('zegar-zapis', ZAPISY);
 const ZAKRYCIA = [['nie', 'Nie'], ['tak', 'Tak']];
 // „Dźwięki" (Lasha 27.09): klik, tik wskazówki, dobrze / źle — dzwieki.js sam pamięta wybór
 const DZWIEKI = [['tak', 'Włączone'], ['nie', 'Wyłączone']];
+// „Animacja dnia i nocy na tarczy" w 🕓 (Lasha 28.09): Wyłączone = bez okienka nieba na tarczy; pora doby pod nim zostaje
+const DZIEN_NOC = [['tak', 'Włączone'], ['nie', 'Wyłączone']];
+let dzienNoc = zapisane('zegar-niebo', DZIEN_NOC);
 let zakryj = zapisane('zegar-zakryj', ZAKRYCIA);
 let odkryta = false;
 const kartaEl = document.getElementById('karta-odp');
@@ -570,10 +618,24 @@ function nowyCzas(nt) {
 function noweSvg(cls) { const s = document.createElementNS(NS, 'svg'); s.setAttribute('class', cls); return s; }
 function h(tag, cls, html) { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
 
-// ☀/☾ niebo nad zegarem (niebo.js): przy przeciąganiu idzie razem z palcem, bez dociągania do kroku;
-// 🎲 i ⚙ — płynnie, razem ze wskazówkami
-const niebo = Niebo(document.getElementById('niebo'));
+// ☀/☾ okienko nieba na tarczy nad 6 (niebo.js; Lasha 28.09, wariant ა z _visual/por-pora.html): przy przeciąganiu
+// idzie razem z palcem, bez dociągania do kroku; 🎲 i ⚙ — płynnie, razem ze wskazówkami. Pod nim pora doby — zawsze,
+// także przy cyfrach i na zakrytej karcie (Lasha 27.09: dziecko nie czyta jeszcze 24 h, a 5:45 i 17:45 wyglądają
+// na tarczy tak samo). Nad tłem tarczy, pod cyframi i wskazówkami; przy cyfrach z minutami maleje razem z tarczą.
+let niebo = null;
 const tCiagly = () => t + (popo ? 720 : 0);
+function okienkoNieba(svg) {
+  // 74 szerokości (było 86; Lasha 28.09): okienko i pora nie zasłaniają VIII, VII, V na tarczy klasycznej
+  const x = 63, y = 107, w = 74, hh = w * 90 / 320;   // proporcje nieba z niebo.js (320 × 90)
+  const g = document.createElementNS(NS, 'g');
+  g.innerHTML = `<clipPath id="okno-nieba"><rect x="${x}" y="${y}" width="${w}" height="${hh}" rx="5"/></clipPath>` +
+    `<g class="okno-niebo" clip-path="url(#okno-nieba)"><svg x="${x}" y="${y}" width="${w}" height="${hh}"></svg></g>` +
+    `<rect class="okno-ramka" x="${x}" y="${y}" width="${w}" height="${hh}" rx="5"/>` +
+    `<text class="okno-pora" x="100" y="${y + hh + 9}" text-anchor="middle"></text>`;
+  svg.querySelector('.s-tlo, .m-tlo, .k-tlo').after(g);
+  const napis = g.querySelector('text');
+  return Niebo(g.querySelector('svg'), tm => { napis.textContent = pora(tm); });
+}
 
 // przy „Cyfry po południu: 13, 14 … 23" tarcza sama idzie za ☀/☾ (Lasha 27.09)
 let zegar = null;
@@ -592,6 +654,8 @@ function zbudujZegar() {
       if (puszczone) { const tk = tDoby(); log(`ustawiono ${cyfrowo(tk)} — ${slowami(tk)}`); }
     }
   });
+  niebo = okienkoNieba(svg);
+  niebo.ustaw(nieboCel());
 }
 
 // 🎲 losowa godzina (Lasha 27.09): cała doba, co krok z ⚙, nigdy ta sama co teraz; ☀/☾ idzie sama.
@@ -609,11 +673,12 @@ document.getElementById('losuj').onclick = () => {
 
 // ---- tryby ekranu „Zegar" (Lasha 27.09, plan _visual/zegar-tryby-plan): Odczytaj = zegar → nazwa, jak dotąd;
 // Słowami · Cyframi · Ze słuchu = nazwa → zegar: dziecko ustawia wskazówki i naciska „Sprawdź". Bez końca, ✓ w nagłówku.
-// Każde zadanie od 12:00; czas co krok z ⚙, cała doba (bez 12:00 i 0:00 — tam wskazówki już stoją). Sprawdza się tylko
+// Wskazówki zostają tam, gdzie były (Lasha 28.09: nie od 12:00); czas co krok z ⚙, cała doba, nigdy tam, gdzie
+// wskazówki już stoją. Sprawdza się tylko
 // tarcza (17:45 = 5:45). Niebo pokazuje porę zadania, nie idzie za wskazówkami. Źle 2 razy → wskazówki same jadą na miejsce.
 // 🔊 czyta zadanie, 🎲 daje inne. Napisy „Ustaw zegar:" / „Dobrze!" / „Popatrz, tak:" — moje.
 const IKONA_GLOS = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>';
-const TRYBY = [['odczytaj', 'Odczytaj'], ['slowa', 'Słowami'], ['cyfry', 'Cyframi'], ['sluch', IKONA_GLOS]];
+const TRYBY = [['trening', 'Trening'], ['odczytaj', 'Odczytaj'],['slowa', 'Słowami'], ['cyfry', 'Cyframi'], ['sluch', IKONA_GLOS]];
 let tryb = zapisane('zegar-tryb', TRYBY);
 if (tryb === 'sluch' && !glos) tryb = 'odczytaj';   // bez syntezy mowy nie ma „Ze słuchu"
 let zad = null, trafione = 0;
@@ -635,15 +700,51 @@ function zbudujTryby() {
       try { localStorage.setItem('zegar-tryb', tryb); } catch (e) {}
       log(`tryb: ${tryb}`);
       zbudujTryby();
-      if (tryb === 'odczytaj') { niebo.jedz(tCiagly(), 500); ostatni = -1; pokazNapis(); } else noweZadanie();
+      if (tryb === 'odczytaj') { niebo.jedz(tCiagly(), 500); ostatni = -1; pokazNapis(); }
+      else if (tryb !== 'trening') noweZadanie();
       pokazTryb();
     };
     box.append(b);
   });
 }
 
+// ---- 🏋 Trening (Lasha 28.09): pierwsza zakładka zegara, w niej małe zakładki. Każda to ostatni krok samouczka
+// z Ćwiczeń („Przesuwaj … palcem"): dziecko ciągnie wskazówkę, pod zegarem na żywo, co pokazuje. Bez punktów.
+// [klucz, nazwa, samouczek (poziom od 0 albo własny z samouczki.js), krok (od 0)] — reszta zakładek
+// (Do pełnej · Wcześniej / później) po kolei
+const TRENINGI = [
+  ['ile', 'Która godzina?', TRENING_ILE, 0],   // jak poziom 2, krok 4 (zdjęcie Lashy: 05, 10 … za wskazówką), plus krótka i „08:25"
+  ['po', 'Po i za', 5, 2],                     // poziom 6, krok 3: obie wskazówki, zdanie „Za pięć siódma" i „06:55" (Lasha 28.09)
+  ['uplyw', 'Upływ', TRENING_UPLYW, 0],        // nowy: miniony czas na tarczy, „1 godz. 20 min" przy minutowej, „Od nowa"
+];
+let trening = zapisane('zegar-trening', TRENINGI);
+const treningEl = document.getElementById('trening');
+function zbudujTrening() {
+  const box = document.getElementById('treningi');
+  box.textContent = '';
+  TRENINGI.forEach(([k, nazwa]) => {
+    const b = h('button', 'join-item btn btn-xs' + (k === trening ? ' btn-primary' : ''), nazwa);
+    b.onclick = () => {
+      if (k === trening) return;
+      trening = k;
+      try { localStorage.setItem('zegar-trening', trening); } catch (e) {}
+      zbudujTrening();
+    };
+    box.append(b);
+  });
+  const [, nazwa, poz, krokSam] = TRENINGI.find(([k]) => k === trening);
+  samouczek(document.getElementById('trening-miejsce'), h('span'), poz, () => {}, krokSam);
+  simScreen(`trening-${trening}`);
+  log(`trening: ${nazwa}`);
+}
+
 function pokazTryb() {
-  const ustaw = tryb !== 'odczytaj';
+  const tr = tryb === 'trening', miejsce = document.getElementById('trening-miejsce');
+  document.getElementById('widok-zegar').classList.toggle('w-treningu', tr);
+  treningEl.hidden = !tr;
+  if (tr && !miejsce.firstChild) zbudujTrening();
+  if (!tr) { miejsce.cwZnak = {}; miejsce.textContent = ''; }   // cwZnak: spóźnione klatki samouczka nic nie piszą
+  const ustaw = !tr && tryb !== 'odczytaj';
   zadanieEl.hidden = !ustaw;
   pokazKarte();
   if (widok === 'zegar') { licznikEl.hidden = !ustaw; licznikEl.textContent = `✓ ${trafione}`; }
@@ -662,13 +763,11 @@ function pokazZadanie(stan = '') {
 zadTrescEl.onclick = () => { if (zad && tryb === 'sluch') mow(slowami(zad.cel)); };   // „🔊 Posłuchaj" też powtarza
 
 function noweZadanie() {
-  const n = 1440 / krok, stare = zad && zad.cel;
+  const n = 1440 / krok, stare = zad && zad.cel, jest = Math.round(t) % 720;
   let cel;
-  do cel = Math.floor(Math.random() * n) * krok; while (cel % 720 === 0 || cel === stare);
+  do cel = Math.floor(Math.random() * n) * krok; while (cel % 720 === jest || cel === stare);
   zad = { cel, bledy: 0, koniec: false };
   if ((cel >= 720) !== popo) { popo = cel >= 720; zegar.popo(popo); zbudujPrzelaczniki(); }
-  t = 0;
-  zegar.jedz(0, 400);
   niebo.jedz(cel, 500);
   pokazZadanie();
   if (tryb === 'sluch') mow(slowami(cel));
@@ -702,13 +801,14 @@ function zbudujPrzelaczniki() {
       krok = +k;
       nowyCzas(Math.round(t / krok) * krok % 720);   // z 1 na 5 wskazówka od razu dociąga (11:58 → 12:00 zmienia połowę)
       zbudujZegar();
-      if (tryb !== 'odczytaj') noweZadanie();   // stare zadanie może nie leżeć na nowym kroku
+      if (tryb !== 'odczytaj' && tryb !== 'trening') noweZadanie();   // stare zadanie może nie leżeć na nowym kroku
     }],
    ['u-zapis', ZAPISY, zapis, k => { zapis = k; }],
    ['u-zakryj', ZAKRYCIA, zakryj, k => { zakryj = k; odkryta = false; pokazKarte(); }],
    ['u-pora', PORY, popo ? 'po' : 'przed', k => { popo = k === 'po'; zegar.popo(popo); }],
    ['u-po13', PO13, po13, k => { po13 = k; zbudujZegar(); }],
-   ['u-dzwieki', DZWIEKI, Dzwiek.wlaczone ? 'tak' : 'nie', k => Dzwiek.wlacz(k === 'tak')]
+   ['u-dzwieki', DZWIEKI, Dzwiek.wlaczone ? 'tak' : 'nie', k => Dzwiek.wlacz(k === 'tak')],
+   ['u-niebo', DZIEN_NOC, dzienNoc, k => { dzienNoc = k; document.body.classList.toggle('bez-nieba', k === 'nie'); }]
   ].forEach(([id, opcje, wybrana, ustaw]) => {
     const box = document.getElementById(id);
     box.textContent = '';
@@ -718,8 +818,8 @@ function zbudujPrzelaczniki() {
         if (k === wybrana) return;
         ustaw(k);
         niebo.jedz(nieboCel(), 500);   // ☀/☾ w ⚙: słońce zachodzi, księżyc wschodzi (albo odwrotnie)
-        try { localStorage.setItem('zegar-krok', krok); localStorage.setItem('zegar-zapis', zapis); localStorage.setItem('zegar-zakryj', zakryj); localStorage.setItem('zegar-po13', po13); } catch (e) {}
-        log(`zegar: ${KROKI.find(([x]) => +x === krok)[1]} · ${ZAPISY.find(([x]) => x === zapis)[1]} · ${PORY[+popo][1]} · zakryj: ${zakryj} · po południu: ${PO13.find(([x]) => x === po13)[1]} · dźwięki: ${Dzwiek.wlaczone ? 'tak' : 'nie'}`);
+        try { localStorage.setItem('zegar-krok', krok); localStorage.setItem('zegar-zapis', zapis); localStorage.setItem('zegar-zakryj', zakryj); localStorage.setItem('zegar-po13', po13); localStorage.setItem('zegar-niebo', dzienNoc); } catch (e) {}
+        log(`zegar: ${KROKI.find(([x]) => +x === krok)[1]} · ${ZAPISY.find(([x]) => x === zapis)[1]} · ${PORY[+popo][1]} · zakryj: ${zakryj} · po południu: ${PO13.find(([x]) => x === po13)[1]} · dźwięki: ${Dzwiek.wlaczone ? 'tak' : 'nie'} · animacja dnia i nocy: ${dzienNoc}`);
         ostatni = -1;
         pokazNapis();
         zbudujPrzelaczniki();
@@ -731,7 +831,7 @@ function zbudujPrzelaczniki() {
 }
 
 // ---- Poznaj zegar: lekcje według podręcznika (klasa 4, rozdz. 2 „Zegary", s. 14–16) ----
-// lekcje 4 i 5 w osobnych plikach: lekcja-razem.js, lekcja-uplyw.js
+// lekcje 4–6 w osobnych plikach: lekcja-polowy.js, lekcja-razem.js, lekcja-uplyw.js
 // start jak w podręczniku: 8:00 i „20 minut po ósmej"; czas lekcji zostaje przy zmianie wyglądu
 const tLekcji = [0, 8 * 60, 8 * 60 + 20];
 const MINUTY = ['pełna godzina', 'pięć po', 'dziesięć po', 'piętnaście po', 'dwadzieścia po', 'dwadzieścia pięć po',
@@ -800,6 +900,7 @@ const LEKCJE = [
   { nazwa: 'Jednostki czasu', opis: 'doba, godzina, minuta', zegar: { t: 0 }, buduj: lekcjaJednostki },
   { nazwa: 'Godziny', opis: '8:00 albo 20:00', zegar: { t: 8 * 60, tylko: 'g' }, buduj: lekcjaGodziny },
   { nazwa: 'Minuty', opis: 'co 5 minut', zegar: { t: 20, tylko: 'm', sektor: true }, buduj: lekcjaMinuty },
+  { nazwa: 'Po i za', opis: 'dwie połowy tarczy', zegar: { t: 10, tylko: 'm' }, buduj: lekcjaPolowy },
   { nazwa: 'Godzina i minuty', opis: '20 minut po ósmej', zegar: { t: 8 * 60 + 20 }, buduj: lekcjaRazem },
   { nazwa: 'Upływ czasu', opis: 'od 13:45 do 14:05', zegar: { t: 60 + 45 }, buduj: lekcjaUplyw },
 ];
@@ -982,6 +1083,7 @@ function pokazWidok() {
   cwBox.hidden = !wRundzie;
   document.getElementById('widok-zegar').hidden = widok !== 'zegar';
   document.getElementById('przycisk-ustawien').hidden = widok !== 'zegar';   // ⚙ tylko przy zegarze
+  document.getElementById('przycisk-wygladu').hidden = widok !== 'zegar';   // 🕓 też
   document.getElementById('przycisk-start').hidden = widok === 'start';       // 🏠 wszędzie poza Startem
   licznikEl.hidden = !wRundzie;
   document.getElementById('przycisk-pomoc').hidden = !(wRundzie && samouczekJest(poziom));
@@ -1017,7 +1119,7 @@ const cofnij = () => widok === 'karty' && lekcja >= 0 ? otworzLekcje(-1)
 // 🏠 — od razu na Start, także ze środka rundy (bez pytania, jak ☰ → Start)
 document.getElementById('przycisk-start').onclick = () => idzDo('start');
 
-// podmenu „Wygląd zegara": grupa z tytułem i podglądami 10:10
+// 🕓 „Wygląd zegara": grupa z tytułem i podglądami 10:10
 function grupa(ul, tytul, opcje, wybrana, podglad, wybierz) {
   ul.append(h('li', 'menu-title', tytul));
   opcje.forEach(([k, nazwa]) => {
@@ -1033,7 +1135,7 @@ function grupa(ul, tytul, opcje, wybrana, podglad, wybierz) {
   });
 }
 
-// przebudowuje tylko środek podmenu — <details> zostaje otwarte po wyborze
+// przebudowuje tylko listę — szuflada 🕓 zostaje otwarta po wyborze
 function zbudujMenu() {
   const ul = document.getElementById('menu-wyglad');
   ul.textContent = '';
@@ -1052,35 +1154,39 @@ function zmienWyglad() {
   zbudujZegar();
   zbudujMenu();
   zbudujPrzelaczniki();
+  if (tryb === 'trening') zbudujTrening();
   if (widok === 'karty' && lekcja >= 0) zbudujLekcje();
 }
 
-// ◀ w symulatorze / Wstecz na telefonie: najpierw zamyka menu / ustawienia, potem cofnij(); na Starcie — wyjście
+// ◀ w symulatorze / Wstecz na telefonie: najpierw zamyka menu / ustawienia / wygląd, potem cofnij(); na Starcie — wyjście
 const ustawEl = document.getElementById('ustawienia');
+const wygladEl = document.getElementById('wyglad');
 window.simBack = () => {
   if (menuEl.checked) menuEl.checked = false;
   else if (ustawEl.checked) ustawEl.checked = false;
+  else if (wygladEl.checked) wygladEl.checked = false;
   else if (widok !== 'start') cofnij();
   else history.back();
 };
 menuEl.addEventListener('change', () => simScreen(menuEl.checked ? 'menu' : ekran()));
 ustawEl.addEventListener('change', () => simScreen(ustawEl.checked ? 'ustawienia' : ekran()));
+wygladEl.addEventListener('change', () => simScreen(wygladEl.checked ? 'wyglad' : ekran()));
 
-// do sprawdzania: ?menu=1 · ?ustawienia=1 · ?wyglad=1 (ustawienia z otwartym „Wygląd zegara") · ?widok=start|zegar|karty|cwiczenia ·
+// do sprawdzania: ?menu=1 · ?ustawienia=1 · ?wyglad=1 (szuflada 🕓 „Wygląd zegara") · ?widok=start|zegar|karty|cwiczenia ·
 // ?lekcja=2 (od 1) · ?poziom=1 (od 1)
 const q = new URLSearchParams(location.search);
 if (WIDOKI.some(([k]) => k === q.get('widok'))) widok = q.get('widok');
 if (q.get('lekcja')) { widok = 'karty'; lekcja = Math.min(LEKCJE.length, Math.max(1, +q.get('lekcja') || 1)) - 1; }
 if (q.get('poziom')) { widok = 'cwiczenia'; poziom = Math.min(POZIOMY.length, Math.max(1, +q.get('poziom') || 1)) - 1; }
-if (q.get('wyglad') === '1') document.getElementById('m-wyglad').open = true;
 if (q.get('menu') === '1') menuEl.checked = true;
-if (q.get('ustawienia') === '1' || q.get('wyglad') === '1') { widok = 'zegar'; ustawEl.checked = true; }
+if (q.get('ustawienia') === '1') { widok = 'zegar'; ustawEl.checked = true; }
+if (q.get('wyglad') === '1') { widok = 'zegar'; wygladEl.checked = true; }
 
 document.body.dataset.styl = styl;
+document.body.classList.toggle('bez-nieba', dzienNoc === 'nie');
 zbudujZegar();
-niebo.ustaw(tCiagly());
 zbudujTryby();
-if (tryb !== 'odczytaj') noweZadanie();
+if (tryb !== 'odczytaj' && tryb !== 'trening') noweZadanie();
 zbudujPrzelaczniki();
 zbudujMenu();
 pokazNapis();

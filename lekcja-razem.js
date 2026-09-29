@@ -1,6 +1,6 @@
-// lekcja-razem.js — lekcja 4 „Godzina i minuty": obie wskazówki, jedna godzina na kilka sposobów
+// lekcja-razem.js — lekcja 5 „Godzina i minuty": obie wskazówki, jedna godzina na kilka sposobów
 // (podręcznik s. 15: „20 minut po ósmej"; s. 17 zad. 2: „za piętnaście szósta · piąta trzydzieści · 5:45").
-// Wpisana w LEKCJE w index.html (tam też style „lekcja 4"); podgląd: sim.html?app=index.html%3Flekcja%3D4.
+// Wpisana w LEKCJE w index.html (tam też style „lekcja 5"); podgląd: sim.html?app=index.html%3Flekcja%3D5.
 // Korzysta z globalnych z index.html: GODZ, GODZ_EJ, h, noweSvg, styl, RAMA, log, Zegar (tarcza.js).
 "use strict";
 
