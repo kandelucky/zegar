@@ -127,10 +127,12 @@ function samOstatnie4(s) {
 // duże „14:25" (godzina w kolorze krótkiej, minuty — długiej) i „Dwadzieścia pięć po drugiej po południu".
 // Pod spodem dwa przełączniki, włączenie jednego wyłącza drugi:
 //  „Po i za" — połówki tarczy po / za, pod zegarem zdanie z poziomu 6 („Za pięć siódma") i cyfry;
-//  „Upływ czasu" — od chwili włączenia za minutową zabarwia się miniony czas, każda godzina swoim kolorem (zielony i „po"
-//   na przemian, jak most w poziomie 9); przy końcu minutowej, za tarczą, „1 godz." · „20 min" (najbliższe 5 minut),
-//   pod zegarem „08:00 → 09:20"; w tył od startu — sam start. 4 liczby wtedy nie świecą (napis stoi w ich miejscu).
-const SAM_GODZ_KOLOR = ['sektor', 'sam-pol-po'];   // godzina 1, 3, 5 … · 2, 4 …
+//  „Upływ czasu" — od chwili włączenia za minutową zabarwia się miniony czas; przy końcu minutowej, za tarczą, „1 godz." ·
+//   „20 min" (najbliższe 5 minut), pod zegarem „08:00 → 09:20" i „Minęła 1 godzina i 20 minut.". W tył od startu
+//   (Lasha 29.09, _visual/por-uplyw.html) tak samo: „07:40 → 08:00" i „To było 20 minut temu.". Kolor jeden na kierunek
+//   („ან ერთი ფერი იქნება ან მეორე"): w przód zielony, w tył pomarańczowy; ponad godzinę — ostatnia godzina mocniej.
+//   4 liczby wtedy nie świecą (napis stoi w ich miejscu).
+const SAM_UPLYW_KOLOR = ['sektor', 'sam-pol-po'];   // w przód · w tył
 const SAM_ZA_TARCZA = 80;                        // napis zaczyna się tyle od środka — tuż za obrzeżem tarczy
 function samTrening(s) {
   const liczby = s.svg.querySelectorAll('.s-cyfra, .m-cyfra, .k-cyfra');   // 1 … 12, po kolei
@@ -140,12 +142,14 @@ function samTrening(s) {
   const teraz = () => ((s.t + Math.round(T / 5) * 5) % 1440 + 1440) % 1440;
 
   function rysujUplyw(u) {
-    const kolor = i => `${SAM_GODZ_KOLOR[i % 2]} sam-klin`;
-    const x = Math.max(0, T - u.T0), g = Math.floor(x / 60), m = x - g * 60;
-    u.gora.setAttribute('class', kolor(g));
-    u.gora.setAttribute('d', uplywWycinek(u.m0, m));
-    u.dol.setAttribute('class', kolor(g + 1));
-    u.dol.setAttribute('d', g ? uplywWycinek(u.m0 + m, Math.min(60 - m, 59.9)) : '');   // pełne 60 — łuk znika
+    const wtyl = T < u.T0, x = Math.abs(T - u.T0), g = Math.floor(x / 60), m = x - g * 60;
+    const kolor = `${SAM_UPLYW_KOLOR[wtyl ? 1 : 0]} sam-klin`;
+    u.gora.setAttribute('class', kolor);
+    u.dol.setAttribute('class', kolor);
+    u.gora.style.fillOpacity = g ? .55 : '';     // ostatnia godzina mocniej, pod nią poprzednia
+    // gora — ostatnie m minut, dol — reszta tarczy z poprzedniej godziny; pełne 60 — łuk znika
+    u.gora.setAttribute('d', wtyl ? uplywWycinek(u.m0 - m, m) : uplywWycinek(u.m0, m));
+    u.dol.setAttribute('d', !g ? '' : wtyl ? uplywWycinek(u.m0, Math.min(60 - m, 59.9)) : uplywWycinek(u.m0 + m, Math.min(60 - m, 59.9)));
     const d = Math.round(x / 5) * 5, wiersze = [];
     if (d >= 60) wiersze.push(`${Math.floor(d / 60)} godz.`);
     if (d % 60) wiersze.push(`${d % 60} min`);
@@ -163,7 +167,9 @@ function samTrening(s) {
         t.setAttribute('y', cy + (i - (wiersze.length - 1) / 2) * 10);
       });
     }
-    s.wynik(d ? `${samCzas(u.t0, cwCyfry24)} → ${samCzas((u.t0 + d) % 1440, cwCyfry24)}` : samCzas(u.t0, cwCyfry24));
+    const start = samCzas(u.t0, cwCyfry24), koniec = samCzas(((u.t0 + (wtyl ? -d : d)) % 1440 + 1440) % 1440, cwCyfry24);
+    if (!d) s.wynik(start);
+    else s.wynik(wtyl ? `${koniec} → ${start}` : `${start} → ${koniec}`, samMinelo(d, wtyl));
   }
 
   function pisz() {
@@ -222,8 +228,21 @@ const TRENING = { tylko: '', cyfry: 'minuty', dwa: true, kroki: [
   { zdanie: 'Przesuwaj wskazówki palcem.', t: 480, pokaz: samTrening }
 ] };
 
+// „Minęła 1 godzina i 20 minut." · „To było 1 godzinę i 20 minut temu." — d minut (co 5, więc zawsze „minut");
+// 1 godzina (przy „temu" godzinę) · 2–4, 22–24 godziny · 5–21 godzin; godziny w kolorze godzinowej, minuty — minutowej
+const samGodzin = (g, temu) => g === 1 ? (temu ? 'godzinę' : 'godzina')
+  : g % 10 >= 2 && g % 10 <= 4 && (g % 100 < 12 || g % 100 > 14) ? 'godziny' : 'godzin';
+function samMinelo(d, temu) {
+  const g = Math.floor(d / 60), m = d % 60, czesci = [];
+  if (g) czesci.push(`<span class="g">${g} ${samGodzin(g, temu)}</span>`);
+  if (m) czesci.push(`<span class="m">${m} minut</span>`);
+  if (temu) return `To było ${czesci.join(' i ')} temu.`;
+  const cz = !g ? 'Minęło' : g === 1 ? 'Minęła' : samGodzin(g) === 'godziny' ? 'Minęły' : 'Minęło';
+  return `${cz} ${czesci.join(' i ')}.`;
+}
+
 // „07:45" — godzina w kolorze godzinowej, minuty w kolorze minutowej
-const samCzas = (tm, zapis = cwCyfry) => zapis(tm).replace(/^(\d+):(\d+)$/, '<span class="g">$1</span>:<span class="m">$2</span>');
+const samCzas =(tm, zapis = cwCyfry) => zapis(tm).replace(/^(\d+):(\d+)$/, '<span class="g">$1</span>:<span class="m">$2</span>');
 // poziom 6: zdanie („Za pięć siódma") z po / za w kolorach połówek tarczy; całe w jednym <span> — .sam-dwa .sam-duzy
 // stawia je na środku miejsca na 2 wiersze
 const samZdanie = tm => `<span>${cwZdanie(tm).replace(/\b(po|za|Za)\b/,

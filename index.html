@@ -55,7 +55,7 @@
   body[data-styl="szkolny"] { --tekst-g: var(--godz); --tekst-m: var(--min); }
   .g { color: var(--tekst-g); }
   .m { color: var(--tekst-m); }
-  /* 100vh − 350px: nagłówek 56 + 🎲🔊≡ 48 + karta 212 + odstępy — na niskim telefonie (360×640) zegar maleje, nic się nie nakłada */
+  /* 100vh − 350px: nagłówek 56 + pole ▾ 48 + karta ~200 + odstępy — na niskim telefonie (360×640) zegar maleje, nic się nie nakłada */
   #zegar-miejsce svg { width: min(88vw, 58vh, 100vh - 350px); height: auto; }
   /* ☀/☾ okienko nieba na tarczy nad 6 (niebo.js) i pod nim pora doby (Lasha 28.09, wariant ა) */
   .okno-ramka { fill: none; stroke: color-mix(in oklab, var(--color-base-content) 35%, transparent); stroke-width: 1; }
@@ -92,8 +92,25 @@
   .zadanie .wpisz-pole .btn { width: 31px; height: 22px; min-height: 0; padding: 0; font-size: 11px; }
   /* 🔊 w prawym górnym rogu zegara (Lasha 27.09) — tarcza jest okrągła, róg kwadratu jest wolny */
   .zegar-rog { position: relative; }
-  /* 🎲 · 🔊 · ≡ w rzędzie nad zegarem (Lasha 29.09; wcześniej 🎲 i 🔊 w rogach tarczy, ≡ w nagłówku) */
-  .zegar-guziki { display: flex; justify-content: center; gap: 20px; }
+  /* ▾ pole z nazwą zadania nad zegarem (Lasha 29.09, wariant ბ z _visual/por-tytul.html + ▾ i 🔀): dotknięcie — lista zadań;
+     po odpowiedzi na chwilę „Dobrze!" (zielone) · „Popatrz, tak:" (czerwone). 🔊 i ≡ stąd zniknęły */
+  .pole-box { width: min(100%, 24rem); }
+  .pole { width: 100%; height: 48px; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 0 14px;
+          border-radius: 999px; cursor: pointer; background: var(--color-base-100); border: 2px solid var(--color-primary);
+          color: var(--color-primary); font-size: var(--r-przycisk); font-weight: 700; white-space: nowrap;
+          transition: background-color .2s, border-color .2s; }
+  .pole svg { flex: none; }
+  .pole.dobrze { background: var(--color-success); border-color: var(--color-success); color: var(--color-success-content); }
+  .pole.zle { background: var(--color-error); border-color: var(--color-error); color: var(--color-error-content); }
+  /* 🔊 w rogu karty zadania (Lasha 29.09, wariant გ z _visual/por-glosnik.html) — tylko przy „Przeczytaj i ustaw" */
+  .zadanie { position: relative; }
+  .glos-rog { position: absolute; top: 6px; right: 6px; color: var(--color-primary); }
+  .zadanie .glos-rog { width: var(--size); }   /* nie 100% jak Sprawdź — kółko w rogu */
+  /* 🎲 na dole karty, obok „Sprawdź" (Lasha 29.09: „ძალიან ხშირად არის საჭირო") — zawsze w tym samym miejscu, też gdy
+     „Sprawdź" niewidoczny */
+  .zadanie-dol { display: flex; align-items: center; gap: 8px; width: 100%; }
+  .zadanie .zadanie-dol > .btn { flex: 1; }
+  .zadanie .zadanie-dol > .losuj { flex: none; width: 52px; height: 52px; padding: 0; }
   .napis { font-size: var(--r-glowny); font-weight: 700; text-align: center; margin: 0; line-height: 1.2; min-height: 2.4em; }
   .napis.cyfry { font-variant-numeric: tabular-nums; }   /* cyfry nie skaczą przy przeciąganiu */
   /* blok ma stałą wysokość (2 linie napisu) — 🔊 pod nim nie skacze; pora doby — na niebie */
@@ -379,20 +396,11 @@
 
     <main id="widok-zegar" class="flex-1 min-h-0 flex flex-col px-4 pb-4" hidden>
       <div class="flex-1 min-h-0 flex flex-col items-center justify-center gap-2">
-        <!-- trzy przyciski nad zegarem (Lasha 29.09): 🎲 inne zadanie · 🔊 powiedz · ≡ jakie zadania (Wszystkie albo jeden rodzaj) -->
-        <div class="zegar-guziki">
-          <button id="losuj" class="btn btn-primary btn-circle btn-lg" aria-label="Losowa godzina">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><g fill="currentColor" stroke="none"><circle cx="8" cy="8" r="1.5"/><circle cx="16" cy="8" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="8" cy="16" r="1.5"/><circle cx="16" cy="16" r="1.5"/></g></svg>
-          </button>
-          <button id="powiedz" class="btn btn-primary btn-circle btn-lg" aria-label="Powiedz godzinę">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>
-          </button>
-          <div class="dropdown dropdown-center" id="rodzaj-box">
-            <div tabindex="0" role="button" class="btn btn-primary btn-circle btn-lg" aria-label="Zadania">
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M7 12h10M10 18h4"/></svg>
-            </div>
-            <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-30 w-56 p-2 shadow text-base" id="rodzaj-menu"></ul>
-          </div>
+        <!-- ▾ pole nad zegarem (Lasha 29.09): nazwa zadania, dotknięcie — jakie zadania (na zmianę albo jeden rodzaj);
+             🔊 — w rogu karty, 🎲 — na dole karty -->
+        <div class="dropdown dropdown-center pole-box">
+          <div tabindex="0" role="button" class="pole" id="pole" aria-label="Zadania"></div>
+          <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-30 w-full p-2 shadow text-base" id="rodzaj-menu"></ul>
         </div>
         <div class="zegar-rog">
           <div id="zegar-miejsce"></div>
@@ -400,7 +408,6 @@
         <!-- Odczytaj (Lasha 29.09): ta sama karta co zadanie w Słowami — „Która godzina?", odpowiedź (albo pola do wpisania
              godziny), „Sprawdź" (tylko przy wpisywaniu; inaczej niewidoczny, ale zajmuje miejsce — karta nie zmienia rozmiaru) -->
         <div class="zadanie" id="odczyt">
-          <small id="pytanie">Która godzina?</small>
           <div class="karta-odp" id="karta-odp">
             <div class="obrot">
               <div class="napis-blok">
@@ -416,13 +423,25 @@
             <div class="wpisz-pole m"><div class="kolo" id="kolo-m" aria-label="Minuty"></div>
               <span><button class="btn btn-sm" data-krok="1">▲</button><button class="btn btn-sm" data-krok="-1">▼</button></span></div>
           </div>
-          <button id="sprawdz-wpis" class="btn btn-primary">Sprawdź</button>
+          <div class="zadanie-dol">
+            <button id="sprawdz-wpis" class="btn btn-primary">Sprawdź</button>
+            <button class="btn btn-primary losuj" aria-label="Inne zadanie">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><g class="oczka" fill="currentColor" stroke="none"><circle cx="8" cy="8" r="1.5"/><circle cx="16" cy="8" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="8" cy="16" r="1.5"/><circle cx="16" cy="16" r="1.5"/></g></svg>
+            </button>
+          </div>
         </div>
-        <!-- zadanie w trybach Słowami · Cyframi · Ze słuchu (Lasha 27.09): co ustawić + Sprawdź -->
+        <!-- zadanie w trybach Przeczytaj · Według cyfr · Posłuchaj (Lasha 27.09): co ustawić + Sprawdź; 🔊 w rogu -->
         <div class="zadanie" id="zadanie" hidden>
-          <small id="zad-etykieta"></small>
           <b id="zad-tresc"></b>
-          <button id="sprawdz" class="btn btn-primary">Sprawdź</button>
+          <button id="powiedz" class="btn btn-ghost btn-circle btn-sm glos-rog" aria-label="Przeczytaj zadanie" hidden>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>
+          </button>
+          <div class="zadanie-dol">
+            <button id="sprawdz" class="btn btn-primary">Sprawdź</button>
+            <button class="btn btn-primary losuj" aria-label="Inne zadanie">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><g class="oczka" fill="currentColor" stroke="none"><circle cx="8" cy="8" r="1.5"/><circle cx="16" cy="8" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="8" cy="16" r="1.5"/><circle cx="16" cy="16" r="1.5"/></g></svg>
+            </button>
+          </div>
         </div>
       </div>
     </main>
@@ -554,9 +573,8 @@ function mow(tekst) {
   glos.speak(u);
 }
 
-// 🔊 w widoku „Zegar": zawsze słowami, także przy „Cyframi" (8:20 czytane z cyfr brzmi źle)
+// 🔊 w rogu karty zadania: zawsze słowami (8:20 czytane z cyfr brzmi źle); widać tylko przy „Przeczytaj i ustaw" (pokazTryb)
 const powiedzEl = document.getElementById('powiedz');
-powiedzEl.hidden = !glos;
 powiedzEl.onclick = () => {
   const tekst = tryb === 'odczytaj' ? slowami(tDoby()) : tekstZadania();   // w trybach Ustaw — zadanie
   mow(tekst);
@@ -609,8 +627,6 @@ function pokazKarte() {
   kartaEl.hidden = wpisuje;
   kartaEl.classList.toggle('wlaczona', zakryj === 'tak');
   kartaEl.classList.toggle('zakryta', zakryj === 'tak' && !odkryta);
-  // pytanie jest wtedy na zasłonie — niewidoczne, ale zajmuje miejsce (karta nie zmienia rozmiaru)
-  document.getElementById('pytanie').style.visibility = zakryj === 'tak' && !wpisuje ? 'hidden' : '';
   document.getElementById('wpisz').hidden = !wpisuje;
   document.getElementById('sprawdz-wpis').style.visibility = wpisuje ? '' : 'hidden';
   // zakryta godzina = 🔊 też milczy (Lasha 27.09): przycisk wyszarzony, rozpoczęte mówienie przerwane; przy wpisywaniu też
@@ -697,9 +713,29 @@ function zbudujZegar() {
 
 // 🎲 losowa godzina (Lasha 27.09): cała doba, co krok z ⚙, nigdy ta sama co teraz; ☀/☾ idzie sama.
 // Wskazówki jadą tam ~0,5 s, słowa zmieniają się, gdy dojadą; zakryta karta zakrywa się od razu — nowa zagadka.
-document.getElementById('losuj').onclick = () => {
+document.querySelectorAll('.losuj').forEach(b => b.onclick = () => {
+  rzutKostki();
   nastepne();                                          // 🎲 — inne zadanie (przy „Wszystkie" — też inny rodzaj)
-};
+});
+// rzut (Lasha 29.09): jeden obrót z podskokiem, 0,5 s — tyle, ile jadą wskazówki; w połowie obrotu nowa ścianka —
+// 1…6 oczek, nigdy ta sama co przed chwilą. animate(), nie klasa CSS: gra przy każdym dotknięciu i nie rusza sama,
+// gdy karta się pokazuje (klasa na <svg> nie dawała się zrestartować — offsetWidth w SVG nie istnieje)
+const RZUT = [{ transform: 'none', easing: 'ease-out' }, { transform: 'translateY(-7px) rotate(200deg)', offset: .45, easing: 'ease-out' },
+  { transform: 'rotate(360deg)' }];
+const OCZKA = [[[12, 12]], [[8, 8], [16, 16]], [[8, 8], [12, 12], [16, 16]], [[8, 8], [16, 8], [8, 16], [16, 16]],
+  [[8, 8], [16, 8], [12, 12], [8, 16], [16, 16]], [[8, 7], [16, 7], [8, 12], [16, 12], [8, 17], [16, 17]]];
+let scianka = 4;                                       // 5 oczek — jak na ikonie
+function rzutKostki() {
+  scianka = (scianka + 1 + Math.floor(Math.random() * 5)) % 6;
+  document.querySelectorAll('.losuj svg').forEach(svg => svg.animate(RZUT, 500));
+  setTimeout(() => document.querySelectorAll('.losuj .oczka').forEach(g =>
+    g.innerHTML = OCZKA[scianka].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.5"/>`).join('')), 225);
+}
+// samo dalej po odpowiedzi (Lasha 29.09): jak dotknięcie 🎲 — rzut i klik; tylko na ekranie Treningu, nie w tle
+function sameDalej() {
+  if (widok === 'zegar') { Dzwiek.klik(); rzutKostki(); }
+  nastepne();
+}
 function losujGodzine() {
   if (wpisz === 'tak') nowyWpis();                     // nowa godzina = nowa zagadka do wpisania
   const n = 1440 / krok, jest = tDoby() / krok;
@@ -716,17 +752,32 @@ function losujGodzine() {
 // Wskazówki zostają tam, gdzie były (Lasha 28.09: nie od 12:00); czas co krok z ⚙, cała doba, nigdy tam, gdzie
 // wskazówki już stoją. Sprawdza się tylko
 // tarcza (17:45 = 5:45). Niebo pokazuje porę zadania, nie idzie za wskazówkami. Źle 2 razy → wskazówki same jadą na miejsce.
-// 🔊 czyta zadanie, 🎲 daje inne. Napisy „Ustaw zegar:" / „Dobrze!" / „Popatrz, tak:" — moje.
+// 🔊 czyta zadanie, 🎲 daje inne. Napisy „Dobrze!" / „Popatrz, tak:" — moje.
 const IKONA_GLOS = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>';
 // Trening = jeden ekran (Lasha 29.09): bez zakładek; każde nowe zadanie — rodzaj na zmianę (Wszystkie) albo zawsze ten
 // wybrany w nagłówku (zamiast ✓ — „✓-ის მაგივრად გააკეთე. ეს საჭირო არაა"). odczytaj = „Która godzina?" + kółka.
-const RODZAJE = [['mix', 'Wszystkie'], ['odczytaj', 'Która godzina?'], ['slowa', 'Słowami'], ['cyfry', 'Cyframi'], ['sluch', 'Ze słuchu']];
+// Nazwy (Lasha 29.09): każdy rodzaj swoja, ta sama w polu ▾ i na liście (dawniej Wszystkie · Słowami · Cyframi · Ze słuchu)
+const RODZAJE = [['mix', 'Wszystko na zmianę'], ['odczytaj', 'Która godzina?'], ['slowa', 'Przeczytaj i ustaw'],
+                 ['cyfry', 'Ustaw według cyfr'], ['sluch', 'Posłuchaj i ustaw']];
 let rodzaj = zapisane('zegar-rodzaj', RODZAJE);
 if (rodzaj === 'sluch' && !glos) rodzaj = 'mix';
 let tryb = 'odczytaj';                     // rodzaj bieżącego zadania
 let zad = null, trafione = 0;
-const zadanieEl = document.getElementById('zadanie'), zadEtykietaEl = document.getElementById('zad-etykieta'),
+const zadanieEl = document.getElementById('zadanie'),
       zadTrescEl = document.getElementById('zad-tresc'), sprawdzEl = document.getElementById('sprawdz');
+
+// ▾ pole nad zegarem: nazwa bieżącego zadania, przy „Wszystko na zmianę" przed nią 🔀. Stan jak w karcie: 'dobrze' — zielone
+// „Dobrze!", 'pokaz' — czerwone „Popatrz, tak:" (dawniej mały napis na górze karty), inaczej nazwa i ▾
+const IKONA_LOS = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.1-8.6c.7-1.1 2-1.7 3.3-1.7H22"/><path d="m18 2 4 4-4 4"/><path d="M2 6h1.9c1.5 0 2.9.9 3.6 2.2"/><path d="M22 18h-5.9c-1.3 0-2.6-.7-3.3-1.8l-.5-.8"/><path d="m18 14 4 4-4 4"/></svg>';
+const IKONA_ROZWIN = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
+const poleEl = document.getElementById('pole');
+function pokazPole(stan = '') {
+  const s = stan === 'dobrze' || stan === 'pokaz' ? stan : '';
+  poleEl.classList.toggle('dobrze', s === 'dobrze');
+  poleEl.classList.toggle('zle', s === 'pokaz');
+  poleEl.innerHTML = s === 'dobrze' ? '<span>Dobrze!</span>' : s === 'pokaz' ? '<span>Popatrz, tak:</span>'
+    : (rodzaj === 'mix' ? IKONA_LOS : '') + `<span>${RODZAJE.find(([k]) => k === tryb)[1]}</span>` + IKONA_ROZWIN;
+}
 const nieboCel = () => tryb === 'odczytaj' || !zad ? tCiagly() : zad.cel;
 const tekstZadania = () => tryb === 'cyfry' ? cyfrowo(zad.cel) : slowami(zad.cel);
 
@@ -735,7 +786,7 @@ function zbudujRodzaje() {
   ul.textContent = '';
   RODZAJE.forEach(([k, nazwa]) => {
     if (k === 'sluch' && !glos) return;               // bez syntezy mowy nie ma „Ze słuchu"
-    const li = h('li'), a = h('a', k === rodzaj ? 'menu-active' : null, nazwa);
+    const li = h('li'), a = h('a', k === rodzaj ? 'menu-active' : null, (k === 'mix' ? IKONA_LOS : '') + nazwa);
     a.onclick = () => {
       document.activeElement.blur();                  // zamyka listę
       if (k === rodzaj) return;
@@ -770,6 +821,7 @@ function pokazTryb() {
   const ustaw = tryb !== 'odczytaj';
   zadanieEl.hidden = !ustaw;
   odczytEl.hidden = ustaw;
+  powiedzEl.hidden = !glos || tryb !== 'slowa';     // 🔊 tylko przy czytaniu; „Posłuchaj" ma swój, przy cyfrach zdradziłby słowa
   pokazKarte();
   if (widok === 'zegar') licznikEl.hidden = true;   // ✓ już nie ma — w nagłówku lista zadań
 }
@@ -779,7 +831,7 @@ function pokazTryb() {
 // doba: po południu 14:15, nie 2:15 (Lasha: „ა"; ☀/☾ na tarczy mówi, czy dzień). ▲▼ minut — co krok z ⚙. Dobrze → ✓,
 // po 1,4 s nowa godzina (jak 🎲); źle — na chwilę czerwone; 2 razy źle → „Popatrz, tak:" i odpowiedź na kółkach.
 // Kółka startują od 12:00. Przeciągnięcie wskazówek zmienia zagadkę (pytamy zawsze o to, co na tarczy).
-const odczytEl = document.getElementById('odczyt'), pytanieEl = document.getElementById('pytanie');
+const odczytEl = document.getElementById('odczyt');
 const sprawdzWpisEl = document.getElementById('sprawdz-wpis');
 const dwie = n => String(n).padStart(2, '0');
 let wpis = null;                               // { bledy, koniec } — bieżąca zagadka
@@ -787,7 +839,7 @@ let wpis = null;                               // { bledy, koniec } — bieżąc
 function pokazWpis(stan = '') {
   odczytEl.classList.toggle('dobrze', stan === 'dobrze');
   odczytEl.classList.toggle('zle', stan === 'zle' || stan === 'pokaz');
-  pytanieEl.textContent = stan === 'dobrze' ? 'Dobrze!' : stan === 'pokaz' ? 'Popatrz, tak:' : 'Która godzina?';
+  if (tryb === 'odczytaj') pokazPole(stan);
   sprawdzWpisEl.disabled = stan === 'dobrze' || stan === 'pokaz';
 }
 // 🎡 kółko do wyboru liczby (Lasha 29.09: „უსასრულო" — jak budzik w telefonie): palcem w górę — większe, w dół — mniejsze,
@@ -864,7 +916,7 @@ sprawdzWpisEl.onclick = () => {
   if (dobrze) {
     z.koniec = true; trafione++;
     pokazTryb(); pokazWpis('dobrze');
-    setTimeout(() => { if (wpis === z) nastepne(); }, 1400);
+    setTimeout(() => { if (wpis === z) sameDalej(); }, 1400);
   } else if (++z.bledy < 2) {
     pokazWpis('zle');
     setTimeout(() => { if (wpis === z && !z.koniec) pokazWpis(); }, 700);
@@ -872,7 +924,7 @@ sprawdzWpisEl.onclick = () => {
     z.koniec = true;
     wpiszPola(cel);
     pokazWpis('pokaz');
-    setTimeout(() => { if (wpis === z) nastepne(); }, 2600);
+    setTimeout(() => { if (wpis === z) sameDalej(); }, 2600);
   }
 };
 
@@ -882,7 +934,7 @@ nowyWpis();
 function pokazZadanie(stan = '') {
   zadanieEl.classList.toggle('dobrze', stan === 'dobrze');
   zadanieEl.classList.toggle('zle', stan === 'zle' || stan === 'pokaz');
-  zadEtykietaEl.textContent = stan === 'dobrze' ? 'Dobrze!' : stan === 'pokaz' ? 'Popatrz, tak:' : 'Ustaw zegar:';
+  if (tryb !== 'odczytaj') pokazPole(stan);
   const widac = tryb !== 'sluch' || stan === 'dobrze' || stan === 'pokaz';   // ze słuchu — napis dopiero po odpowiedzi
   if (widac) zadTrescEl.textContent = tekstZadania(); else zadTrescEl.innerHTML = `${IKONA_GLOS} Posłuchaj`;
   zadTrescEl.classList.toggle('duze', widac && tryb === 'cyfry');
@@ -911,7 +963,7 @@ sprawdzEl.onclick = () => {
   if (dobrze) {
     z.koniec = true; trafione++;
     pokazTryb(); pokazZadanie('dobrze');
-    setTimeout(() => { if (zad === z) nastepne(); }, 1400);
+    setTimeout(() => { if (zad === z) sameDalej(); }, 1400);
   } else if (++z.bledy < 2) {
     pokazZadanie('zle');
     setTimeout(() => { if (zad === z && !z.koniec) pokazZadanie(); }, 700);
@@ -920,7 +972,7 @@ sprawdzEl.onclick = () => {
     pokazZadanie('pokaz');
     t = z.cel % 720;
     zegar.jedz(t, 700);
-    setTimeout(() => { if (zad === z) nastepne(); }, 2600);
+    setTimeout(() => { if (zad === z) sameDalej(); }, 2600);
   }
 };
 
