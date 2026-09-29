@@ -323,9 +323,13 @@
   /* Start: zegar maleje na niskim telefonie (360×640) — zdania, przełączniki i Trening · Ćwiczenia się mieszczą (Lasha 29.09) */
   .trening .sam-zegar svg { width: min(80vw, 44vh, 100vh - 410px); }
   /* „Która godzina?": liczba godziny, którą krótka minęła, powiększona (samIle w samouczki.js) */
-  .trening .sam-teraz { transform: scale(1.45); fill: #ff8c1a; }   /* póki duża — czerwono-pomarańczowa (Lasha 28.09) */
-  .trening .s-cyfra, .trening .m-cyfra, .trening .k-cyfra { transform-box: fill-box; transform-origin: center;
-                                                            transition: transform .2s, fill .2s; }
+  .trening .sam-teraz { fill: #ff8c1a; }   /* póki duża — czerwono-pomarańczowa (Lasha 28.09) */
+  /* ×1.45 większym fontem, nie scale(): liczba jest środkiem na swoim punkcie (text-anchor + dominant-baseline), więc zostaje
+     w miejscu; scale z transform-box: fill-box na tablecie zjeżdżał w dół (Lasha 29.09) */
+  .trening .s-cyfra.sam-teraz { font-size: 26px; }  .trening .s-cyfra.rz.sam-teraz { font-size: 20px; }
+  .trening .m-cyfra.sam-teraz { font-size: 32px; }  .trening .m-cyfra.rz.sam-teraz { font-size: 23px; }
+  .trening .k-cyfra.sam-teraz { font-size: 28px; }  .trening .k-cyfra.rz.sam-teraz { font-size: 22px; }
+  .trening .s-cyfra, .trening .m-cyfra, .trening .k-cyfra { transition: font-size .2s, fill .2s; }
   /* „Dwadzieścia pięć po jedenastej wieczorem" bywa w 2 wierszach — miejsce na 2 zawsze, zakładka nie skacze (Lasha 28.09) */
   .trening .sam-maly { min-height: 2.7em; text-align: center; }
   /* „Upływ": „1 godz." · „20 min" przy końcu minutowej, za tarczą — przy 3 i 9 wychodzi trochę poza zegar (samUplyw;
