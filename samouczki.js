@@ -119,101 +119,107 @@ function samOstatnie4(s) {
   });
 }
 
-// 🏋 Trening „Która godzina?": wokół tarczy świecą 4 ostatnie liczby, do których doszła minutowa — w obie strony (Lasha 28.09:
-// w przód 00 · 05 · 10 · 15, w tył 00 · 55 · 50 · 45; po zawróceniu wymieniają się po jednej, zawsze 4). Na starcie
-// tylko 00. ost — gdzie wskazówki stoją na starcie (pełna godzina) · pisz(T) — T: droga od startu, bez zawijania na 12.
-function samSlad4(s, ost, pisz) {
-  let T = 0, slad = [0];                         // numery liczb (0 = 00 … 11 = 55), ostatnia pierwsza
-  s.podpisy(slad);
-  s.ciagnij(nt => {
-    let d = nt - ost;
-    if (d > 360) d -= 720;
-    if (d < -360) d += 720;
-    ost = nt;
-    const T0 = T;
-    T += d;
-    const doszla = [];                           // liczby po drodze, po kolei: w przód (T0, T], w tył [T, T0)
-    if (T > T0) for (let k = Math.floor(T0 / 5) + 1; k * 5 <= T; k++) doszla.push(k);
-    else for (let k = Math.ceil(T0 / 5) - 1; k * 5 >= T; k--) doszla.push(k);
-    doszla.forEach(k => { const n = (k % 12 + 12) % 12; slad = [n, ...slad.filter(x => x !== n)].slice(0, 4); });
-    s.podpisy(slad);
-    pisz(T);
-  });
-}
-
-// 🏋 Trening „Która godzina?" (index.html; Lasha 28.09): jak krok 4 poziomu 2, ale z krótką wskazówką — łapie się ta bliżej palca.
-// Pod zegarem duże „14:25" (godzina w kolorze krótkiej, minuty — długiej), pod nim „Dwadzieścia pięć po drugiej po południu";
-// godzina — liczba, którą krótka minęła. Start 08:00, cała doba (Lasha: „13, 14, 15 საათებიც ჩანდეს" → wariant ა):
-// w przód przez 12 — 13:00, 14:00 … 23:55 → 00:00, w tył tak samo. Liczba tej godziny na tarczy powiększona
-// (Lasha: „როცა 8 საათია, გადიდდეს ციფრი 8"; CSS .sam-teraz w index.html).
-function samIle(s) {
-  const liczby = s.svg.querySelectorAll('.s-cyfra, .m-cyfra, .k-cyfra');   // 1 … 12, po kolei
-  const pisz = T => {
-    const q = ((480 + Math.round(T / 5) * 5) % 1440 + 1440) % 1440;
-    liczby.forEach((e, i) => e.classList.toggle('sam-teraz', i === (Math.floor(q / 60) + 11) % 12));
-    s.wynik(samCzas(q, cwCyfry24), slowami(q));   // jak w „Odczytaj" (Lasha: „საათის სწორი ტექსტი")
-  };
-  pisz(0);
-  samSlad4(s, 480, pisz);
-}
-const TRENING_ILE = { tylko: '', cyfry: 'minuty', kroki: [
-  { zdanie: 'Przesuwaj wskazówki palcem.', t: 480, pokaz: samIle }
-] };
-
-// 🏋 Trening „Upływ" (plan z czatu → Lasha „კი"): od 08:00 dziecko ciągnie minutową, za nią zabarwia się miniony czas —
-// każda godzina swoim kolorem, na przemian zielony i „po" jak most w poziomie 9 (Lasha: „მეორე სხვა ფერით ჩაემატოს");
-// pełna poprzednia zostaje tam, gdzie bieżąca jej jeszcze nie przykryła. Przy końcu minutowej, za tarczą (cyfry 'minuty' —
-// tarcza mniejsza, podpisy ukryte), „1 godz." · „20 min" — najbliższe 5 minut; pod zegarem „08:00 → 09:20" i „Od nowa".
-// Liczy się droga od startu (bez zawijania na 12); w tył od startu — sam start.
+// 🏋 Trening (index.html; Lasha 29.09: „დატოვე მხოლოდ ერთი ვარიანტი … დაბლა ორი ჩამრთველი"): jeden zegar, obie wskazówki —
+// łapie się ta bliżej palca. Start s.t (teraz, co 5 minut), cała doba: w przód przez 12 — 13:00 … 23:55 → 00:00, w tył tak samo
+// (liczy się droga od startu, bez zawijania na 12). Liczba godziny, którą krótka minęła, powiększona (Lasha: „როცა 8 საათია,
+// გადიდდეს ციფრი 8"; CSS .sam-teraz w index.html). Wokół tarczy świecą 4 ostatnie liczby, do których doszła minutowa —
+// w obie strony (w przód 00 · 05 · 10 · 15, w tył 00 · 55 · 50 · 45; po zawróceniu wymieniają się po jednej). Pod zegarem
+// duże „14:25" (godzina w kolorze krótkiej, minuty — długiej) i „Dwadzieścia pięć po drugiej po południu".
+// Pod spodem dwa przełączniki, włączenie jednego wyłącza drugi:
+//  „Po i za" — połówki tarczy po / za, pod zegarem zdanie z poziomu 6 („Za pięć siódma") i cyfry;
+//  „Upływ czasu" — od chwili włączenia za minutową zabarwia się miniony czas, każda godzina swoim kolorem (zielony i „po"
+//   na przemian, jak most w poziomie 9); przy końcu minutowej, za tarczą, „1 godz." · „20 min" (najbliższe 5 minut),
+//   pod zegarem „08:00 → 09:20"; w tył od startu — sam start. 4 liczby wtedy nie świecą (napis stoi w ich miejscu).
 const SAM_GODZ_KOLOR = ['sektor', 'sam-pol-po'];   // godzina 1, 3, 5 … · 2, 4 …
 const SAM_ZA_TARCZA = 80;                        // napis zaczyna się tyle od środka — tuż za obrzeżem tarczy
-function samUplyw(s) {
-  const kolor = i => `${SAM_GODZ_KOLOR[i % 2]} sam-klin`;
-  const dol = s.klin(), gora = s.klin();         // dol — poprzednia godzina, gora — bieżąca
-  const napis = document.createElementNS(NS, 'text');
-  napis.setAttribute('class', 'sam-uplyw');
-  s.svg.append(napis);
-  let D = 0, ost = 480, byl = null;
-  const pisz = nt => {
-    const x = Math.max(0, D), g = Math.floor(x / 60), m = x - g * 60;
-    gora.setAttribute('class', kolor(g));
-    gora.setAttribute('d', uplywWycinek(0, m));
-    dol.setAttribute('class', kolor(g + 1));
-    dol.setAttribute('d', g ? uplywWycinek(m, Math.min(60 - m, 59.9)) : '');   // pełne 60 — łuk znika
+function samTrening(s) {
+  const liczby = s.svg.querySelectorAll('.s-cyfra, .m-cyfra, .k-cyfra');   // 1 … 12, po kolei
+  let tryb = '', T = 0, ost = s.t % 720;         // tryb: '' · 'po' · 'uplyw' · T — droga od startu
+  let slad = [Math.round(ost % 60 / 5)];         // numery liczb (0 = 00 … 11 = 55), ostatnia pierwsza
+  let uplyw = null;                              // { T0, t0, m0, dol, gora, napis, byl } — od włączenia „Upływ czasu"
+  const teraz = () => ((s.t + Math.round(T / 5) * 5) % 1440 + 1440) % 1440;
+
+  function rysujUplyw(u) {
+    const kolor = i => `${SAM_GODZ_KOLOR[i % 2]} sam-klin`;
+    const x = Math.max(0, T - u.T0), g = Math.floor(x / 60), m = x - g * 60;
+    u.gora.setAttribute('class', kolor(g));
+    u.gora.setAttribute('d', uplywWycinek(u.m0, m));
+    u.dol.setAttribute('class', kolor(g + 1));
+    u.dol.setAttribute('d', g ? uplywWycinek(u.m0 + m, Math.min(60 - m, 59.9)) : '');   // pełne 60 — łuk znika
     const d = Math.round(x / 5) * 5, wiersze = [];
     if (d >= 60) wiersze.push(`${Math.floor(d / 60)} godz.`);
     if (d % 60) wiersze.push(`${d % 60} min`);
-    if (wiersze.join() !== byl) {
-      byl = wiersze.join();
-      napis.textContent = '';
-      wiersze.forEach(w => { const t = document.createElementNS(NS, 'tspan'); t.textContent = w; napis.append(t); });
+    if (wiersze.join() !== u.byl) {
+      u.byl = wiersze.join();
+      u.napis.textContent = '';
+      wiersze.forEach(w => { const t = document.createElementNS(NS, 'tspan'); t.textContent = w; u.napis.append(t); });
     }
     if (wiersze.length) {                        // środek napisu na przedłużeniu minutowej, bliższy brzeg tuż za tarczą
-      const b = napis.getBBox(), a = nt % 60 * 6 * Math.PI / 180;
+      const b = u.napis.getBBox(), a = ost % 60 * 6 * Math.PI / 180;
       const r = SAM_ZA_TARCZA + Math.abs(Math.sin(a)) * b.width / 2 + Math.abs(Math.cos(a)) * b.height / 2;
       const cx = 100 + r * Math.sin(a), cy = 100 - r * Math.cos(a);
-      [...napis.children].forEach((t, i) => {
+      [...u.napis.children].forEach((t, i) => {
         t.setAttribute('x', cx);
         t.setAttribute('y', cy + (i - (wiersze.length - 1) / 2) * 10);
       });
     }
-    s.wynik(d ? `${samCzas(480, cwCyfry24)} → ${samCzas((480 + d) % 1440, cwCyfry24)}` : samCzas(480, cwCyfry24));
-  };
-  const nowa = h('button', 'btn btn-primary btn-lg sam-od-nowa', 'Od nowa');
-  nowa.onclick = () => { D = 0; ost = 480; s.z.ustaw(480); pisz(480); };
-  s.svg.closest('.sam-ramka').querySelector('.sam-pod').append(nowa);
-  pisz(480);
+    s.wynik(d ? `${samCzas(u.t0, cwCyfry24)} → ${samCzas((u.t0 + d) % 1440, cwCyfry24)}` : samCzas(u.t0, cwCyfry24));
+  }
+
+  function pisz() {
+    const q = teraz();
+    liczby.forEach((e, i) => e.classList.toggle('sam-teraz', i === (Math.floor(q / 60) + 11) % 12));
+    s.podpisy(uplyw ? [] : slad);
+    if (uplyw) rysujUplyw(uplyw);
+    else if (tryb === 'po') s.wynik(samZdanie(q), samCzas(q, cwCyfry24));
+    else s.wynik(samCzas(q, cwCyfry24), slowami(q));   // jak w „Odczytaj" (Lasha: „საათის სწორი ტექსტი")
+  }
+
+  function ustawTryb(k) {
+    tryb = k;
+    s.polowy(tryb === 'po');
+    if (uplyw) { uplyw.dol.remove(); uplyw.gora.remove(); uplyw.napis.remove(); uplyw = null; }
+    if (tryb === 'uplyw') {
+      const napis = document.createElementNS(NS, 'text');
+      napis.setAttribute('class', 'sam-uplyw');
+      s.svg.append(napis);
+      uplyw = { T0: T, t0: teraz(), m0: ost % 60, dol: s.klin(), gora: s.klin(), napis, byl: null };
+    }
+    przelaczniki.forEach(([k2, we]) => { we.checked = k2 === tryb; });
+    log(`trening: ${tryb || 'zwykły'}`);
+    pisz();
+  }
+
+  // przełączniki pod zegarem (w .sam-pod, pod napisami)
+  const rzad = h('div', 'sam-przelaczniki');
+  const przelaczniki = [['po', 'Po i za'], ['uplyw', 'Upływ czasu']].map(([k, nazwa]) => {
+    const l = h('label'), we = h('input', 'toggle toggle-primary');
+    we.type = 'checkbox';
+    we.onchange = () => ustawTryb(we.checked ? k : '');
+    l.append(we, h('span', null, nazwa));
+    rzad.append(l);
+    return [k, we];
+  });
+  s.svg.closest('.sam-ramka').querySelector('.sam-pod').append(rzad);
+
+  pisz();
   s.ciagnij(nt => {
     let d = nt - ost;
     if (d > 360) d -= 720;
     if (d < -360) d += 720;
     ost = nt;
-    D += d;
-    pisz(nt);
+    const T1 = T;
+    T += d;
+    const doszla = [];                           // liczby po drodze, po kolei: w przód (T1, T], w tył [T, T1)
+    if (T > T1) for (let k = Math.floor(T1 / 5) + 1; k * 5 <= T; k++) doszla.push(k);
+    else for (let k = Math.ceil(T1 / 5) - 1; k * 5 >= T; k--) doszla.push(k);
+    const o = Math.round(s.t % 720 % 60 / 5);
+    doszla.forEach(k => { const n = ((k + o) % 12 + 12) % 12; slad = [n, ...slad.filter(x => x !== n)].slice(0, 4); });
+    pisz();
   });
 }
-const TRENING_UPLYW = { tylko: '', chwyt: 'm', cyfry: 'minuty', kroki: [
-  { zdanie: 'Przesuwaj <b class="m">długą wskazówkę</b> palcem.', t: 480, pokaz: samUplyw }
+const TRENING = { tylko: '', cyfry: 'minuty', dwa: true, kroki: [
+  { zdanie: 'Przesuwaj wskazówki palcem.', t: 480, pokaz: samTrening }
 ] };
 
 // „07:45" — godzina w kolorze godzinowej, minuty w kolorze minutowej
@@ -507,7 +513,7 @@ const CW_SAMOUCZKI = [
     { zdanie: 'Przesuwaj <b class="m">długą wskazówkę</b> palcem.', t: 415, pol: 'oba',
       pokaz: s => {                              // pod zegarem na żywo zdanie i cyfry — najbliższe 5 minut
         const pisz = nt => { const q = Math.round(nt / 5) * 5 % 720; s.wynik(samZdanie(q), cwCyfry(q)); };
-        pisz(415);
+        pisz(s.t);
         s.ciagnij(pisz);
       } }
   ] },
@@ -551,9 +557,11 @@ function samouczekByl(n) { try { return !!localStorage.getItem(SAM_KLUCZ(n)); } 
 
 // samouczek poziomu nrPoz (od 0); licznik — „2/3" w nagłówku; potem() — po ostatnim przycisku; odKroku — do sprawdzania;
 // koniec — napis ostatniego przycisku: „Wróć" (💡), „Zaczynamy!" przy pierwszym wejściu w poziom (Lasha 28.09)
-// nrPoz może też być samym samouczkiem ({ tylko, kroki … }) — 🏋 Trening w index.html
+// nrPoz może też być samym samouczkiem ({ tylko, kroki … }) — 🏋 Trening w index.html; jego t0 (0 … 1439) — start
+// każdego kroku zamiast k.t (Start: teraz — Lasha 29.09). Funkcje pokaz dostają start w s.t (z porą doby).
 function samouczek(box, licznik, nrPoz, potem, odKroku = 0, koniec = 'Wróć') {
   const sam = typeof nrPoz === 'object' ? nrPoz : CW_SAMOUCZKI[nrPoz], kroki = sam.kroki;
+  const tKroku = k => sam.t0 != null ? sam.t0 : k.t;
   const znak = box.cwZnak = {};                 // spóźnione setTimeout / rAF (rundy albo kroku) nic nie piszą
   box.textContent = '';
   const ramka = h('div', 'sam-ramka' + (sam.dwa ? ' sam-dwa' : '')), pyt = h('div', 'sam-gora'),
@@ -568,7 +576,7 @@ function samouczek(box, licznik, nrPoz, potem, odKroku = 0, koniec = 'Wróć') {
   const svg = noweSvg('duzy');
   miejsce.append(svg);
   let naRuch = null;                             // krok, w którym dziecko samo ciągnie (s.ciagnij), inaczej tylko do patrzenia
-  const z = Zegar(svg, { styl, cyfry: sam.cyfry || 'zwykle', rama: RAMA[styl] || '', t: kroki[0].t, tylko: sam.tylko,
+  const z = Zegar(svg, { styl, cyfry: sam.cyfry || 'zwykle', rama: RAMA[styl] || '', t: tKroku(kroki[0]) % 720, tylko: sam.tylko,
                          chwyt: sam.chwyt, po13: sam.po13,
                          zmiana: (nt, puszczone) => { if (naRuch) naRuch(nt, puszczone); } });
   const wsk = svg.querySelectorAll('.w-godz, .w-min, .m-wsk, .k-wsk');   // [godzinowa, minutowa] — w każdym stylu w tej kolejności
@@ -606,7 +614,7 @@ function samouczek(box, licznik, nrPoz, potem, odKroku = 0, koniec = 'Wróć') {
     z.osobno(k.osobno);
     if (sam.po13) z.popo(false);                 // poziom 7: każdy krok od cyfr 1 … 12, 13 … 23 włącza pokaz
     if (k.cyfry) z.cyfry(k.cyfry);
-    z.ustaw(k.t);
+    z.ustaw(tKroku(k) % 720);
     if (k.swieci) wsk[k.swieci === 'g' ? 0 : 1].classList.add('sam-swieci');
     if (k.kolko != null) cwKolko(svg, k.kolko, true, true);
     zdanie.innerHTML = k.zdanie;
@@ -615,7 +623,7 @@ function samouczek(box, licznik, nrPoz, potem, odKroku = 0, koniec = 'Wróć') {
     dalejB.textContent = nr < kroki.length - 1 ? 'Dalej' : koniec;
     dalejB.disabled = false;
     let ruchy = 0;                               // ile animacji kroku jeszcze jedzie — póki > 0, „Dalej" nieczynne
-    if (k.pokaz) k.pokaz({ z, svg, tarcza, zywy, reka: sam.tylko,
+    if (k.pokaz) k.pokaz({ z, svg, tarcza, zywy, reka: sam.tylko, t: tKroku(k),
       jedzie: () => { ruchy++; dalejB.disabled = true; },
       stoi: () => { if (--ruchy <= 0) dalejB.disabled = false; },
       kolko: H => cwKolko(svg, H, true, true),
@@ -624,6 +632,7 @@ function samouczek(box, licznik, nrPoz, potem, odKroku = 0, koniec = 'Wróć') {
         const widac = new Set(lista.map(n => (n % 12 + 12) % 12));
         podpisy.forEach((e, i) => e.classList.toggle('sam-ukryty', !widac.has(i)));
       },
+      polowy: b => [po, za].forEach(e => e.classList.toggle('sam-ukryty', !b)),   // 🏋 Trening: „Po i za"
       cwiartki: lista => cwiartki.forEach((e, i) => e.classList.toggle('sam-ukryty', !lista.includes(i))),
       ciagnij: fn => { naRuch = fn; svg.style.pointerEvents = ''; },
       pod: el => { dodatek = el; cel.prepend(el); },
