@@ -26,6 +26,7 @@
 .s-kropka { fill: color-mix(in oklab, var(--color-base-content) 55%, transparent); }
 .s-cyfra  { fill: var(--godz); font: 700 18px system-ui, "Segoe UI", Roboto, sans-serif; }
 .s-cyfra.rz { font-size: 14px; }
+.s-cyfra24 { fill: var(--godz); opacity: .6; font: 700 9px system-ui, "Segoe UI", Roboto, sans-serif; }   /* ⚙ Cyfry: Oba */
 .s-min    { fill: var(--min); font: 700 10px system-ui, "Segoe UI", Roboto, sans-serif; }
 
 /* minimalny — bez kolorów: wszystko w kolorze tekstu motywu */

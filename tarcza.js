@@ -18,6 +18,7 @@
 //     popo  : true — po południu
 //     po13  : true — po południu (popo) cyfry 13 … 23 zamiast 1 … 11, u góry zostaje 12 (index.html daje to tylko
 //             cyfrom arabskim: zwykle, minuty)
+//     oba   : true — przy każdej liczbie 1 … 12 w środku mała 13 … 24 (Lasha 29.09: „12, 24 ან ორივე"; jak zegary w szkole)
 //   z.ustaw(t, tg) — ustawia wskazówki z zewnątrz (bez wywołania zmiana); tg — osobno: godzinowa gdzie indziej (domyślnie t)
 //   z.jedz(t, ms, koniec) — jak ustaw, ale wskazówki jadą tam przez ms, każda najkrótszą drogą; potem koniec()
 //   z.popo(b)  — przełącza połowę doby bez przebudowy (działa też w trakcie przeciągania)
@@ -159,6 +160,10 @@
     const k = (o.cyfry === 'minuty' ? 0.82 : 1) * w;
     const g = el(g0, 'g', { transform: `translate(100 100) scale(${k / w}) translate(-100 -100)` });
     const { godz, min, liczby } = STYLE[o.styl](g, o.cyfry, !!o.po13 && !!o.popo);
+    if (o.oba) for (let h = 1; h <= 12; h++) {     // małe 13 … 24 bliżej środka, pod dużą liczbą (tylko Szkolny — index.html)
+      const [x, y] = pol(52, h * 30);
+      el(g, 'text', { x, y, class: 's-cyfra24' }, String(h + 12));
+    }
     const stoi = o.godzinowa;
     const tylko = stoi != null ? 'm' : o.tylko || '';
     if (tylko === 'm' && stoi == null) godz.style.display = 'none';
