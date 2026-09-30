@@ -27,6 +27,7 @@
 <script src="lekcja-uplyw.js"></script>
 <script src="cwiczenia.js"></script>
 <script src="samouczki.js"></script>
+<script src="druk.js"></script>
 <style type="text/tailwindcss">
   @theme reference {
     --color-base-100: var(--color-base-100); --color-base-200: var(--color-base-200); --color-base-300: var(--color-base-300);
@@ -171,14 +172,20 @@
   .start-rzad button { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 8px 0; cursor: pointer;
                        background: var(--color-base-100); border: 0; border-radius: var(--radius-box, 1rem); color: inherit; font: inherit;
                        transition: transform .1s; }
-  .start-rzad button:active { transform: scale(.97); }
-  .start-rzad .ik { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 10px; }
-  .start-rzad .ik svg { width: 22px; height: 22px; }
+  .start-rzad button:active, .start-pas:active { transform: scale(.97); }
+  .start-rzad .ik, .start-pas .ik { width: 36px; height: 36px; flex: none; display: grid; place-items: center; border-radius: 10px; }
+  .start-rzad .ik svg, .start-pas .ik svg { width: 22px; height: 22px; }
   /* info · warning: niebieski · bursztyn w każdym z trzech motywów */
   .start-rzad .ik-karty { background: var(--color-success); color: var(--color-success-content); }
   .start-rzad .ik-zegar { background: var(--color-info); color: var(--color-info-content); }
   .start-rzad .ik-cwiczenia { background: var(--color-warning); color: var(--color-warning-content); }
-  .start-rzad b { font-size: var(--r-przycisk); line-height: 1.15; white-space: nowrap; }
+  .start-rzad b, .start-pas b { font-size: var(--r-przycisk); line-height: 1.15; white-space: nowrap; }
+  /* pas „Karty pracy" na całą szerokość, nad zegarem (Lasha 30.09, wariant დ z _visual/por-druk.html) */
+  .start-pas { flex: none; display: flex; align-items: center; gap: 10px; padding: 8px 12px; cursor: pointer;
+               background: var(--color-base-100); border: 0; border-radius: var(--radius-box, 1rem); color: inherit; font: inherit;
+               transition: transform .1s; }
+  .start-pas .ik-druk { background: var(--color-success); color: var(--color-success-content); }
+  .start-pas > svg { margin-left: auto; opacity: .45; }
   /* ☰: Motyw na dole, oddzielony kreską */
   .menu li.oddzielnie { margin-top: .5rem; padding-top: .5rem; border-top: 1px solid var(--color-base-300); }
   /* ☰ Motyw: próbka = tło motywu + jego główny kolor (data-theme na próbce daje jej kolory tego motywu) */
@@ -320,8 +327,9 @@
   .sam-przelaczniki { display: flex; justify-content: center; gap: 20px; margin-top: 6px; }
   .sam-przelaczniki label { display: flex; align-items: center; gap: 8px; font-size: var(--r-drobny); cursor: pointer; }
   .trening .sam-gora { height: 56px; }
-  /* Start: zegar maleje na niskim telefonie (360×640) — zdania, przełączniki i Trening · Ćwiczenia się mieszczą (Lasha 29.09) */
-  .trening .sam-zegar svg { width: min(80vw, 44vh, 100vh - 410px); }
+  /* Start: zegar maleje na niskim telefonie (360×640) — zdania, przełączniki i Trening · Ćwiczenia się mieszczą (Lasha 29.09);
+     + 64 px na pas „Karty pracy" nad zegarem (30.09) */
+  .trening .sam-zegar svg { width: min(80vw, 44vh, 100vh - 474px); }
   /* „Która godzina?": liczba godziny, którą krótka minęła, powiększona (samIle w samouczki.js) */
   .trening .sam-teraz { fill: #ff8c1a; }   /* póki duża — czerwono-pomarańczowa (Lasha 28.09) */
   /* ×1.45 większym fontem, nie scale(): liczba jest środkiem na swoim punkcie (text-anchor + dominant-baseline), więc zostaje
@@ -353,6 +361,81 @@
   /* poziom 6: duży napis = zdanie, do 2 wierszy („Dwadzieścia pięć po szóstej") — miejsce na 2 zawsze, zegar nie skacze;
      zdanie w jednym <span> (samZdanie), więc flex tylko je centruje */
   .sam-dwa .sam-duzy { min-height: 2.4em; display: flex; align-items: center; justify-content: center; text-align: center; }
+
+  /* Karty pracy (druk.js): nad kartką pole ▾ z rodzajem zadania (jak w Treningu) · ile zegarów · „Z odpowiedziami" ·
+     „Wydrukuj" + 🎲, pod spodem podgląd kartki A4 */
+  .druk-ster { width: min(100%, 30rem); flex: none; display: flex; flex-direction: column; gap: 10px; }
+  .druk-ster .pole-box { width: 100%; }
+  .druk-ster .ustaw-grupa { padding: 0; }
+  .druk-odp { display: flex; align-items: center; gap: 8px; font-size: var(--r-drobny); cursor: pointer; }
+  .druk-dol { display: flex; align-items: center; gap: 8px; }
+  .druk-dol .btn { height: 52px; font-size: var(--r-przycisk); }
+  .druk-dol .btn:first-child { flex: 1; gap: 10px; }
+  .druk-dol .druk-losuj { flex: none; width: 52px; padding: 0; }
+  .druk-kartki { width: min(100%, 30rem); flex: none; display: flex; flex-direction: column; gap: 12px; }   /* strony jedna pod drugą */
+  .druk-podglad { aspect-ratio: 210 / 297; container-type: inline-size; background: #fff; box-shadow: 0 4px 14px rgb(0 0 0 / .18); }
+  /* kartka: rozmiary w --mm (na ekranie 1/210 szerokości podglądu, w druku 1 mm); kolory stałe — biała także w motywie Nocnym */
+  .arkusz { --mm: calc(100cqw / 210); --color-base-100: #fff; --color-base-300: #bbb; --color-base-content: #1a1a1a;
+            --tekst-g: #1a1a1a; --tekst-m: #1a1a1a;
+            width: 100%; height: 100%; box-sizing: border-box; padding: calc(var(--mm) * 12) calc(var(--mm) * 12) calc(var(--mm) * 10);
+            display: flex; flex-direction: column; gap: calc(var(--mm) * 4); background: #fff; color: #1a1a1a;
+            print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  body[data-styl="szkolny"] .arkusz { --tekst-g: var(--godz); --tekst-m: var(--min); }
+  .arkusz .zegar { pointer-events: none; touch-action: auto; cursor: default; }   /* palec na zegarze przewija stronę */
+  .arkusz h1 { margin: 0; font-size: calc(var(--mm) * 7); font-weight: 700; line-height: 1.2; }
+  .ark-siatka { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(var(--kol), 1fr); grid-auto-rows: 1fr; }
+  .ark-zad { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(var(--mm) * 2); }
+  .ark-zad svg { width: calc(var(--mm) * var(--zeg)); height: auto; }
+  .ark-zad b { font-size: calc(var(--mm) * var(--fs)); line-height: 1; font-variant-numeric: tabular-nums; }
+  .ark-nr { position: absolute; top: calc(var(--mm) * 1); left: calc(var(--mm) * 2); font-size: calc(var(--mm) * 5); color: #777; }
+  .ile-4 { --kol: 2; --zeg: 80; --fs: 11; }
+  .ile-6 { --kol: 2; --zeg: 62; --fs: 9; }
+  .ile-9 { --kol: 3; --zeg: 52; --fs: 8; }
+  .ile-12 { --kol: 3; --zeg: 42; --fs: 7; }
+  /* „Tak czy nie?": pod godziną kratki TAK · NIE, więc zegary trochę mniejsze; „Upływ czasu": nad kratkami „za 20 minut";
+     „Zapisz słowami": dwie linie do pisania */
+  .typ-czy.ile-4, .typ-uplyw.ile-4, .typ-pisz.ile-4 { --zeg: 76; }  .typ-czy.ile-6, .typ-uplyw.ile-6, .typ-pisz.ile-6 { --zeg: 58; }
+  .typ-czy.ile-9, .typ-uplyw.ile-9, .typ-pisz.ile-9 { --zeg: 50; }  .typ-czy.ile-12, .typ-uplyw.ile-12, .typ-pisz.ile-12 { --zeg: 40; }
+  .ark-za { font-size: calc(var(--mm) * var(--fs) * .7); font-weight: 700; line-height: 1; }
+  .ark-tn { display: flex; gap: calc(var(--mm) * var(--fs) * .7); font-size: calc(var(--mm) * var(--fs) * .6); line-height: 1; }
+  .ark-tn span { display: flex; align-items: center; gap: .35em; }
+  .ark-tn i { width: 1em; height: 1em; box-sizing: border-box; border: .09em solid #1a1a1a; border-radius: .15em; }
+  /* „Która godzina?", „Po południu" i „Upływ czasu": zamiast godziny dwie puste kratki do wpisania — godzina : minuty */
+  .ark-pole { display: flex; align-items: center; gap: calc(var(--mm) * var(--fs) * .25); }
+  .ark-pole i { width: calc(var(--mm) * var(--fs) * 2); height: calc(var(--mm) * var(--fs) * 1.5); box-sizing: border-box;
+                border: calc(var(--mm) * .4) solid #1a1a1a; border-radius: calc(var(--mm) * 1.5); }
+  /* „Przeczytaj i narysuj": godzina słowami — mniejsze litery, miejsce zawsze na 2 wiersze („Dwadzieścia pięć po jedenastej") */
+  .typ-slowa.ile-4 { --fs: 8; }  .typ-slowa.ile-6 { --fs: 7; }  .typ-slowa.ile-9 { --fs: 6; }  .typ-slowa.ile-12 { --fs: 5; }
+  .typ-slowa .ark-zad b { min-height: 2.4em; line-height: 1.2; padding: 0 calc(var(--mm) * 3); text-align: center; text-wrap: balance; }
+  /* „Zapisz słowami" (Lasha 30.09: „ტექსტი უნდა დაწეროს ბავშვმა"): pod zegarem dwie linie do pisania, --lin — odstęp linii */
+  .typ-pisz.ile-4 { --lin: 11; }  .typ-pisz.ile-6 { --lin: 10; }  .typ-pisz.ile-9 { --lin: 9; }  .typ-pisz.ile-12 { --lin: 8; }
+  .ark-linie { width: calc(100% - var(--mm) * 8); }
+  .ark-linie i { display: block; height: calc(var(--mm) * var(--lin)); border-bottom: calc(var(--mm) * .3) solid #1a1a1a; }
+  /* odpowiedzi: osobna, druga strona — u góry, do góry nogami (Lasha 30.09: „ცოტა გაადიდე პასუხები და ზევით იყოს");
+     --okol: ile w rzędzie — 12 zegarów w dwóch rzędach po 6 */
+  .ile-4 { --okol: 4; }  .ile-6 { --okol: 6; }  .ile-9 { --okol: 9; }  .ile-12 { --okol: 6; }
+  .ark-odp { flex: none; display: grid; grid-template-columns: repeat(var(--okol), calc(var(--mm) * 18)); justify-content: center;
+             gap: calc(var(--mm) * 5) calc(var(--mm) * 2.5); transform: rotate(180deg); }
+  .ark-odp > div { display: flex; flex-direction: column; align-items: center; gap: calc(var(--mm) * 1);
+                   font-size: calc(var(--mm) * 4); line-height: 1; color: #555; }
+  .ark-odp svg { width: 100%; height: auto; }
+  /* „Tak czy nie?", „Która godzina?", „Po południu" i „Upływ czasu": odpowiedzi to napisy „1 TAK" · „1. 08:35" — kolumny
+     tak szerokie jak napis; 9 godzin w jednym rzędzie nie mieści się na kartce → 5 + 4 */
+  .typ-czy .ark-odp, .typ-godzina .ark-odp, .typ-popo .ark-odp, .typ-uplyw .ark-odp, .typ-pisz .ark-odp {
+    grid-template-columns: repeat(var(--okol), auto); column-gap: calc(var(--mm) * 6); }
+  .typ-godzina.ile-9, .typ-popo.ile-9, .typ-uplyw.ile-9 { --okol: 5; }
+  /* „Zapisz słowami": odpowiedzi to zdania („1. Za pięć siódma") — najwyżej 3 w rzędzie */
+  .typ-pisz.ile-4 { --okol: 2; }  .typ-pisz.ile-6, .typ-pisz.ile-9, .typ-pisz.ile-12 { --okol: 3; }
+  /* druk: tylko strony kartki (kopie w #do-druku), i tylko z ekranu Karty pracy — gdzie indziej Ctrl+P drukuje jak dawniej */
+  #do-druku { display: none; }
+  @media print {
+    @page { size: A4; margin: 0; }
+    html:has(body.ekran-druk), body.ekran-druk { height: auto !important; background: #fff !important; }
+    body.ekran-druk > :not(#do-druku) { display: none !important; }
+    body.ekran-druk > #do-druku { display: block; }
+    #do-druku .arkusz { --mm: 1mm; width: 210mm; height: 296mm; }
+    #do-druku .arkusz + .arkusz { break-before: page; }
+  }
 </style>
 </head>
 <body>
@@ -397,6 +480,9 @@
     <!-- ★ Ćwiczenia (Lasha 27.09): lista poziomów, runda poziomu -->
     <main id="widok-cw-lista" class="flex-1 min-h-0 overflow-y-auto flex flex-col gap-3 px-4 pt-2 pb-4" hidden></main>
     <main id="widok-cw" class="flex-1 min-h-0 overflow-y-auto flex flex-col items-center gap-3 px-4 pb-6" hidden></main>
+
+    <!-- Karty pracy (Lasha 30.09): zadania do wydrukowania — druk.js -->
+    <main id="widok-druk" class="flex-1 min-h-0 overflow-y-auto flex flex-col items-center gap-3 px-4 pt-2 pb-4" hidden></main>
 
     <main id="widok-zegar" class="flex-1 min-h-0 flex flex-col px-4 pb-4" hidden>
       <div class="flex-1 min-h-0 flex flex-col items-center justify-center gap-2">
@@ -499,6 +585,9 @@
     </nav>
   </div>
 </div>
+
+<!-- kopia kartki z Kart pracy — tylko ją widać w druku (druk.js) -->
+<div id="do-druku"></div>
 
 <script>
 "use strict";
@@ -1166,9 +1255,9 @@ function otworzPoziom(n) {
 // ---- widoki (Lasha 27.09 / 29.09): Start — zegar do przeciągania i dwa przyciski Trening · Ćwiczenia; ☰ na każdym ekranie
 // (zamiast ←): Start · Trening · Lekcje · poziomy ćwiczeń · Motyw. Trening = dawny ekran Zegar (klucz 'zegar'): Odczytaj ·
 // Słowami · Cyframi · 🔊, ⚙ zostaje. ----
-const WIDOKI = [['start', 'Start'], ['karty', 'Lekcje'], ['cwiczenia', 'Ćwiczenia'], ['zegar', 'Trening']];
+const WIDOKI = [['start', 'Start'], ['karty', 'Lekcje'], ['cwiczenia', 'Ćwiczenia'], ['zegar', 'Trening'], ['druk', 'Karty pracy']];
 let widok = 'start';   // aplikacja zawsze startuje ze Startu
-const ekran = () => widok === 'start' ? 'start' : widok === 'zegar' ? 'zegar'
+const ekran = () => widok === 'start' ? 'start' : widok === 'zegar' ? 'zegar' : widok === 'druk' ? 'druk'
   : widok === 'karty' ? (lekcja < 0 ? 'lekcje' : 'lekcja-' + (lekcja + 1))
   : poziom < 0 ? 'cwiczenia' : 'poziom-' + (poziom + 1);
 
@@ -1177,15 +1266,19 @@ const IKONA = d => `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" 
 const IKONY = {
   karty: IKONA('<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>'),
   cwiczenia: IKONA('<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/>'),
-  zegar: IKONA('<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>')
+  zegar: IKONA('<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>'),
+  druk: IKONA('<path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/><rect x="6" y="14" width="12" height="8" rx="1"/>')
 };
 
 // Start (Lasha 29.09: „პირველივე გვერდი უკვე იყოს სავარჯიშო"): 🏋 Trening jak na ekranie Zegar — zegar do
 // przeciągania od teraz; pod nim dwa małe przyciski Trening (dawny ekran Zegar: zgadywanie godziny) · Ćwiczenia.
-// Lekcje — w ☰ (Lasha 29.09: „ტრენინგი ჩასვი გაკვეთილების მაგივრად")
+// Lekcje — w ☰ (Lasha 29.09: „ტრენინგი ჩასვი გაკვეთილების მაგივრად"). Nad zegarem pas „Karty pracy" (Lasha 30.09: „მე ზევით
+// ვფიქრობდი" → wariant დ)
 function zbudujStart() {
   const box = document.getElementById('widok-start');
   box.textContent = '';
+  const pas = h('button', 'start-pas', `<span class="ik ik-druk">${IKONY.druk}</span><b>${WIDOKI.find(([x]) => x === 'druk')[1]}</b>${STRZALKA}`);
+  pas.onclick = () => idzDo('druk');
   const miejsce = h('div', 'trening'), tr = h('div', 'trening');
   tr.append(miejsce);
   const gora = h('div', 'start-gora');
@@ -1196,7 +1289,7 @@ function zbudujStart() {
     b.onclick = () => idzDo(k);
     rzad.append(b);
   });
-  box.append(gora, rzad);
+  box.append(pas, gora, rzad);
   zbudujTrening(miejsce);
 }
 
@@ -1224,6 +1317,7 @@ function zbudujNawigacje() {
     if (widok !== 'cwiczenia') { widok = 'cwiczenia'; lekcja = -1; log('widok: Ćwiczenia'); }
     otworzPoziom(i);
   }, null, pod));
+  pozycja('Karty pracy', widok === 'druk', () => idzDo('druk'));
   // Motyw (Lasha 27.09: „ყველგან იყოს") — też podmenu (Lasha 29.09); dotknięcie zmienia od razu, menu i podmenu zostają
   // otwarte; później tu też Język
   const liM = h('li', 'oddzielnie'), detM = h('details'), podM = h('ul');
@@ -1258,8 +1352,10 @@ function pokazWidok() {
   document.getElementById('widok-cw-lista').hidden = !(widok === 'cwiczenia' && poziom < 0);
   cwBox.hidden = !wRundzie;
   document.getElementById('widok-zegar').hidden = widok !== 'zegar';
+  document.getElementById('widok-druk').hidden = widok !== 'druk';
+  document.body.classList.toggle('ekran-druk', widok === 'druk');   // @media print: tylko kartka
   document.getElementById('przycisk-ustawien').hidden = widok !== 'zegar';   // ⚙ tylko przy zegarze
-  document.getElementById('przycisk-wygladu').hidden = widok !== 'zegar' && widok !== 'start';   // 🕓 też i na Starcie
+  document.getElementById('przycisk-wygladu').hidden = widok !== 'zegar' && widok !== 'start' && widok !== 'druk';   // 🕓 też na Starcie i przy kartce
   document.getElementById('przycisk-start').hidden = widok === 'start';       // 🏠 wszędzie poza Startem
   licznikEl.hidden = !wRundzie;
   document.getElementById('przycisk-pomoc').hidden = !(wRundzie && samouczekJest(poziom));
@@ -1270,6 +1366,7 @@ function pokazWidok() {
   if (widok === 'start') zbudujStart();
   if (widok === 'karty') { if (wLekcji) zbudujLekcje(); else zbudujListe(); }
   if (widok === 'cwiczenia' && !wRundzie) zbudujPoziomy();
+  if (widok === 'druk') druk(document.getElementById('widok-druk'));
   if (wRundzie) cwStart(cwBox, licznikEl, poziom, rundaPoziomu);   // za pierwszym razem najpierw samouczek
   else { cwBox.cwZnak = null; cwBox.textContent = ''; }   // wyjście z rundy: jej spóźniony setTimeout nic już nie zrobi
 }
@@ -1332,6 +1429,7 @@ function zmienWyglad() {
   zbudujPrzelaczniki();
   if (widok === 'start') zbudujStart();
   if (widok === 'karty' && lekcja >= 0) zbudujLekcje();
+  if (widok === 'druk') druk(document.getElementById('widok-druk'));
 }
 
 // ◀ w symulatorze / Wstecz na telefonie: najpierw zamyka menu / ustawienia / wygląd, potem cofnij(); na Starcie — wyjście
