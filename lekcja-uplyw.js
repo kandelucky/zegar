@@ -1,20 +1,20 @@
-// lekcja-uplyw.js — lekcja 6 „Upływ czasu" (podręcznik s. 16): wskazówka minutowa przesuwa się o 10 i 20 minut,
-// przykład z Kubą (13:45 → 14:05, 15 + 5 = 20 minut).
-// Wpisana w LEKCJE w index.html (tam też style „lekcja 6"); podgląd: sim.html?app=index.html%3Flekcja%3D6.
-// Korzysta z globalnych z index.html: h, noweSvg, styl, RAMA, log, Zegar (tarcza.js).
+// lekcja-uplyw.js — lesson 6 „Upływ czasu" (textbook p. 16): the minute hand moves by 10 and 20 minutes,
+// the example with Kuba (13:45 → 14:05, 15 + 5 = 20 minutes).
+// Registered in LEKCJE in index.html (its styles are there too); preview: sim.html?app=index.html%3Flekcja%3D6.
+// Uses globals from index.html: h, noweSvg, styl, RAMA, log, Zegar (tarcza.js).
 "use strict";
 
-let tUplyw = 8 * 60 + 15;   // start jak pierwszy zegar w podręczniku (od 3 do 5); zostaje przy zmianie wyglądu
+let tUplyw = 8 * 60 + 15;   // start as the first clock in the textbook (from 3 to 5); kept when the clock look changes
 const T_KUBA = 1 * 60 + 45; // 13:45
 
-// zielony wycinek od minuty m0, długości ile minut (jak sektor w tarcza.js, ale od dowolnej minuty)
+// green sector from minute m0, ile minutes long (like the sector in tarcza.js, but from any minute)
 function uplywWycinek(m0, ile) {
   if (ile < 0.1) return '';
   const r = 86, p = m => { const a = m * 6 * Math.PI / 180; return `${100 + r * Math.sin(a)} ${100 - r * Math.cos(a)}`; };
   return `M100 100 L${p(m0)} A${r} ${r} 0 ${ile > 30 ? 1 : 0} 1 ${p(m0 + ile)} Z`;
 }
 
-// zegar lekcji z wycinkiem zaraz nad tłem tarczy (kreski i cyfry zostają na wierzchu)
+// the lesson's clock with the sector right above the dial background (ticks and digits stay on top)
 function uplywZegar(miejsce, t, opcje) {
   const svg = noweSvg('duzy');
   miejsce.append(svg);
@@ -27,7 +27,7 @@ function uplywZegar(miejsce, t, opcje) {
   return {
     svg,
     stop() { cancelAnimationFrame(anim); klin.setAttribute('d', ''); },
-    // wskazówki idą od t0 o ile minut, zielone rośnie za minutową; gotowe() na końcu
+    // the hands move from t0 by ile minutes, the green grows behind the minute hand; gotowe() at the end
     przesun(t0, ile, gotowe) {
       cancelAnimationFrame(anim);
       const start = performance.now(), dl = ile * 80;
@@ -42,14 +42,14 @@ function uplywZegar(miejsce, t, opcje) {
   };
 }
 
-// 8:15 — godzina i minuty w kolorach wskazówek, w jednym kawałku (bez odstępu z flex gap)
+// 8:15 — hour and minutes in the hands' colours, in one piece (so the flex gap puts no space inside)
 function uplywCzas(t) {
   const tt = ((Math.round(t) % 720) + 720) % 720;
   return `<span><span class="g">${Math.floor(tt / 60) || 12}</span>:<span class="m">${String(tt % 60).padStart(2, '0')}</span></span>`;
 }
 
 function lekcjaUplyw(box) {
-  // 1. +10 / +20 minut na zegarze
+  // 1. +10 / +20 minutes on the clock
   box.append(h('p', 'wstep cichy', 'Jak wyobrazić sobie upływ czasu? Patrz, jak się poruszają wskazówki zegara.'),
     h('p', 'wstep', 'Naciśnij <b>+10 min</b> albo <b>+20 min</b> i patrz na <b class="m">wskazówkę minutową</b>.'));
   const miejsce = h('div', 'karta-zegar');
@@ -59,7 +59,7 @@ function lekcjaUplyw(box) {
   box.append(przyciski, napis, minelo);
 
   const zegar = uplywZegar(miejsce, tUplyw, {
-    zmiana(nt, puszczone) {                  // przeciąganie: bez zielonego, tylko godzina
+    zmiana(nt, puszczone) {                  // dragging: no green, only the time
       zegar.stop();
       tUplyw = nt % 720;
       napis.innerHTML = uplywCzas(Math.round(nt / 5) * 5);
@@ -81,7 +81,7 @@ function lekcjaUplyw(box) {
   });
   napis.innerHTML = uplywCzas(tUplyw);
 
-  // 2. Przykład: Kuba, dwa sposoby
+  // 2. the example: Kuba, two ways
   const przyklad = h('div', 'rada przyklad',
     '<span class="znak">Przykład</span>' +
     '<p>Kuba przyszedł na przystanek o <b>13:45</b>. Jego autobus odjeżdża o <b>14:05</b>. Jak długo Kuba będzie czekał na autobus?</p>' +
@@ -89,10 +89,10 @@ function lekcjaUplyw(box) {
   const zp = h('div', 'przyklad-zegar');
   przyklad.append(zp);
   const kuba = uplywZegar(zp, T_KUBA, {});
-  kuba.svg.style.pointerEvents = 'none';     // tylko do pokazu — nie da się go przestawić
+  kuba.svg.style.pointerEvents = 'none';     // for show only — it cannot be moved
   const pokazB = h('button', 'btn btn-outline', 'Przesuń wskazówkę'),
         odczyt = h('p', 'przyklad-odczyt', 'Odczytujemy, że od 13:45 do 14:05 upływa <b>20 minut</b>.');
-  odczyt.style.visibility = 'hidden';        // miejsce zostaje — nic nie skacze
+  odczyt.style.visibility = 'hidden';        // the room stays — nothing jumps
   pokazB.onclick = () => {
     odczyt.style.visibility = 'hidden';
     kuba.przesun(T_KUBA, 20, () => { odczyt.style.visibility = ''; pokazB.textContent = 'Jeszcze raz'; });
@@ -104,5 +104,5 @@ function lekcjaUplyw(box) {
     h('p', 'suma', '15 minut + 5 minut = 20 minut'),
     h('p', '', '<b>Odp.</b> Kuba będzie czekał na autobus 20 minut.'));
   box.append(przyklad);
-  // quiz z podręcznika („Jest 13:45…") — nie tu: zadania będą osobno (Lasha)
+  // the textbook quiz („Jest 13:45…") — not here: the tasks will live separately
 }

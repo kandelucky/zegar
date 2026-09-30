@@ -1,13 +1,13 @@
-// lekcja-polowy.js — lekcja 4 „Po i za" (Lasha 28.09, jak lekcja „წუთია და აკლია" w Zegar-ka): tarcza na dwie
-// połowy — prawa „po", lewa „za" (kolory --sam-po / --sam-za, jak w samouczku poziomu 3); przy 12 „pełna godzina",
-// przy 6 „wpół do". Dziecko przesuwa minutową, świeci połowa (albo 12 / 6), na której stoi; pod zegarem „dziesięć po".
-// Wpisana w LEKCJE w index.html (tam też style „Po i za"); podgląd: sim.html?app=index.html%3Flekcja%3D4.
-// Korzysta z globalnych z index.html: h, noweSvg, styl, RAMA, log, MINUTY, Zegar (tarcza.js).
+// lekcja-polowy.js — lesson 4 „Po i za": the dial in two
+// halves — right „po", left „za" (colours --sam-po / --sam-za, as in the level 3 tutorial); at 12 „pełna godzina",
+// at 6 „wpół do". The child moves the minute hand, the half it stands on (or 12 / 6) lights up; under the clock „dziesięć po".
+// Registered in LEKCJE in index.html (its styles are there too); preview: sim.html?app=index.html%3Flekcja%3D4.
+// Uses globals from index.html: h, noweSvg, styl, RAMA, log, MINUTY, Zegar (tarcza.js).
 "use strict";
 
-let tPolowy = 10;   // start: „dziesięć po"; zostaje przy zmianie wyglądu
+let tPolowy = 10;   // start: „dziesięć po"; kept when the clock look changes
 
-// minuty (0…55) → co świeci: 'po' prawa połowa · 'za' lewa · '12' · '6'
+// minutes (0…55) → what lights up: 'po' right half · 'za' left · '12' · '6'
 const polowyGdzie = m => m === 0 ? '12' : m < 30 ? 'po' : m === 30 ? '6' : 'za';
 
 function lekcjaPolowy(box) {
@@ -23,7 +23,7 @@ function lekcjaPolowy(box) {
 
   Zegar(svg, { styl, cyfry: 'zwykle', rama: RAMA[styl] || '', t: tPolowy, tylko: 'm',
     zmiana(nt, puszczone) { tPolowy = nt; pokaz(nt, puszczone); } });
-  // dwie połowy zaraz nad tłem tarczy (kreski i cyfry zostają na wierzchu), jak wycinek w lekcja-uplyw.js
+  // the two halves right above the dial background (ticks and digits stay on top), like the sector in lekcja-uplyw.js
   const tlo = svg.querySelector('.s-tlo, .m-tlo, .k-tlo');
   const polowa = (cls, d) => { const p = document.createElementNS(tlo.namespaceURI, 'path'); p.setAttribute('class', cls); p.setAttribute('d', d); return p; };
   const po = polowa('polowa-po', 'M100 100 L100 14 A86 86 0 0 1 100 186 Z'),

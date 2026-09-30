@@ -15,16 +15,16 @@
 [data-theme=szkola-krem] {
   color-scheme: light;
 
-  --color-base-100: #f7f1e4;       /* krem — jasne, ale nie białe */
+  --color-base-100: #f7f1e4;       /* cream — light, but not white */
   --color-base-200: #efe7d6;
-  --color-base-300: #e2d8c3;       /* linie */
-  --color-base-content: #3d3830;   /* ciemne, ale nie czarne */
+  --color-base-300: #e2d8c3;       /* lines */
+  --color-base-content: #3d3830;   /* dark, but not black */
 
-  --color-primary: #5b8c5a;        /* zieleń stonowana */
+  --color-primary: #5b8c5a;        /* muted green */
   --color-primary-content: #f7f1e4;
   --color-secondary: #8a8272;
   --color-secondary-content: #f7f1e4;
-  --color-accent: #c08a3f;         /* bursztyn */
+  --color-accent: #c08a3f;         /* amber */
   --color-accent-content: #f7f1e4;
   --color-neutral: #4a463c;
   --color-neutral-content: #f7f1e4;
@@ -35,7 +35,7 @@
   --color-success-content: #f7f1e4;
   --color-warning: #c08a3f;
   --color-warning-content: #f7f1e4;
-  --color-error: #b5553f;          /* cegła, nie czysta czerwień */
+  --color-error: #b5553f;          /* brick, not pure red */
   --color-error-content: #f7f1e4;
 
   --radius-selector: 0.25rem;
@@ -61,7 +61,7 @@
   --color-primary-content: #eef3f8;
   --color-secondary: #7d8c9c;
   --color-secondary-content: #eef3f8;
-  --color-accent: #7a6fa8;         /* fiolet stonowany */
+  --color-accent: #7a6fa8;         /* muted violet */
   --color-accent-content: #eef3f8;
   --color-neutral: #3c4956;
   --color-neutral-content: #eef3f8;
@@ -89,10 +89,10 @@
 [data-theme=szkola-noc] {
   color-scheme: dark;
 
-  --color-base-100: #1e232a;       /* miękka noc — nie czerń */
+  --color-base-100: #1e232a;       /* soft night — not black */
   --color-base-200: #262c35;
   --color-base-300: #333b46;
-  --color-base-content: #c9d1d9;   /* jasne, ale nie białe */
+  --color-base-content: #c9d1d9;   /* light, but not white */
 
   --color-primary: #6b9bc9;
   --color-primary-content: #1e232a;

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Zegar</title>
-<!-- motywy z Szkoły (Sunny-Librus/sim): daisyUI + szkola · szkola-krem · szkola-blekit · szkola-noc · milioni -->
+<!-- themes from Szkoła (Sunny-Librus/sim): daisyUI + szkola · szkola-krem · szkola-blekit · szkola-noc · milioni -->
 <link rel="stylesheet" href="lib/daisyui.css">
 <link rel="stylesheet" href="lib/daisyui-themes.css">
 <link rel="stylesheet" href="theme-milioni.css">
@@ -12,8 +12,8 @@
 <link rel="stylesheet" href="theme-dzieci.css">
 <link rel="stylesheet" href="tarcza.css">
 <script>
-  // Motyw z ☰ (Lasha 27.09) — trzy motywy dla dziecka; zapisany wybór ustawiony przed rysowaniem, żeby nie mignął kremowy.
-  // Klucz ten sam, co w symulatorze (sim.html: KEY + "-theme") — jego wybór motywu i ten z ☰ to jedno.
+  // Motyw from ☰ — three themes for the child; the saved choice is applied before first paint, so the cream one does not flash.
+  // Same key as in the simulator (sim.html: KEY + "-theme") — its theme choice and the one in ☰ are one and the same.
   const MOTYWY = [['szkola-krem', 'Kremowy'], ['szkola-blekit', 'Błękitny'], ['szkola-noc', 'Nocny']];
   try { const m = localStorage.getItem('zegar-theme'); if (MOTYWY.some(([k]) => k === m)) document.documentElement.dataset.theme = m; } catch (e) {}
 </script>
@@ -48,21 +48,22 @@
     color: var(--color-base-content);
     font-family: system-ui, "Segoe UI", Roboto, sans-serif;
     user-select: none; -webkit-user-select: none;
-    /* słowa godziny / minut w kolorze wskazówek wybranej tarczy; tarcze bez kolorów — ciemne */
+    /* hour / minute words in the colour of the hands of the chosen dial; dials without colours — dark */
     --tekst-g: var(--color-base-content); --tekst-m: var(--color-base-content);
-    /* rozmiary tekstu — jeden standard dla całej aplikacji (Lasha 27.09); każdy napis ma jeden z trzech */
+    /* text sizes — one standard for the whole app; every label uses one of the three */
     --r-glowny: 32px; --r-przycisk: 22px; --r-drobny: 17px;
   }
   body[data-styl="szkolny"] { --tekst-g: var(--godz); --tekst-m: var(--min); }
   .g { color: var(--tekst-g); }
   .m { color: var(--tekst-m); }
-  /* 100vh − 350px: nagłówek 56 + pole ▾ 48 + karta ~200 + odstępy — na niskim telefonie (360×640) zegar maleje, nic się nie nakłada */
+  /* 100vh − 350px: header 56 + ▾ field 48 + card ~200 + gaps — on a short phone (360×640) the clock shrinks, nothing overlaps */
   #zegar-miejsce svg { width: min(88vw, 58vh, 100vh - 350px); height: auto; }
-  /* ☀/☾ okienko nieba na tarczy nad 6 (niebo.js) i pod nim pora doby (Lasha 28.09, wariant ა) */
+  /* ☀/☾ sky window on the dial above the 6 (niebo.js), with the time of day under it */
   .okno-ramka { fill: none; stroke: color-mix(in oklab, var(--color-base-content) 35%, transparent); stroke-width: 1; }
   .okno-pora { fill: var(--color-base-content); font: 700 10px system-ui, "Segoe UI", Roboto, sans-serif; }
-  .bez-nieba .okno-niebo, .bez-nieba .okno-ramka { display: none; }   /* 🕓 „Animacja dnia i nocy na tarczy: Wyłączone" — pora zostaje */
-  /* zadanie pod zegarem w trybach Ustaw: co ustawić + „Sprawdź"; kolory jak odkryta karta, dobrze / źle na chwilę */
+  .bez-nieba .okno-niebo, .bez-nieba .okno-ramka { display: none; }   /* 🕓 „Animacja dnia i nocy na tarczy: Wyłączone" — the time of day stays */
+  /* task under the clock in the Ustaw (set the hands) modes: what to set + „Sprawdź"; colours like the uncovered card,
+     right / wrong shown briefly */
   .zadanie { width: min(100%, 24rem); display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 12px 12px;
              text-align: center; background: var(--color-base-200); border: 1px solid var(--color-base-300);
              border-radius: var(--radius-box, 1rem); box-shadow: 0 4px 14px rgb(0 0 0 / .18); transition: background-color .2s, border-color .2s; }
@@ -73,14 +74,14 @@
   .zadanie .btn { width: 100%; }
   .zadanie.dobrze { border-color: var(--color-success); background: color-mix(in oklab, var(--color-success) 22%, var(--color-base-200)); }
   .zadanie.zle { border-color: var(--color-error); background: color-mix(in oklab, var(--color-error) 18%, var(--color-base-200)); }
-  /* Odczytaj w tej samej karcie (Lasha 29.09): wiersz odpowiedzi tej samej wysokości we wszystkich trybach — zegar nie skacze */
-  .zadanie > b, .zadanie > .karta-odp, .wpisz { min-height: 110px; }   /* = wysokość kółek (.kolo) — każda karta tej samej wysokości */
+  /* Odczytaj in the same card: the answer row has the same height in every mode — the clock does not jump */
+  .zadanie > b, .zadanie > .karta-odp, .wpisz { min-height: 110px; }   /* = height of the wheels (.kolo) — every card the same height */
   .zadanie .karta-odp.wlaczona .napis-blok { background: none; border: 0; box-shadow: none; padding: 0; min-height: 2.4em; }
   .zadanie .karta-odp .zaslona { box-shadow: none; }
-  /* „Wpisz godzinę": dwa kółka (godzina · minuty), obok każdego ▲▼ — o jeden (Lasha 29.09: „უსასრულო" · „ისრებიც") */
+  /* „Wpisz godzinę": two wheels (hour · minutes), ▲▼ next to each — by one */
   .wpisz { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: var(--r-glowny); font-weight: 700; }
   .wpisz-pole { display: flex; align-items: center; gap: 4px; }
-  .kolo { position: relative; width: 2.4ch; height: 110px; overflow: hidden;   /* 5 liczb po 22 px (Lasha 29.09: −15%) */
+  .kolo { position: relative; width: 2.4ch; height: 110px; overflow: hidden;   /* 5 numbers of 22 px each */
           touch-action: none;
           cursor: ns-resize; user-select: none; font-variant-numeric: tabular-nums;
           background: var(--color-base-100); border: 1px solid var(--color-base-300); border-radius: 10px; }
@@ -89,12 +90,11 @@
   .wpisz-pole.g .kolo { color: var(--tekst-g); }
   .wpisz-pole.m .kolo { color: var(--tekst-m); }
   .wpisz-pole > span { display: flex; flex-direction: column; gap: 2px; }
-  .wpisz-pole.g > span { order: -1; }   /* ▲▼ godziny na początku, minut na końcu — między kółkami tylko „:" (Lasha 29.09) */
+  .wpisz-pole.g > span { order: -1; }   /* hour ▲▼ first, minute ▲▼ last — only „:" between the wheels */
   .zadanie .wpisz-pole .btn { width: 31px; height: 22px; min-height: 0; padding: 0; font-size: 11px; }
-  /* 🔊 w prawym górnym rogu zegara (Lasha 27.09) — tarcza jest okrągła, róg kwadratu jest wolny */
   .zegar-rog { position: relative; }
-  /* ▾ pole z nazwą zadania nad zegarem (Lasha 29.09, wariant ბ z _visual/por-tytul.html + ▾ i 🔀): dotknięcie — lista zadań;
-     po odpowiedzi na chwilę „Dobrze!" (zielone) · „Popatrz, tak:" (czerwone). 🔊 i ≡ stąd zniknęły */
+  /* ▾ field with the task name above the clock: a tap opens the task list; after an answer it briefly shows
+     „Dobrze!" (green) · „Popatrz, tak:" (red) */
   .pole-box { width: min(100%, 24rem); }
   .pole { width: 100%; height: 48px; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 0 14px;
           border-radius: 999px; cursor: pointer; background: var(--color-base-100); border: 2px solid var(--color-primary);
@@ -103,23 +103,23 @@
   .pole svg { flex: none; }
   .pole.dobrze { background: var(--color-success); border-color: var(--color-success); color: var(--color-success-content); }
   .pole.zle { background: var(--color-error); border-color: var(--color-error); color: var(--color-error-content); }
-  /* 🔊 w rogu karty zadania (Lasha 29.09, wariant გ z _visual/por-glosnik.html) — tylko przy „Przeczytaj i ustaw" */
+  /* 🔊 in the corner of the task card — only for „Przeczytaj i ustaw" */
   .zadanie { position: relative; }
   .glos-rog { position: absolute; top: 6px; right: 6px; color: var(--color-primary); }
-  .zadanie .glos-rog { width: var(--size); }   /* nie 100% jak Sprawdź — kółko w rogu */
-  /* 🎲 na dole karty, obok „Sprawdź" (Lasha 29.09: „ძალიან ხშირად არის საჭირო") — zawsze w tym samym miejscu, też gdy
-     „Sprawdź" niewidoczny */
+  .zadanie .glos-rog { width: var(--size); }   /* not 100% like Sprawdź — a round button in the corner */
+  /* 🎲 at the bottom of the card, next to „Sprawdź" — it is needed very often, so it is always in the same place, also
+     when „Sprawdź" is invisible */
   .zadanie-dol { display: flex; align-items: center; gap: 8px; width: 100%; }
   .zadanie .zadanie-dol > .btn { flex: 1; }
   .zadanie .zadanie-dol > .losuj { flex: none; width: 52px; height: 52px; padding: 0; }
   .napis { font-size: var(--r-glowny); font-weight: 700; text-align: center; margin: 0; line-height: 1.2; min-height: 2.4em; }
-  .napis.cyfry { font-variant-numeric: tabular-nums; }   /* cyfry nie skaczą przy przeciąganiu */
-  /* blok ma stałą wysokość (2 linie napisu) — 🔊 pod nim nie skacze; pora doby — na niebie */
+  .napis.cyfry { font-variant-numeric: tabular-nums; }   /* digits do not jump while dragging */
+  /* the block has a fixed height (2 lines of text) — what is under it does not jump; the time of day is shown in the sky window */
   .napis-blok { font-size: var(--r-glowny); min-height: 2.4em; text-align: center; }
   .napis-blok .napis { min-height: 0; }
-  /* pora doby pod słowami na Starcie */
+  /* time of day under the words on Start */
   .pora { margin: 0; min-height: 23px; font-size: var(--r-drobny); line-height: 23px; color: color-mix(in oklab, var(--color-base-content) 60%, transparent); }
-  /* „Zakryj godzinę" (⚙): karta „Która godzina?" nad odpowiedzią; zakryta = obrócona o 180°, dotyk obraca tam i z powrotem */
+  /* „Zakryj godzinę": the „Która godzina?" card over the answer; covered = rotated by 180°, a tap flips it back and forth */
   .karta-odp { width: min(100%, 24rem); perspective: 900px; }
   .karta-odp .obrot { display: grid; transform-style: preserve-3d; transition: transform .45s ease; }
   .karta-odp .obrot > * { grid-area: 1 / 1; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
@@ -132,12 +132,12 @@
   .karta-odp.wlaczona .zaslona { display: flex; }
   .karta-odp.zakryta .obrot { transform: rotateY(180deg); }
   .karta-odp.bez-animacji .obrot { transition: none; }
-  /* odkryta strona też jest kartą — kolory z motywu; odpowiedź na środku */
+  /* the uncovered side is a card too — theme colours; the answer centred */
   .karta-odp.wlaczona .napis-blok { display: flex; flex-direction: column; align-items: center; justify-content: center;
                                     min-height: calc(2.4em + 16px); padding: 8px 12px;
                                     background: var(--color-base-200); border: 1px solid var(--color-base-300);
                                     border-radius: var(--radius-box, 1rem); box-shadow: 0 4px 14px rgb(0 0 0 / .18); cursor: pointer; }
-  /* ⚙ ustawienia zegara: szuflada z prawej */
+  /* ⚙ clock settings: a drawer on the right */
   .ustaw-tytul { margin: 0; padding: 0 1rem .25rem; font-size: 18px; font-weight: 700; }
   .ustaw-glowa { display: flex; align-items: center; justify-content: space-between; padding-right: .5rem; }
   .ustaw-glowa .ustaw-tytul { padding-bottom: 0; }
@@ -147,8 +147,8 @@
   .ustaw-grupa .btn { flex: 1; }
   .podglad { width: 44px; height: 44px; flex: none; pointer-events: none; }
 
-  /* listy Lekcje i Ćwiczenia (Lasha 27.09, wariant ა z por-poziomy.html; „გააკეთე იგივე ლექციებზე") — karty równej
-     wysokości, mały zegar z przykładem i numerem w kolorze swojej części (jak ikona na Starcie), nazwa + jedna linia */
+  /* the Lekcje and Ćwiczenia lists — cards of equal height, a small clock with an example and a number in the colour of
+     its section (like the icon on Start), name + one line */
   .lista-kafel { --kolor: var(--color-warning); --kolor-t: var(--color-warning-content);
                  flex: none; height: 88px; display: flex; align-items: center; gap: 14px; width: 100%; padding: 0 12px 0 14px;
                  text-align: left; cursor: pointer; background: var(--color-base-100); border: 0; border-radius: var(--radius-box, 1rem);
@@ -165,8 +165,8 @@
                        white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .lista-kafel > svg { flex: none; color: var(--kolor); }
 
-  /* Start (Lasha 29.09): u góry 🏋 Trening (zakładki + zegar do przeciągania), na dole dwa małe przyciski w rzędzie —
-     ikona w kolorze swojej części, obok nazwa */
+  /* Start: at the top 🏋 Trening (a clock to drag), at the bottom two small buttons in a row — an icon in the colour of
+     its section, the name beside it */
   .start-gora { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
   .start-rzad { flex: none; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
   .start-rzad button { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 8px 0; cursor: pointer;
@@ -175,25 +175,25 @@
   .start-rzad button:active, .start-pas:active { transform: scale(.97); }
   .start-rzad .ik, .start-pas .ik { width: 36px; height: 36px; flex: none; display: grid; place-items: center; border-radius: 10px; }
   .start-rzad .ik svg, .start-pas .ik svg { width: 22px; height: 22px; }
-  /* info · warning: niebieski · bursztyn w każdym z trzech motywów */
+  /* info · warning: blue · amber in each of the three themes */
   .start-rzad .ik-karty { background: var(--color-success); color: var(--color-success-content); }
   .start-rzad .ik-zegar { background: var(--color-info); color: var(--color-info-content); }
   .start-rzad .ik-cwiczenia { background: var(--color-warning); color: var(--color-warning-content); }
   .start-rzad b, .start-pas b { font-size: var(--r-przycisk); line-height: 1.15; white-space: nowrap; }
-  /* pas „Karty pracy" na całą szerokość, nad zegarem (Lasha 30.09, wariant დ z _visual/por-druk.html) */
+  /* full-width „Karty pracy" bar above the clock */
   .start-pas { flex: none; display: flex; align-items: center; gap: 10px; padding: 8px 12px; cursor: pointer;
                background: var(--color-base-100); border: 0; border-radius: var(--radius-box, 1rem); color: inherit; font: inherit;
                transition: transform .1s; }
   .start-pas .ik-druk { background: var(--color-success); color: var(--color-success-content); }
   .start-pas > svg { margin-left: auto; opacity: .45; }
-  /* ☰: Motyw na dole, oddzielony kreską */
+  /* ☰: Motyw at the bottom, separated by a rule */
   .menu li.oddzielnie { margin-top: .5rem; padding-top: .5rem; border-top: 1px solid var(--color-base-300); }
-  /* ☰ Motyw: próbka = tło motywu + jego główny kolor (data-theme na próbce daje jej kolory tego motywu) */
+  /* ☰ Motyw: swatch = the theme's background + its primary colour (data-theme on the swatch gives it that theme's colours) */
   .probka { width: 22px; height: 22px; flex: none; border-radius: 50%;
             background: linear-gradient(135deg, var(--color-base-100) 50%, var(--color-primary) 50%);
             box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-base-content) 35%, transparent); }
 
-  /* lekcja */
+  /* lesson */
   #lekcja { justify-content: safe center; }
   #widok-lekcja .btn { font-size: var(--r-przycisk); }
   .wstep { margin: 0; text-align: center; font-size: var(--r-drobny); line-height: 1.35; max-width: 24rem; }
@@ -212,8 +212,8 @@
           padding: .5rem 1rem; text-align: center; font-size: var(--r-drobny); line-height: 1.35; }
   .znak { display: block; font-size: var(--r-drobny); font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--color-primary); }
 
-  /* lekcja 4 „Po i za" (lekcja-polowy.js): prawa połowa „po", lewa „za" (kolory jak w samouczku poziomu 3); świeci ta,
-     na której stoi minutowa, i jej napis — przy 12 i 6 tylko napis */
+  /* lesson 4 „Po i za" (lekcja-polowy.js): right half „po", left half „za" (colours as in the level 3 tutorial); the half
+     the minute hand is on lights up, and so does its label — at 12 and 6 only the label */
   .zegar .polowa-po { fill: var(--sam-po); fill-opacity: .12; transition: fill-opacity .15s; }
   .zegar .polowa-za { fill: var(--sam-za); fill-opacity: .12; transition: fill-opacity .15s; }
   .zegar .polowa-po.swieci, .zegar .polowa-za.swieci { fill-opacity: .36; }
@@ -224,15 +224,15 @@
   .polowy-gora .swieci, .polowy-6.swieci { opacity: 1; }
   .polowy-6 { margin: -6px 0 0; }
 
-  /* lekcja 5 „Godzina i minuty" (lekcja-razem.js): stała wysokość napisów (glowny zawsze na 2 linie) — zegar nad nimi
-     nie skacze, gdy napis się zawija albo pustoszeje */
+  /* lesson 5 „Godzina i minuty" (lekcja-razem.js): the labels have a fixed height (glowny always 2 lines) — the clock
+     above them does not jump when a label wraps or goes empty */
   .razem-glowny { font-size: var(--r-glowny); height: 2.3em; flex: none; align-content: center; text-align: center; }
   .razem-albo   { margin: 0; font-size: var(--r-drobny); line-height: 1.35; height: 1.35em; flex: none; color: color-mix(in oklab, var(--color-base-content) 70%, transparent); }
   .razem-slowa  { margin: 0; font-size: var(--r-przycisk); font-weight: 700; line-height: 1.3; height: 1.3em; flex: none; text-align: center; }
   .razem-cyfry  { margin: 0; font-size: var(--r-przycisk); font-weight: 700; font-variant-numeric: tabular-nums; display: flex; align-items: baseline; gap: .35em; }
   .razem-cyfry small { font-size: var(--r-drobny); font-weight: 500; color: color-mix(in oklab, var(--color-base-content) 60%, transparent); }
 
-  /* lekcja 6 „Upływ czasu" (lekcja-uplyw.js) */
+  /* lesson 6 „Upływ czasu" (lekcja-uplyw.js) */
   .uplyw-napis { font-variant-numeric: tabular-nums; }
   .przyklad { text-align: left; display: flex; flex-direction: column; align-items: center; gap: .45rem; padding: .6rem 1rem .8rem; }
   .przyklad p { margin: 0; align-self: stretch; }
@@ -244,9 +244,9 @@
              font-size: var(--r-przycisk); font-weight: 700; font-variant-numeric: tabular-nums; }
   .sposob2 small { font-size: var(--r-drobny); color: var(--uplyw); }
 
-  /* ćwiczenia (cwiczenia.js, ★ przy zegarze): ramka z pytaniem nad zegarem, pod nim pole na 3 przyciski (w Pokaż puste) —
-     obie stałej wysokości, więc zegar stoi w tym samym miejscu. Słowa są długie („Dziewiąta") — ich 3 przyciski stoją
-     jeden pod drugim, stąd wysokość pola. */
+  /* exercises (cwiczenia.js): a box with the question above the clock, under it an area for 3 buttons (empty in Pokaż) —
+     both of fixed height, so the clock stays in the same place. Words are long („Dziewiąta") — their 3 buttons are
+     stacked one under another, hence the height of the area. */
   #widok-cw { justify-content: safe center; }
   .licznik { padding-right: .25rem; font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums;
              color: color-mix(in oklab, var(--color-base-content) 70%, transparent); }
@@ -262,15 +262,16 @@
   .cw-wybor .btn:not(.btn-success, .btn-error) { --btn-color: var(--color-base-100); }
   .slowa .cw-wybor, .zdania .cw-wybor { flex-direction: column; gap: 10px; }
   .slowa .cw-wybor .btn { width: 14rem; }
-  /* poziom 4: całe zdania („Piętnaście po jedenastej") — w ramce 22 zamiast 32, przyciski prawie na całą szerokość */
+  /* level 4: whole sentences („Piętnaście po jedenastej") — 22 instead of 32 in the box, buttons almost full width */
   .zdania .cw-wybor .btn { width: 18rem; }
-  .cw-pytanie.zdania small + b { font-size: var(--r-przycisk); }   /* tylko zdanie w Pokaż; „Która godzina?" zostaje 32 */
-  /* poziom 6: „Dwadzieścia pięć po jedenastej" nie mieści się w 18rem — przyciski na dwa wiersze, wszystkie trzy równe,
-     pole wyższe (3 × 62 + 2 × 8), żeby zegar w rundzie nie skakał (Lasha „ა") */
+  .cw-pytanie.zdania small + b { font-size: var(--r-przycisk); }   /* only the sentence in Pokaż; „Która godzina?" stays 32 */
+  /* level 6: „Dwadzieścia pięć po jedenastej" does not fit in 18rem — two-line buttons, all three equal, and a taller
+     area (3 × 62 + 2 × 8) so the clock does not jump during a round */
   .cw-cel.dwa-wiersze { height: 202px; }
   .dwa-wiersze .cw-wybor { gap: 8px; }
   .dwa-wiersze .cw-wybor .btn { height: 62px; line-height: 1.2; }
-  /* poziom 9: most z podręcznika 13:50 → 14:00 → 14:10 — nad strzałkami skoki, pod spodem razem; niżej 3 przyciski */
+  /* level 9: the bridge from the textbook, 13:50 → 14:00 → 14:10 — the jumps above the arrows, the total underneath;
+     3 buttons below */
   .cw-cel.most { flex-direction: column; align-items: center; gap: 10px; }
   .cw-most { width: min(88vw, 50vh); display: grid; grid-template-columns: auto 1fr auto 1fr auto; align-items: center; row-gap: 4px; }
   .cw-most .czas { grid-row: 2; padding: 2px 8px; font-size: var(--r-przycisk); font-weight: 700; font-variant-numeric: tabular-nums;
@@ -284,9 +285,9 @@
   .cw-most .teraz b { display: inline-block; min-width: 1.6em; border-radius: .4rem;
                       background: var(--color-warning); color: var(--color-warning-content); }
   .cw-most .zrobione { color: var(--color-success); font-weight: 700; }
-  /* poziom 10: Ustaw — obie wskazówki osobno, potem „Sprawdź" (bez klik z dzwieki.js — ma swoje dobrze / źle) */
+  /* level 10: Ustaw — both hands separately, then „Sprawdź" (no click sound from dzwieki.js — it has its own right / wrong) */
   .cw-sprawdz { width: 14rem; font-size: var(--r-przycisk); }
-  /* bonus: „Minęły 2 godziny i 25 minut" w 32 się nie mieści — 22, najwyżej 2 wiersze (17 + 2 × 26 < 88) */
+  /* bonus: „Minęły 2 godziny i 25 minut" does not fit at 32 — 22, at most 2 lines (17 + 2 × 26 < 88) */
   .cw-pytanie.minelo b { font-size: var(--r-przycisk); }
   .cw-kolko { fill-opacity: .45; }
   .cw-kolko.dobrze { fill: var(--color-success); }
@@ -298,11 +299,11 @@
   .cw-koniec { width: 100%; max-width: 20rem; display: flex; flex-direction: column; gap: 10px; }
   .cw-koniec .btn { font-size: var(--r-przycisk); }
   .cw-koniec .btn:not(.btn-primary) { --btn-color: var(--color-base-100); }
-  /* samouczek (samouczki.js): cała pomoc w jednej ramce (Lasha: „მთლიანი დახმარება უნდა იყოს ჩარჩოში … რომ ეს არაა
-     ჩვეულებრივი საათი") — tło i obrys w kolorze motywu, u góry znak jak „Dobra rada" w lekcjach. W niej zdanie 22
-     (32 się nie mieści, miejsce na 2 wiersze — zegar nie skacze), zegar trochę mniejszy niż w rundzie, pod nim duży
-     napis 32, mały opis 17 i „Dalej" / „Wróć". Wskazówka, o której mowa, miga; podpisy minut (05 … 55) ukryte,
-     zapalają się przy liczeniu. */
+  /* tutorial (samouczki.js): the whole help sits in one frame, so it is clear that this is not the ordinary clock —
+     background and outline in the theme colour, at the top a badge like „Dobra rada" in the lessons. Inside: a sentence
+     at 22 (32 does not fit; room for 2 lines — the clock does not jump), a clock a bit smaller than in a round, under it
+     a big label at 32, a small description at 17 and „Dalej" / „Wróć". The hand being talked about blinks; the minute
+     labels (05 … 55) are hidden and light up during counting. */
   .sam-ramka { width: min(100%, 24rem); box-sizing: border-box; display: flex; flex-direction: column; align-items: center;
                gap: 8px; padding: 8px 12px 14px; border-radius: var(--radius-box, 1rem);
                background: color-mix(in oklab, var(--color-primary) 12%, var(--color-base-100));
@@ -319,51 +320,51 @@
               color: color-mix(in oklab, var(--color-base-content) 60%, transparent); }
   .sam-dalej { width: 12rem; margin-top: 4px; font-size: var(--r-przycisk); }
   .sam-ukryty { visibility: hidden; }
-  /* 🏋 Trening (Lasha 28.09): krok samouczka bez „💡 Jak to działa?" i bez „Dalej"; zdanie w 1–2 wierszach */
+  /* 🏋 Trening: a tutorial step without „💡 Jak to działa?" and without „Dalej"; the sentence in 1–2 lines */
   .trening { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; }
   .trening .sam-znak, .trening .sam-dalej { display: none; }
-  .trening .sam-ramka { background: none; border: 0; }   /* bez ramki (Lasha 29.09) */
-  /* przełączniki pod napisami: „Po i za" · „Upływ czasu" — włączenie jednego wyłącza drugi (samTrening) */
+  .trening .sam-ramka { background: none; border: 0; }
+  /* switches under the labels: „Po i za" · „Upływ czasu" — turning one on turns the other off (samTrening) */
   .sam-przelaczniki { display: flex; justify-content: center; gap: 20px; margin-top: 6px; }
   .sam-przelaczniki label { display: flex; align-items: center; gap: 8px; font-size: var(--r-drobny); cursor: pointer; }
   .trening .sam-gora { height: 56px; }
-  /* Start: zegar maleje na niskim telefonie (360×640) — zdania, przełączniki i Trening · Ćwiczenia się mieszczą (Lasha 29.09);
-     + 64 px na pas „Karty pracy" nad zegarem (30.09) */
+  /* Start: the clock shrinks on a short phone (360×640) — the sentences, the switches and Trening · Ćwiczenia fit;
+     the 474 px include 64 px for the „Karty pracy" bar above the clock */
   .trening .sam-zegar svg { width: min(80vw, 44vh, 100vh - 474px); }
-  /* „Która godzina?": liczba godziny, którą krótka minęła, powiększona (samIle w samouczki.js) */
-  .trening .sam-teraz { fill: #ff8c1a; }   /* póki duża — czerwono-pomarańczowa (Lasha 28.09) */
-  /* ×1.45 większym fontem, nie scale(): liczba jest środkiem na swoim punkcie (text-anchor + dominant-baseline), więc zostaje
-     w miejscu; scale z transform-box: fill-box na tablecie zjeżdżał w dół (Lasha 29.09) */
+  /* „Która godzina?": the number of the hour the short hand has passed is enlarged (samTrening in samouczki.js) */
+  .trening .sam-teraz { fill: #ff8c1a; }   /* while enlarged — red-orange */
+  /* ×1.45 by a bigger font, not scale(): the number is centred on its point (text-anchor + dominant-baseline), so it stays
+     in place; scale with transform-box: fill-box slid downwards on a tablet */
   .trening .s-cyfra.sam-teraz { font-size: 26px; }  .trening .s-cyfra.rz.sam-teraz { font-size: 20px; }
   .trening .m-cyfra.sam-teraz { font-size: 32px; }  .trening .m-cyfra.rz.sam-teraz { font-size: 23px; }
   .trening .k-cyfra.sam-teraz { font-size: 28px; }  .trening .k-cyfra.rz.sam-teraz { font-size: 22px; }
   .trening .s-cyfra, .trening .m-cyfra, .trening .k-cyfra { transition: font-size .2s, fill .2s; }
-  /* „Dwadzieścia pięć po jedenastej wieczorem" bywa w 2 wierszach — miejsce na 2 zawsze, zakładka nie skacze (Lasha 28.09) */
+  /* „Dwadzieścia pięć po jedenastej wieczorem" can take 2 lines — always room for 2, so nothing below it jumps */
   .trening .sam-maly { min-height: 2.7em; text-align: center; }
-  /* „Upływ": „1 godz." · „20 min" przy końcu minutowej, za tarczą — przy 3 i 9 wychodzi trochę poza zegar (samUplyw;
-     .zegar ma overflow: visible) */
+  /* „Upływ": „1 godz." · „20 min" at the tip of the minute hand, outside the dial — at 3 and 9 it sticks out a little
+     past the clock (samTrening; .zegar has overflow: visible) */
   .sam-uplyw { fill: var(--uplyw); font: 700 9px system-ui, "Segoe UI", Roboto, sans-serif; text-anchor: middle;
                dominant-baseline: central; }
   .sam-swieci { animation: sam-miga 1s ease-in-out infinite; }
   @keyframes sam-miga { 50% { opacity: .2; } }
   .sam-palec { font-size: 30px; text-anchor: middle; dominant-baseline: hanging; }
-  /* poziom 3: prawa połowa tarczy „po", lewa „za" — w tych kolorach też słowa po / za */
+  /* level 3: right half of the dial „po", left half „za" — the words po / za use these colours too */
   :root { --sam-po: #e39a00; --sam-za: #8b55cc; }
   .sam-po { color: var(--sam-po); }
   .sam-za { color: var(--sam-za); }
   .zegar .sam-pol-po { fill: var(--sam-po); fill-opacity: .2; }
   .zegar .sam-pol-za { fill: var(--sam-za); fill-opacity: .16; }
-  /* poziom 4: tarcza pocięta na 4 kawałki po 15 minut (kawałki — .sektor, jak upływ czasu) */
+  /* level 4: the dial cut into 4 pieces of 15 minutes (the pieces are .sektor, like elapsed time) */
   .zegar .sam-ciecie { fill: none; stroke: color-mix(in oklab, var(--color-base-content) 35%, transparent); stroke-width: 1.5; stroke-linecap: round; }
-  /* każdy kawałek swoja zieleń, od jasnej (12 → 3) do ciemnej (9 → 12) */
+  /* each piece has its own green, from light (12 → 3) to dark (9 → 12) */
   .zegar .sam-cwiartka.c0 { fill-opacity: .16; } .zegar .sam-cwiartka.c1 { fill-opacity: .3; }
   .zegar .sam-cwiartka.c2 { fill-opacity: .44; } .zegar .sam-cwiartka.c3 { fill-opacity: .58; }
-  /* poziom 6: duży napis = zdanie, do 2 wierszy („Dwadzieścia pięć po szóstej") — miejsce na 2 zawsze, zegar nie skacze;
-     zdanie w jednym <span> (samZdanie), więc flex tylko je centruje */
+  /* level 6: the big label is a sentence of up to 2 lines („Dwadzieścia pięć po szóstej") — always room for 2, the clock
+     does not jump; the sentence is in a single <span> (samZdanie), so flex only centres it */
   .sam-dwa .sam-duzy { min-height: 2.4em; display: flex; align-items: center; justify-content: center; text-align: center; }
 
-  /* Karty pracy (druk.js): nad kartką pole ▾ z rodzajem zadania (jak w Treningu) · ile zegarów · „Z odpowiedziami" ·
-     „Wydrukuj" + 🎲, pod spodem podgląd kartki A4 */
+  /* Karty pracy (druk.js): above the sheet a ▾ field with the task type (as in Trening) · how many clocks ·
+     „Z odpowiedziami" · „Wydrukuj" + 🎲, below it the preview of the A4 sheet */
   .druk-ster { width: min(100%, 30rem); flex: none; display: flex; flex-direction: column; gap: 10px; }
   .druk-ster .pole-box { width: 100%; }
   .druk-ster .ustaw-grupa { padding: 0; }
@@ -372,16 +373,16 @@
   .druk-dol .btn { height: 52px; font-size: var(--r-przycisk); }
   .druk-dol .btn:first-child { flex: 1; gap: 10px; }
   .druk-dol .druk-losuj { flex: none; width: 52px; padding: 0; }
-  .druk-kartki { width: min(100%, 30rem); flex: none; display: flex; flex-direction: column; gap: 12px; }   /* strony jedna pod drugą */
+  .druk-kartki { width: min(100%, 30rem); flex: none; display: flex; flex-direction: column; gap: 12px; }   /* pages one under another */
   .druk-podglad { aspect-ratio: 210 / 297; container-type: inline-size; background: #fff; box-shadow: 0 4px 14px rgb(0 0 0 / .18); }
-  /* kartka: rozmiary w --mm (na ekranie 1/210 szerokości podglądu, w druku 1 mm); kolory stałe — biała także w motywie Nocnym */
+  /* sheet: sizes in --mm (on screen 1/210 of the preview width, in print 1 mm); fixed colours — white also in the Nocny theme */
   .arkusz { --mm: calc(100cqw / 210); --color-base-100: #fff; --color-base-300: #bbb; --color-base-content: #1a1a1a;
             --tekst-g: #1a1a1a; --tekst-m: #1a1a1a;
             width: 100%; height: 100%; box-sizing: border-box; padding: calc(var(--mm) * 12) calc(var(--mm) * 12) calc(var(--mm) * 10);
             display: flex; flex-direction: column; gap: calc(var(--mm) * 4); background: #fff; color: #1a1a1a;
             print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   body[data-styl="szkolny"] .arkusz { --tekst-g: var(--godz); --tekst-m: var(--min); }
-  .arkusz .zegar { pointer-events: none; touch-action: auto; cursor: default; }   /* palec na zegarze przewija stronę */
+  .arkusz .zegar { pointer-events: none; touch-action: auto; cursor: default; }   /* a finger on the clock scrolls the page */
   .arkusz h1 { margin: 0; font-size: calc(var(--mm) * 7); font-weight: 700; line-height: 1.2; }
   .ark-siatka { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(var(--kol), 1fr); grid-auto-rows: 1fr; }
   .ark-zad { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(var(--mm) * 2); }
@@ -392,41 +393,41 @@
   .ile-6 { --kol: 2; --zeg: 62; --fs: 9; }
   .ile-9 { --kol: 3; --zeg: 52; --fs: 8; }
   .ile-12 { --kol: 3; --zeg: 42; --fs: 7; }
-  /* „Tak czy nie?": pod godziną kratki TAK · NIE, więc zegary trochę mniejsze; „Upływ czasu": nad kratkami „za 20 minut";
-     „Zapisz słowami": dwie linie do pisania */
+  /* „Tak czy nie?": TAK · NIE boxes under the time, so the clocks are a bit smaller; „Upływ czasu": „za 20 minut" above
+     the boxes; „Zapisz słowami": two lines to write on */
   .typ-czy.ile-4, .typ-uplyw.ile-4, .typ-pisz.ile-4 { --zeg: 76; }  .typ-czy.ile-6, .typ-uplyw.ile-6, .typ-pisz.ile-6 { --zeg: 58; }
   .typ-czy.ile-9, .typ-uplyw.ile-9, .typ-pisz.ile-9 { --zeg: 50; }  .typ-czy.ile-12, .typ-uplyw.ile-12, .typ-pisz.ile-12 { --zeg: 40; }
   .ark-za { font-size: calc(var(--mm) * var(--fs) * .7); font-weight: 700; line-height: 1; }
   .ark-tn { display: flex; gap: calc(var(--mm) * var(--fs) * .7); font-size: calc(var(--mm) * var(--fs) * .6); line-height: 1; }
   .ark-tn span { display: flex; align-items: center; gap: .35em; }
   .ark-tn i { width: 1em; height: 1em; box-sizing: border-box; border: .09em solid #1a1a1a; border-radius: .15em; }
-  /* „Która godzina?", „Po południu" i „Upływ czasu": zamiast godziny dwie puste kratki do wpisania — godzina : minuty */
+  /* „Która godzina?", „Po południu" and „Upływ czasu": instead of the time, two empty boxes to fill in — hour : minutes */
   .ark-pole { display: flex; align-items: center; gap: calc(var(--mm) * var(--fs) * .25); }
   .ark-pole i { width: calc(var(--mm) * var(--fs) * 2); height: calc(var(--mm) * var(--fs) * 1.5); box-sizing: border-box;
                 border: calc(var(--mm) * .4) solid #1a1a1a; border-radius: calc(var(--mm) * 1.5); }
-  /* „Przeczytaj i narysuj": godzina słowami — mniejsze litery, miejsce zawsze na 2 wiersze („Dwadzieścia pięć po jedenastej") */
+  /* „Przeczytaj i narysuj": the time in words — smaller letters, always room for 2 lines („Dwadzieścia pięć po jedenastej") */
   .typ-slowa.ile-4 { --fs: 8; }  .typ-slowa.ile-6 { --fs: 7; }  .typ-slowa.ile-9 { --fs: 6; }  .typ-slowa.ile-12 { --fs: 5; }
   .typ-slowa .ark-zad b { min-height: 2.4em; line-height: 1.2; padding: 0 calc(var(--mm) * 3); text-align: center; text-wrap: balance; }
-  /* „Zapisz słowami" (Lasha 30.09: „ტექსტი უნდა დაწეროს ბავშვმა"): pod zegarem dwie linie do pisania, --lin — odstęp linii */
+  /* „Zapisz słowami": the child writes the text — two lines to write on under the clock; --lin is the line spacing */
   .typ-pisz.ile-4 { --lin: 11; }  .typ-pisz.ile-6 { --lin: 10; }  .typ-pisz.ile-9 { --lin: 9; }  .typ-pisz.ile-12 { --lin: 8; }
   .ark-linie { width: calc(100% - var(--mm) * 8); }
   .ark-linie i { display: block; height: calc(var(--mm) * var(--lin)); border-bottom: calc(var(--mm) * .3) solid #1a1a1a; }
-  /* odpowiedzi: osobna, druga strona — u góry, do góry nogami (Lasha 30.09: „ცოტა გაადიდე პასუხები და ზევით იყოს");
-     --okol: ile w rzędzie — 12 zegarów w dwóch rzędach po 6 */
+  /* answers: a separate, second page — at the top, upside down;
+     --okol: how many per row — 12 clocks go in two rows of 6 */
   .ile-4 { --okol: 4; }  .ile-6 { --okol: 6; }  .ile-9 { --okol: 9; }  .ile-12 { --okol: 6; }
   .ark-odp { flex: none; display: grid; grid-template-columns: repeat(var(--okol), calc(var(--mm) * 18)); justify-content: center;
              gap: calc(var(--mm) * 5) calc(var(--mm) * 2.5); transform: rotate(180deg); }
   .ark-odp > div { display: flex; flex-direction: column; align-items: center; gap: calc(var(--mm) * 1);
                    font-size: calc(var(--mm) * 4); line-height: 1; color: #555; }
   .ark-odp svg { width: 100%; height: auto; }
-  /* „Tak czy nie?", „Która godzina?", „Po południu" i „Upływ czasu": odpowiedzi to napisy „1 TAK" · „1. 08:35" — kolumny
-     tak szerokie jak napis; 9 godzin w jednym rzędzie nie mieści się na kartce → 5 + 4 */
+  /* „Tak czy nie?", „Która godzina?", „Po południu" and „Upływ czasu": the answers are text, „1 TAK" · „1. 08:35" —
+     columns as wide as the text; 9 times in one row do not fit on the sheet → 5 + 4 */
   .typ-czy .ark-odp, .typ-godzina .ark-odp, .typ-popo .ark-odp, .typ-uplyw .ark-odp, .typ-pisz .ark-odp {
     grid-template-columns: repeat(var(--okol), auto); column-gap: calc(var(--mm) * 6); }
   .typ-godzina.ile-9, .typ-popo.ile-9, .typ-uplyw.ile-9 { --okol: 5; }
-  /* „Zapisz słowami": odpowiedzi to zdania („1. Za pięć siódma") — najwyżej 3 w rzędzie */
+  /* „Zapisz słowami": the answers are sentences („1. Za pięć siódma") — at most 3 per row */
   .typ-pisz.ile-4 { --okol: 2; }  .typ-pisz.ile-6, .typ-pisz.ile-9, .typ-pisz.ile-12 { --okol: 3; }
-  /* druk: tylko strony kartki (kopie w #do-druku), i tylko z ekranu Karty pracy — gdzie indziej Ctrl+P drukuje jak dawniej */
+  /* print: only the sheet pages (copies in #do-druku), and only from the Karty pracy screen — elsewhere Ctrl+P prints as usual */
   #do-druku { display: none; }
   @media print {
     @page { size: A4; margin: 0; }
@@ -443,13 +444,13 @@
 <div class="drawer h-full">
   <input id="menu" type="checkbox" class="drawer-toggle">
 
-  <div class="drawer-content h-full min-h-0 flex flex-col"><!-- min-h-0: wiersz siatki drawer nie rośnie z długą lekcją -->
+  <div class="drawer-content h-full min-h-0 flex flex-col"><!-- min-h-0: the drawer's grid row does not grow with a long lesson -->
     <header class="flex items-center gap-1 px-2 h-14 shrink-0">
       <label for="menu" id="przycisk-menu" class="btn btn-ghost btn-square" aria-label="Menu">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
       </label>
       <span class="text-lg font-bold mr-auto" id="tytul">Start</span>
-      <!-- 🕓 wygląd zegara (Lasha 28.09): przed ⚙, tylko przy zegarze -->
+      <!-- 🕓 clock appearance: before ⚙, only on screens with a clock -->
       <label for="wyglad" id="przycisk-wygladu" class="btn btn-ghost btn-square" aria-label="Wygląd zegara" hidden>
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
       </label>
@@ -457,17 +458,17 @@
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
       </label>
       <span class="licznik" id="licznik" hidden></span>
-      <!-- 💡 samouczek poziomu jeszcze raz (samouczki.js) — tylko w rundzie poziomu, który go ma -->
+      <!-- 💡 the level's tutorial once more (samouczki.js) — only in a round of a level that has one -->
       <button id="przycisk-pomoc" class="btn btn-ghost btn-square" aria-label="Jak to działa?" hidden>
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6M10 22h4"/></svg>
       </button>
-      <!-- 🏠 (Lasha 27.09): jednym dotknięciem na Start, z każdego ekranu; prawy brzeg, za ⚙ / licznikiem; na Starcie ukryty -->
+      <!-- 🏠: one tap to Start, from any screen; right edge, after ⚙ / the counter; hidden on Start -->
       <button id="przycisk-start" class="btn btn-ghost btn-square" aria-label="Start" hidden>
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
       </button>
     </header>
 
-    <!-- Start (Lasha 29.09): tu aplikacja się otwiera — 🏋 Trening, pod nim Lekcje · Ćwiczenia -->
+    <!-- Start: the app opens here — a clock to drag, under it Trening · Ćwiczenia -->
     <main id="widok-start" class="flex-1 min-h-0 overflow-y-auto flex flex-col gap-3 px-4 pt-2 pb-4" hidden></main>
 
     <main id="widok-lista" class="flex-1 min-h-0 overflow-y-auto flex flex-col gap-3 px-4 pt-2 pb-4" hidden></main>
@@ -477,17 +478,17 @@
       <button id="dalej" class="btn btn-primary w-full shrink-0 mt-2"></button>
     </main>
 
-    <!-- ★ Ćwiczenia (Lasha 27.09): lista poziomów, runda poziomu -->
+    <!-- ★ Ćwiczenia: the level list, a level round -->
     <main id="widok-cw-lista" class="flex-1 min-h-0 overflow-y-auto flex flex-col gap-3 px-4 pt-2 pb-4" hidden></main>
     <main id="widok-cw" class="flex-1 min-h-0 overflow-y-auto flex flex-col items-center gap-3 px-4 pb-6" hidden></main>
 
-    <!-- Karty pracy (Lasha 30.09): zadania do wydrukowania — druk.js -->
+    <!-- Karty pracy: tasks to print — druk.js -->
     <main id="widok-druk" class="flex-1 min-h-0 overflow-y-auto flex flex-col items-center gap-3 px-4 pt-2 pb-4" hidden></main>
 
     <main id="widok-zegar" class="flex-1 min-h-0 flex flex-col px-4 pb-4" hidden>
       <div class="flex-1 min-h-0 flex flex-col items-center justify-center gap-2">
-        <!-- ▾ pole nad zegarem (Lasha 29.09): nazwa zadania, dotknięcie — jakie zadania (na zmianę albo jeden rodzaj);
-             🔊 — w rogu karty, 🎲 — na dole karty -->
+        <!-- ▾ field above the clock: the task name; a tap — which tasks (mixed or a single type);
+             🔊 — in the corner of the card, 🎲 — at the bottom of the card -->
         <div class="dropdown dropdown-center pole-box">
           <div tabindex="0" role="button" class="pole" id="pole" aria-label="Zadania"></div>
           <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-30 w-full p-2 shadow text-base" id="rodzaj-menu"></ul>
@@ -495,8 +496,8 @@
         <div class="zegar-rog">
           <div id="zegar-miejsce"></div>
         </div>
-        <!-- Odczytaj (Lasha 29.09): ta sama karta co zadanie w Słowami — „Która godzina?", odpowiedź (albo pola do wpisania
-             godziny), „Sprawdź" (tylko przy wpisywaniu; inaczej niewidoczny, ale zajmuje miejsce — karta nie zmienia rozmiaru) -->
+        <!-- Odczytaj: the same card as the task in „Przeczytaj i ustaw" — „Która godzina?", the answer (or the fields for
+             entering the time), „Sprawdź" (only when entering; otherwise invisible but taking up space — the card keeps its size) -->
         <div class="zadanie" id="odczyt">
           <div class="karta-odp" id="karta-odp">
             <div class="obrot">
@@ -520,7 +521,7 @@
             </button>
           </div>
         </div>
-        <!-- zadanie w trybach Przeczytaj · Według cyfr · Posłuchaj (Lasha 27.09): co ustawić + Sprawdź; 🔊 w rogu -->
+        <!-- the task in the modes Przeczytaj · Według cyfr · Posłuchaj: what to set + Sprawdź; 🔊 in the corner -->
         <div class="zadanie" id="zadanie" hidden>
           <b id="zad-tresc"></b>
           <button id="powiedz" class="btn btn-ghost btn-circle btn-sm glos-rog" aria-label="Przeczytaj zadanie" hidden>
@@ -545,14 +546,14 @@
   </div>
 </div>
 
-<!-- ⚙ ustawienia zegara (Lasha 27.09): osobna szuflada z prawej; drawer-side jest fixed, więc stoi tu obok -->
+<!-- ⚙ clock settings: a separate drawer on the right; drawer-side is fixed, so it can sit here next to the main one -->
 <div class="drawer drawer-end">
   <input id="ustawienia" type="checkbox" class="drawer-toggle">
   <div class="drawer-content"></div>
   <div class="drawer-side z-20">
     <label for="ustawienia" aria-label="Zamknij ustawienia" class="drawer-overlay"></label>
     <nav class="bg-base-100 min-h-full w-80 py-3">
-      <!-- ✕ (Lasha 27.09): panel zakrywa prawie cały ekran — zamknięcie jednym dotknięciem, prawy brzeg wiersza tytułu -->
+      <!-- ✕: the panel covers almost the whole screen — closes with one tap, at the right edge of the title row -->
       <div class="ustaw-glowa">
         <p class="ustaw-tytul">Ustawienia</p>
         <label for="ustawienia" class="btn btn-ghost btn-square" aria-label="Zamknij ustawienia">
@@ -560,14 +561,13 @@
         </label>
       </div>
       <div class="ustaw-grupa"><span>Wskazówka minutowa</span><div class="join" id="u-krok"></div></div>
-      <!-- „Pod zegarem", „Zakryj godzinę", „Pora dnia" usunięte (Lasha 29.09): w Treningu na jednym ekranie nic już nie robiły -->
       <div class="ustaw-grupa" id="g-po13"><span>Cyfry po południu</span><div class="join" id="u-po13"></div></div>
       <div class="ustaw-grupa"><span>Dźwięki</span><div class="join" id="u-dzwieki"></div></div>
     </nav>
   </div>
 </div>
 
-<!-- 🕓 wygląd zegara (Lasha 28.09): osobna szuflada z prawej, jak ⚙ (wcześniej „Wygląd zegara" na dole ⚙) -->
+<!-- 🕓 clock appearance: a separate drawer on the right, like ⚙ -->
 <div class="drawer drawer-end">
   <input id="wyglad" type="checkbox" class="drawer-toggle">
   <div class="drawer-content"></div>
@@ -586,7 +586,7 @@
   </div>
 </div>
 
-<!-- kopia kartki z Kart pracy — tylko ją widać w druku (druk.js) -->
+<!-- copy of the sheet from Karty pracy — the only thing visible in print (druk.js) -->
 <div id="do-druku"></div>
 
 <script>
@@ -595,20 +595,20 @@ const NS = 'http://www.w3.org/2000/svg';
 const napisEl = document.getElementById('napis');
 const menuEl = document.getElementById('menu');
 
-// ---- jak się mówi ----
-// indeks 0 = dwunasta
+// ---- how times are said ----
+// index 0 = dwunasta
 const GODZ    = ['dwunasta','pierwsza','druga','trzecia','czwarta','piąta','szósta','siódma','ósma','dziewiąta','dziesiąta','jedenasta'];
 const GODZ_EJ = ['dwunastej','pierwszej','drugiej','trzeciej','czwartej','piątej','szóstej','siódmej','ósmej','dziewiątej','dziesiątej','jedenastej'];
 const PO = { 5: 'pięć po', 10: 'dziesięć po', 15: 'kwadrans po', 20: 'dwadzieścia po', 25: 'dwadzieścia pięć po' };
 const ZA = { 35: 'za dwadzieścia pięć', 40: 'za dwadzieścia', 45: 'za kwadrans', 50: 'za dziesięć', 55: 'za pięć' };
 
-// co minutę (krok 1): „siedem po ósmej", „za dwadzieścia dwie dziewiąta" — minuta jest rodzaju żeńskiego
+// every minute (krok 1): „siedem po ósmej", „za dwadzieścia dwie dziewiąta" — „minuta" is feminine (dwie, not dwa)
 const JEDN = ['', '', 'dwie', 'trzy', 'cztery', 'pięć', 'sześć', 'siedem', 'osiem', 'dziewięć', 'dziesięć',
               'jedenaście', 'dwanaście', 'trzynaście', 'czternaście', 'piętnaście', 'szesnaście', 'siedemnaście',
               'osiemnaście', 'dziewiętnaście'];
 const ileMinut = n => n < 20 ? JEDN[n] : 'dwadzieścia' + (n > 20 ? ' ' + (n === 21 ? 'jeden' : JEDN[n - 20]) : '');
 
-// tm: minuty od 12:00 (całe) → [część minutowa, część godzinowa]
+// tm: whole minutes since 12:00 → [minute part, hour part]
 function napis(tm) {
   const h = Math.floor(tm / 60) % 12, m = tm % 60, nast = (h + 1) % 12;
   if (m === 0)  return ['', GODZ[h]];
@@ -616,9 +616,9 @@ function napis(tm) {
   if (m === 30) return ['wpół do', GODZ_EJ[nast]];
   return [ZA[m] || (m === 59 ? 'za minutę' : 'za ' + ileMinut(60 - m)), GODZ[nast]];
 }
-// tm: minuty od północy (0…1439) → 24 h, jak w podręczniku i w telefonie: 0:40, 8:20, 20:20
+// tm: minutes since midnight (0…1439) → 24 h, as in the textbook and on a phone: 0:40, 8:20, 20:20
 const cyfrowo = tm => `${Math.floor(tm / 60)}:${String(tm % 60).padStart(2, '0')}`;
-// pora doby pod słowami (Lasha 27.09): 5–11 rano · 12–17 po południu · 18–22 wieczorem · 23–4 w nocy
+// time of day under the words: 5–11 rano · 12–17 po południu · 18–22 wieczorem · 23–4 w nocy
 function pora(tm) {
   const g = Math.floor(tm / 60);
   return g >= 5 && g < 12 ? 'rano' : g >= 12 && g < 18 ? 'po południu' : g >= 18 && g < 23 ? 'wieczorem' : 'w nocy';
@@ -626,7 +626,7 @@ function pora(tm) {
 
 const duza = s => s.charAt(0).toUpperCase() + s.slice(1);
 const slowami = tm => duza(napis(tm).filter(Boolean).join(' ')) + ' ' + pora(tm);
-// czas na tarczy dociągnięty do kroku, w minutach od północy — tarcza liczy 12 h, połowę doby trzyma popo
+// the time on the dial snapped to the step, in minutes since midnight — the dial counts 12 h, popo holds the half of the day
 const tDoby = () => Math.round((t + (popo ? 720 : 0)) / krok) * krok % 1440;
 
 let ostatni = -1;
@@ -653,12 +653,12 @@ function pokazNapis() {
   }
 }
 
-// ---- głos: telefon mówi po polsku (też do przyszłych zadań) ----
+// ---- voice: the phone speaks Polish (also for future tasks) ----
 const glos = 'speechSynthesis' in window ? window.speechSynthesis : null;
-if (glos) glos.getVoices();                  // Chrome wczytuje głosy dopiero po pierwszym pytaniu
+if (glos) glos.getVoices();                  // Chrome loads the voices only after the first request
 function mow(tekst) {
   if (!glos) return;
-  glos.cancel();                             // nowe naciśnięcie przerywa poprzednie
+  glos.cancel();                             // a new press interrupts the previous one
   const u = new SpeechSynthesisUtterance(tekst);
   u.lang = 'pl-PL';
   const pl = glos.getVoices().find(v => /^pl/i.test(v.lang));
@@ -666,25 +666,25 @@ function mow(tekst) {
   glos.speak(u);
 }
 
-// 🔊 w rogu karty zadania: zawsze słowami (8:20 czytane z cyfr brzmi źle); widać tylko przy „Przeczytaj i ustaw" (pokazTryb)
+// 🔊 in the corner of the task card: always in words (8:20 read from digits sounds wrong); visible only for „Przeczytaj i ustaw" (pokazTryb)
 const powiedzEl = document.getElementById('powiedz');
 powiedzEl.onclick = () => {
-  const tekst = tryb === 'odczytaj' ? slowami(tDoby()) : tekstZadania();   // w trybach Ustaw — zadanie
+  const tekst = tryb === 'odczytaj' ? slowami(tDoby()) : tekstZadania();   // in the Ustaw modes — the task
   mow(tekst);
   log(`powiedz: ${tekst}`);
 };
 
-// ---- wygląd zegara (⚙ ustawienia) ----
+// ---- clock appearance ----
 const STYLE = [['szkolny', 'Szkolny'], ['minimalny', 'Minimalny'], ['klasyczny', 'Klasyczny']];
 const CYFRY = [['zwykle', 'Zwykłe'], ['minuty', 'Z minutami'], ['brak', 'Bez cyfr'], ['cztery', 'Tylko 12, 3, 6, 9'], ['rzymskie', 'Rzymskie']];
-// „Cyfry po południu" w ⚙ (Lasha 27.09; wcześniej „13, 14 … 23" w Wygląd zegara → Cyfry): „13, 14 … 23" — po 12:00
-// tarcza sama przechodzi na 13 … 23. Tylko tarcza Szkolny z cyframi Zwykłe / Z minutami — gdzie indziej grupy w ⚙ nie ma.
-const PO13 = [['nie', '12'], ['tak', '24'], ['oba', 'Oba']];   // Oba — w środku małe 13 … 24 (Lasha 29.09)
+// „Cyfry po południu" in ⚙: with „24", after 12:00 the dial switches to 13 … 23 by itself. Only for the Szkolny dial with
+// Zwykłe / Z minutami digits — otherwise the group is not shown in ⚙.
+const PO13 = [['nie', '12'], ['tak', '24'], ['oba', 'Oba']];   // Oba — small 13 … 24 on the inside
 const po13Tu = () => styl === 'szkolny' && (cyfry === 'zwykle' || cyfry === 'minuty');
 const na13 = () => po13 === 'tak' && po13Tu();
 const oba = () => po13 === 'oba' && po13Tu();
-const RAMA = { minimalny: '3' };   // Lasha 27.09: minimalny w ramie 3
-const PODGLAD_T = 10 * 60 + 10;    // 10:10 w podglądach menu
+const RAMA = { minimalny: '3' };
+const PODGLAD_T = 10 * 60 + 10;    // 10:10 in the menu previews
 
 function zapisane(klucz, lista) {
   let v = null; try { v = localStorage.getItem(klucz); } catch (e) {}
@@ -693,47 +693,47 @@ function zapisane(klucz, lista) {
 let styl = zapisane('zegar-styl', STYLE);
 let cyfry = zapisane('zegar-cyfry', CYFRY);
 let po13 = zapisane('zegar-po13', PO13);
-try {   // dawne cyfry „13, 14 … 23" → Zwykłe + „Cyfry po południu: 13, 14 … 23"
+try {   // migrates the old saved digits 'od13' → Zwykłe + „Cyfry po południu": „24"
   if (localStorage.getItem('zegar-cyfry') === 'od13') { po13 = 'tak'; localStorage.setItem('zegar-po13', po13); localStorage.setItem('zegar-cyfry', cyfry); }
 } catch (e) {}
 
-// przełączniki w ⚙ ustawieniach (widok „Zegar")
+// switches in the ⚙ settings (widok 'zegar')
 const KROKI = [['5', 'Co 5 min'], ['1', 'Co 1 min']];
 const ZAPISY = [['slowa', 'Słowami'], ['cyfry', 'Cyframi']];
 const PORY = [['przed', '☀ Przed południem'], ['po', '☾ Po południu']];
 let krok = +zapisane('zegar-krok', KROKI);
 let zapis = zapisane('zegar-zapis', ZAPISY);
 
-// „Zakryj godzinę" (Lasha 27.09): odpowiedź pod kartą „Która godzina?"; dotyk obraca kartę tam i z powrotem,
-// ruch wskazówki zakrywa znowu
+// „Zakryj godzinę": the answer is under the „Która godzina?" card; a tap flips the card back and forth,
+// moving a hand covers it again
 const ZAKRYCIA = [['nie', 'Nie'], ['tak', 'Tak']];
-// „Dźwięki" (Lasha 27.09): klik, tik wskazówki, dobrze / źle — dzwieki.js sam pamięta wybór
+// „Dźwięki": click, hand tick, right / wrong — dzwieki.js remembers the choice itself
 const DZWIEKI = [['tak', 'Włączone'], ['nie', 'Wyłączone']];
-// „Animacja dnia i nocy na tarczy" w 🕓 (Lasha 28.09): Wyłączone = bez okienka nieba na tarczy; pora doby pod nim zostaje
+// „Animacja dnia i nocy na tarczy" in 🕓: Wyłączone = no sky window on the dial; the time of day under it stays
 const DZIEN_NOC = [['tak', 'Włączone'], ['nie', 'Wyłączone']];
 let dzienNoc = zapisane('zegar-niebo', DZIEN_NOC);
-let zakryj = 'nie';   // ⚙ „Zakryj godzinę" usunięte (Lasha 29.09) — karta nigdy nie zakryta
+let zakryj = 'nie';   // ⚙ has no „Zakryj godzinę" switch — the card is never covered
 let odkryta = false;
 const kartaEl = document.getElementById('karta-odp');
 function pokazKarte() {
-  const odczyt = tryb === 'odczytaj', wpisuje = wpisz === 'tak';   // w trybach Ustaw zamiast karty jest zadanie
+  const odczyt = tryb === 'odczytaj', wpisuje = wpisz === 'tak';   // in the Ustaw modes the task takes the place of the card
   kartaEl.hidden = wpisuje;
   kartaEl.classList.toggle('wlaczona', zakryj === 'tak');
   kartaEl.classList.toggle('zakryta', zakryj === 'tak' && !odkryta);
   document.getElementById('wpisz').hidden = !wpisuje;
   document.getElementById('sprawdz-wpis').style.visibility = wpisuje ? '' : 'hidden';
-  // zakryta godzina = 🔊 też milczy (Lasha 27.09): przycisk wyszarzony, rozpoczęte mówienie przerwane; przy wpisywaniu też
+  // covered time = 🔊 is silent too: the button is greyed out, speech in progress is cut off; the same while entering the time
   const cisza = odczyt && (wpisuje || zakryj === 'tak' && !odkryta);
   powiedzEl.disabled = cisza;
   if (cisza && glos) glos.cancel();
 }
-// nowa godzina = nowa zagadka: zakrywa od razu, bez obrotu — żeby nowa odpowiedź nie mignęła
+// new time = new puzzle: covers at once, without the flip — so that the new answer does not flash
 function zakryjZnowu() {
   if (zakryj !== 'tak' || !odkryta) return;
   odkryta = false;
   kartaEl.classList.add('bez-animacji');
   pokazKarte();
-  void kartaEl.offsetWidth;                  // najpierw bez przejścia, potem animacja wraca
+  void kartaEl.offsetWidth;                  // first without the transition, then the animation comes back
   kartaEl.classList.remove('bez-animacji');
 }
 kartaEl.onclick = () => {
@@ -744,35 +744,35 @@ kartaEl.onclick = () => {
   log(odkryta ? `odkryto: ${zapis === 'cyfry' ? cyfrowo(tDoby()) : slowami(tDoby())}` : 'zakryto');
 };
 
-// „Która godzina?" w Treningu — zawsze kółka do wpisania godziny (Lasha 29.09: jeden ekran, bez przełączników)
+// „Która godzina?" in Trening — always the wheels for entering the time (one screen, no switches)
 const wpisz = 'tak';
 
-// start: teraz, dociągnięte do kroku; połowa doby wynika z godziny (nie zapisywana)
+// start: now, snapped to the step; the half of the day follows from the hour (it is not saved)
 const teraz = new Date();
 const tStart = Math.round((teraz.getHours() * 60 + teraz.getMinutes()) / krok) * krok % 1440;
-let t = tStart % 720;          // minuty od 12:00
-let popo = tStart >= 720;      // po południu (12:00–23:59)
+let t = tStart % 720;          // minutes since 12:00
+let popo = tStart >= 720;      // afternoon half (12:00–23:59)
 
-// wskazówka przeszła przez 12 (t skacze 719 ↔ 0) → druga połowa doby
+// the hand crossed 12 (t jumps 719 ↔ 0) → the other half of the day
 function nowyCzas(nt) {
   const przez12 = Math.abs(nt - t) > 360;
   t = nt;
-  if (przez12 && tryb === 'odczytaj') { popo = !popo; zegar.popo(popo); zbudujPrzelaczniki(); }   // w Ustaw pora należy do zadania
+  if (przez12 && tryb === 'odczytaj') { popo = !popo; zegar.popo(popo); zbudujPrzelaczniki(); }   // in the Ustaw modes the time of day belongs to the task
 }
 
 function noweSvg(cls) { const s = document.createElementNS(NS, 'svg'); s.setAttribute('class', cls); return s; }
 function h(tag, cls, html) { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
 
-// ☀/☾ okienko nieba na tarczy nad 6 (niebo.js; Lasha 28.09, wariant ა z _visual/por-pora.html): przy przeciąganiu
-// idzie razem z palcem, bez dociągania do kroku; 🎲 i ⚙ — płynnie, razem ze wskazówkami. Pod nim pora doby — zawsze,
-// także przy cyfrach i na zakrytej karcie (Lasha 27.09: dziecko nie czyta jeszcze 24 h, a 5:45 i 17:45 wyglądają
-// na tarczy tak samo). Nad tłem tarczy, pod cyframi i wskazówkami; przy cyfrach z minutami maleje razem z tarczą.
+// ☀/☾ sky window on the dial above the 6 (niebo.js): while dragging it follows the finger, without snapping to the step;
+// on 🎲 and ⚙ it moves smoothly, together with the hands. Under it the time of day — always, also with digits and on a
+// covered card (the child does not read 24 h yet, and 5:45 and 17:45 look the same on the dial). It sits above the dial
+// background, under the digits and the hands; with minute digits it shrinks together with the dial.
 let niebo = null;
 const tCiagly = () => t + (popo ? 720 : 0);
 function okienkoNieba(svg) {
-  // 74 szerokości (było 86; Lasha 28.09): okienko i pora nie zasłaniają VIII, VII, V na tarczy klasycznej
-  // ⚙ Cyfry: Oba — okienko 4 wyżej, żeby pora doby nie weszła na małe 17 · 18 · 19 (Lasha 29.09, wariant ა)
-  const x = 63, y = oba() ? 103 : 107, w = 74, hh = w * 90 / 320;   // proporcje nieba z niebo.js (320 × 90)
+  // 74 wide: the window and the time of day do not cover VIII, VII, V on the Klasyczny dial
+  // ⚙ Oba — the window sits 4 higher, so that the time of day does not run into the small 17 · 18 · 19
+  const x = 63, y = oba() ? 103 : 107, w = 74, hh = w * 90 / 320;   // sky proportions from niebo.js (320 × 90)
   const g = document.createElementNS(NS, 'g');
   g.innerHTML = `<clipPath id="okno-nieba"><rect x="${x}" y="${y}" width="${w}" height="${hh}" rx="5"/></clipPath>` +
     `<g class="okno-niebo" clip-path="url(#okno-nieba)"><svg x="${x}" y="${y}" width="${w}" height="${hh}"></svg></g>` +
@@ -783,7 +783,7 @@ function okienkoNieba(svg) {
   return Niebo(g.querySelector('svg'), tm => { napis.textContent = pora(tm); });
 }
 
-// przy „Cyfry po południu: 13, 14 … 23" tarcza sama idzie za ☀/☾ (Lasha 27.09)
+// with „Cyfry po południu": „24" the dial follows ☀/☾ by itself
 let zegar = null;
 function zbudujZegar() {
   const miejsce = document.getElementById('zegar-miejsce');
@@ -794,7 +794,7 @@ function zbudujZegar() {
     styl, cyfry, rama: RAMA[styl] || '', t, krok, popo, po13: na13(), oba: oba(),
     zmiana(nt, puszczone) {
       nowyCzas(nt);
-      if (tryb === 'odczytaj') niebo.ustaw(tCiagly());   // w trybach Ustaw niebo pokazuje porę zadania
+      if (tryb === 'odczytaj') niebo.ustaw(tCiagly());   // in the Ustaw modes the sky shows the task's time of day
       if (!puszczone) zakryjZnowu();
       pokazNapis();
       if (puszczone) { const tk = tDoby(); log(`ustawiono ${cyfrowo(tk)} — ${slowami(tk)}`); }
@@ -804,33 +804,33 @@ function zbudujZegar() {
   niebo.ustaw(nieboCel());
 }
 
-// 🎲 losowa godzina (Lasha 27.09): cała doba, co krok z ⚙, nigdy ta sama co teraz; ☀/☾ idzie sama.
-// Wskazówki jadą tam ~0,5 s, słowa zmieniają się, gdy dojadą; zakryta karta zakrywa się od razu — nowa zagadka.
+// 🎲 random time: the whole day, in steps from ⚙, never the same as now; ☀/☾ follows by itself.
+// The hands travel there in ~0.5 s, the words change when they arrive; a covered card covers at once — a new puzzle.
 document.querySelectorAll('.losuj').forEach(b => b.onclick = () => {
   rzutKostki();
-  nastepne();                                          // 🎲 — inne zadanie (przy „Wszystkie" — też inny rodzaj)
+  nastepne();                                          // 🎲 — another task (with „Wszystko na zmianę" — of another type too)
 });
-// rzut (Lasha 29.09): jeden obrót z podskokiem, 0,5 s — tyle, ile jadą wskazówki; w połowie obrotu nowa ścianka —
-// 1…6 oczek, nigdy ta sama co przed chwilą. animate(), nie klasa CSS: gra przy każdym dotknięciu i nie rusza sama,
-// gdy karta się pokazuje (klasa na <svg> nie dawała się zrestartować — offsetWidth w SVG nie istnieje)
+// the roll: one turn with a hop, 0.5 s — as long as the hands travel; halfway through the turn a new face —
+// 1…6 pips, never the same as just before. animate(), not a CSS class: it plays on every tap and does not start by itself
+// when the card appears (a class on <svg> could not be restarted — offsetWidth does not exist in SVG)
 const RZUT = [{ transform: 'none', easing: 'ease-out' }, { transform: 'translateY(-7px) rotate(200deg)', offset: .45, easing: 'ease-out' },
   { transform: 'rotate(360deg)' }];
 const OCZKA = [[[12, 12]], [[8, 8], [16, 16]], [[8, 8], [12, 12], [16, 16]], [[8, 8], [16, 8], [8, 16], [16, 16]],
   [[8, 8], [16, 8], [12, 12], [8, 16], [16, 16]], [[8, 7], [16, 7], [8, 12], [16, 12], [8, 17], [16, 17]]];
-let scianka = 4;                                       // 5 oczek — jak na ikonie
+let scianka = 4;                                       // 5 pips — as on the icon
 function rzutKostki() {
   scianka = (scianka + 1 + Math.floor(Math.random() * 5)) % 6;
   document.querySelectorAll('.losuj svg').forEach(svg => svg.animate(RZUT, 500));
   setTimeout(() => document.querySelectorAll('.losuj .oczka').forEach(g =>
     g.innerHTML = OCZKA[scianka].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.5"/>`).join('')), 225);
 }
-// samo dalej po odpowiedzi (Lasha 29.09): jak dotknięcie 🎲 — rzut i klik; tylko na ekranie Treningu, nie w tle
+// moves on by itself after an answer: like a tap on 🎲 — roll and click; only on the Trening screen, not in the background
 function sameDalej() {
   if (widok === 'zegar') { Dzwiek.klik(); rzutKostki(); }
   nastepne();
 }
 function losujGodzine() {
-  if (wpisz === 'tak') nowyWpis();                     // nowa godzina = nowa zagadka do wpisania
+  if (wpisz === 'tak') nowyWpis();                     // new time = new puzzle to enter
   const n = 1440 / krok, jest = tDoby() / krok;
   const cel = (jest + 1 + Math.floor(Math.random() * (n - 1))) % n * krok;
   t = cel % 720;
@@ -840,27 +840,26 @@ function losujGodzine() {
   zegar.jedz(t, 500, () => { pokazNapis(); log(`losuj: ${cyfrowo(cel)} — ${slowami(cel)}`); });
 }
 
-// ---- rodzaje zadań Treningu (dawniej zakładki ekranu „Zegar" — Lasha 27.09, plan _visual/zegar-tryby-plan): Odczytaj = zegar → nazwa;
-// Słowami · Cyframi · Ze słuchu = nazwa → zegar: dziecko ustawia wskazówki i naciska „Sprawdź". Bez końca, ✓ w nagłówku.
-// Wskazówki zostają tam, gdzie były (Lasha 28.09: nie od 12:00); czas co krok z ⚙, cała doba, nigdy tam, gdzie
-// wskazówki już stoją. Sprawdza się tylko
-// tarcza (17:45 = 5:45). Niebo pokazuje porę zadania, nie idzie za wskazówkami. Źle 2 razy → wskazówki same jadą na miejsce.
-// 🔊 czyta zadanie, 🎲 daje inne. Napisy „Dobrze!" / „Popatrz, tak:" — moje.
+// ---- Trening task types: odczytaj = clock → name; slowa · cyfry · sluch = name → clock: the child sets the hands and
+// presses „Sprawdź". Endless. The hands stay where they were (they do not restart from 12:00); the time is on a ⚙ step,
+// anywhere in the day, never where the hands already are. Only the dial is checked (17:45 = 5:45). The sky shows the
+// task's time of day and does not follow the hands. Wrong twice → the hands travel to the right place by themselves.
+// 🔊 reads the task, 🎲 gives another one.
 const IKONA_GLOS = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>';
-// Trening = jeden ekran (Lasha 29.09): bez zakładek; każde nowe zadanie — rodzaj na zmianę (Wszystkie) albo zawsze ten
-// wybrany w nagłówku (zamiast ✓ — „✓-ის მაგივრად გააკეთე. ეს საჭირო არაა"). odczytaj = „Która godzina?" + kółka.
-// Nazwy (Lasha 29.09): każdy rodzaj swoja, ta sama w polu ▾ i na liście (dawniej Wszystkie · Słowami · Cyframi · Ze słuchu)
+// Trening is one screen, without tabs: every new task is of a random type („Wszystko na zmianę") or always of the type
+// chosen in the ▾ field. odczytaj = „Która godzina?" + wheels.
+// Names: every type has its own, the same in the ▾ field and in the list
 const RODZAJE = [['mix', 'Wszystko na zmianę'], ['odczytaj', 'Która godzina?'], ['slowa', 'Przeczytaj i ustaw'],
                  ['cyfry', 'Ustaw według cyfr'], ['sluch', 'Posłuchaj i ustaw']];
 let rodzaj = zapisane('zegar-rodzaj', RODZAJE);
 if (rodzaj === 'sluch' && !glos) rodzaj = 'mix';
-let tryb = 'odczytaj';                     // rodzaj bieżącego zadania
+let tryb = 'odczytaj';                     // type of the current task
 let zad = null, trafione = 0;
 const zadanieEl = document.getElementById('zadanie'),
       zadTrescEl = document.getElementById('zad-tresc'), sprawdzEl = document.getElementById('sprawdz');
 
-// ▾ pole nad zegarem: nazwa bieżącego zadania, przy „Wszystko na zmianę" przed nią 🔀. Stan jak w karcie: 'dobrze' — zielone
-// „Dobrze!", 'pokaz' — czerwone „Popatrz, tak:" (dawniej mały napis na górze karty), inaczej nazwa i ▾
+// ▾ field above the clock: the name of the current task, with 🔀 before it for „Wszystko na zmianę". State as in the card:
+// 'dobrze' — green „Dobrze!", 'pokaz' — red „Popatrz, tak:", otherwise the name and ▾
 const IKONA_LOS = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.1-8.6c.7-1.1 2-1.7 3.3-1.7H22"/><path d="m18 2 4 4-4 4"/><path d="M2 6h1.9c1.5 0 2.9.9 3.6 2.2"/><path d="M22 18h-5.9c-1.3 0-2.6-.7-3.3-1.8l-.5-.8"/><path d="m18 14 4 4-4 4"/></svg>';
 const IKONA_ROZWIN = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
 const poleEl = document.getElementById('pole');
@@ -878,10 +877,10 @@ function zbudujRodzaje() {
   const ul = document.getElementById('rodzaj-menu');
   ul.textContent = '';
   RODZAJE.forEach(([k, nazwa]) => {
-    if (k === 'sluch' && !glos) return;               // bez syntezy mowy nie ma „Ze słuchu"
+    if (k === 'sluch' && !glos) return;               // without speech synthesis there is no „Posłuchaj i ustaw"
     const li = h('li'), a = h('a', k === rodzaj ? 'menu-active' : null, (k === 'mix' ? IKONA_LOS : '') + nazwa);
     a.onclick = () => {
-      document.activeElement.blur();                  // zamyka listę
+      document.activeElement.blur();                  // closes the list
       if (k === rodzaj) return;
       rodzaj = k;
       try { localStorage.setItem('zegar-rodzaj', rodzaj); } catch (e) {}
@@ -893,7 +892,7 @@ function zbudujRodzaje() {
     ul.append(li);
   });
 }
-// następne zadanie: rodzaj losowy (Wszystkie) albo wybrany; „Która godzina?" — nowa godzina na tarczy, reszta — noweZadanie
+// next task: a random type („Wszystko na zmianę") or the chosen one; „Która godzina?" — a new time on the dial, the rest — noweZadanie
 function nastepne() {
   const mozna = RODZAJE.slice(1).map(([k]) => k).filter(k => k !== 'sluch' || glos);
   const k = rodzaj === 'mix' ? mozna[Math.floor(Math.random() * mozna.length)] : rodzaj;
@@ -902,9 +901,9 @@ function nastepne() {
   pokazTryb();
 }
 
-// ---- 🏋 zegar do przeciągania na Starcie (samTrening w samouczki.js — Lasha 29.09: „დატოვე მხოლოდ ერთი ვარიანტი"), pod nim
-// przełączniki „Po i za" · „Upływ czasu". Dziecko ciągnie wskazówki, pod zegarem na żywo, co pokazują. Bez punktów.
-// Wskazówki startują od teraz, dociągnięte do 5 minut (Lasha 29.09: „მიმდინარე დრო … უბრალოდ საათის სასტარტო ადგილი")
+// ---- 🏋 the clock to drag on Start (samTrening in samouczki.js), under it the switches „Po i za" · „Upływ czasu". The child
+// drags the hands; under the clock, live, what they show. No points.
+// The hands start from the current time, snapped to 5 minutes — it is only the clock's starting position
 const terazMin = () => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); };
 function zbudujTrening(miejsce) {
   samouczek(miejsce, h('span'), Object.assign({}, TRENING, { t0: Math.round(terazMin() / 5) * 5 % 1440 }), () => {});
@@ -914,20 +913,20 @@ function pokazTryb() {
   const ustaw = tryb !== 'odczytaj';
   zadanieEl.hidden = !ustaw;
   odczytEl.hidden = ustaw;
-  powiedzEl.hidden = !glos || tryb !== 'slowa';     // 🔊 tylko przy czytaniu; „Posłuchaj" ma swój, przy cyfrach zdradziłby słowa
+  powiedzEl.hidden = !glos || tryb !== 'slowa';     // 🔊 only when reading; „Posłuchaj" has its own, with digits it would give the words away
   pokazKarte();
-  if (widok === 'zegar') licznikEl.hidden = true;   // ✓ już nie ma — w nagłówku lista zadań
+  if (widok === 'zegar') licznikEl.hidden = true;   // no ✓ counter in Trening
 }
 
-// ---- Odczytaj → „Wpisz godzinę" (Lasha 29.09: „გამოცნობის მაგივრად … მიუთითო რომელი საათია ციფრებით"): zamiast odpowiedzi
-// dwa kółka — godzina i minuty (🎡 Kolo niżej), obok ▲▼ o jeden. Liczy się cała
-// doba: po południu 14:15, nie 2:15 (Lasha: „ა"; ☀/☾ na tarczy mówi, czy dzień). ▲▼ minut — co krok z ⚙. Dobrze → ✓,
-// po 1,4 s nowa godzina (jak 🎲); źle — na chwilę czerwone; 2 razy źle → „Popatrz, tak:" i odpowiedź na kółkach.
-// Kółka startują od 12:00. Przeciągnięcie wskazówek zmienia zagadkę (pytamy zawsze o to, co na tarczy).
+// ---- Odczytaj → „Wpisz godzinę": instead of the answer, two wheels — hour and minutes (🎡 Kolo below), ▲▼ next to each
+// stepping by one. The whole day counts: in the afternoon 14:15, not 2:15 (☀/☾ on the dial tells which half it is).
+// Minute ▲▼ — in steps from ⚙. Right → after 1.4 s a new time (like 🎲); wrong — red for a moment; wrong twice →
+// „Popatrz, tak:" and the answer on the wheels. The wheels start at 12:00. Dragging the hands changes the puzzle
+// (the question is always about what is on the dial).
 const odczytEl = document.getElementById('odczyt');
 const sprawdzWpisEl = document.getElementById('sprawdz-wpis');
 const dwie = n => String(n).padStart(2, '0');
-let wpis = null;                               // { bledy, koniec } — bieżąca zagadka
+let wpis = null;                               // { bledy, koniec } — the current puzzle
 
 function pokazWpis(stan = '') {
   odczytEl.classList.toggle('dobrze', stan === 'dobrze');
@@ -935,12 +934,12 @@ function pokazWpis(stan = '') {
   if (tryb === 'odczytaj') pokazPole(stan);
   sprawdzWpisEl.disabled = stan === 'dobrze' || stan === 'pokaz';
 }
-// 🎡 kółko do wyboru liczby (Lasha 29.09: „უსასრულო" — jak budzik w telefonie): palcem w górę — większe, w dół — mniejsze,
-// w kółko (23 → 00, 55 → 00); na środku duża liczba, nad i pod nią blade sąsiednie; puszczone — dociąga do najbliższej,
-// szybki ruch leci dalej. Kółko myszy — o jeden. ile — do ilu (24 · 60), co — co ile (minuty: krok z ⚙)
-const KOLO_WIERSZ = 22;                          // widać 5 liczb: 2 nad, środkowa, 2 pod (Lasha 29.09)
+// 🎡 wheel for picking a number, endless like a phone alarm clock: finger up — larger, down — smaller, wrapping around
+// (23 → 00, 55 → 00); a big number in the middle, faded neighbours above and below it; released — it snaps to the nearest,
+// a fast flick carries on. Mouse wheel — by one. ile — the range (24 · 60), co — the step (minutes: the ⚙ step)
+const KOLO_WIERSZ = 22;                          // 5 numbers are visible: 2 above, the middle one, 2 below
 function Kolo(el, ile, co) {
-  let pos = 0, jazda = 0, byla = 0, cel0 = 0;      // pos — która liczba na środku (w wierszach, bez zawijania) · cel0 — dokąd jedzie
+  let pos = 0, jazda = 0, byla = 0, cel0 = 0;      // pos — which number is in the middle (in rows, not wrapped) · cel0 — where it is heading
   const n = () => ile / co;
   const wiersze = [-3, -2, -1, 0, 1, 2, 3].map(k => { const d = h('div', 'kolo-l'); el.append(d); return [k, d]; });
   function rysuj() {
@@ -952,9 +951,9 @@ function Kolo(el, ile, co) {
       d.style.opacity = Math.max(0, 1 - Math.abs(y) / (KOLO_WIERSZ * 3.2));
       d.classList.toggle('srodek', k === 0);
     });
-    if (baza !== byla) { byla = baza; if (window.Dzwiek) Dzwiek.tik(); }   // tik przy każdej nowej liczbie, jak wskazówka
+    if (baza !== byla) { byla = baza; if (window.Dzwiek) Dzwiek.tik(); }   // a tick at every new number, like the hand
   }
-  function jedz(cel) {                           // płynnie do liczby cel (~150 ms, dłużej przy rzucie)
+  function jedz(cel) {                           // smoothly to the number cel (~150 ms, longer after a flick)
     cel0 = cel;
     const nr = ++jazda, od = pos, ms = Math.min(500, 150 + Math.abs(cel - od) * 25), t0 = performance.now();
     (function krok(t) {
@@ -970,7 +969,7 @@ function Kolo(el, ile, co) {
   el.onpointermove = e => {
     if (!trzyma) return;
     const dt = e.timeStamp - ostT;
-    if (dt > 0) v = -(e.clientY - ostY) / KOLO_WIERSZ / dt;   // wierszy na ms, w górę = +
+    if (dt > 0) v = -(e.clientY - ostY) / KOLO_WIERSZ / dt;   // rows per ms, upwards = +
     ostY = e.clientY; ostT = e.timeStamp;
     pos = p0 - (e.clientY - y0) / KOLO_WIERSZ;
     cel0 = Math.round(pos);
@@ -979,7 +978,7 @@ function Kolo(el, ile, co) {
   el.onpointerup = el.onpointercancel = e => {
     if (!trzyma) return;
     trzyma = false;
-    if (e.timeStamp - ostT > 80) v = 0;          // palec stał przed puszczeniem — bez rzutu
+    if (e.timeStamp - ostT > 80) v = 0;          // the finger rested before release — no flick
     jedz(Math.round(pos + v * 150));
   };
   el.onwheel = e => { e.preventDefault(); jedz(cel0 + Math.sign(e.deltaY)); };
@@ -987,14 +986,14 @@ function Kolo(el, ile, co) {
   return {
     get: () => { const N = n(); return (cel0 % N + N) % N * co; },
     set(v) { jazda++; pos = cel0 = Math.round(v / co); byla = pos; rysuj(); },
-    o: d => jedz(cel0 + d),                      // ▲▼ — o jeden (od celu: szybkie naciśnięcia się sumują)
+    o: d => jedz(cel0 + d),                      // ▲▼ — by one (from the target: quick presses add up)
     co(c) { const v = this.get(); co = c; this.set(Math.round(v / c) * c % 60); }
   };
 }
 const koloG = Kolo(document.getElementById('kolo-g'), 24, 1), koloM = Kolo(document.getElementById('kolo-m'), 60, krok);
 function wpiszPola(tm) { koloG.set(Math.floor(tm / 60)); koloM.set(tm % 60); }
 function nowyWpis() { wpis = { bledy: 0, koniec: false }; wpiszPola(720); pokazWpis(); }
-// ▲▼ obok kółka — o jeden, szybka poprawka (Lasha: „ისრებიც ერთით შესწორება")
+// ▲▼ next to a wheel — by one, for a quick correction
 document.querySelectorAll('.wpisz-pole').forEach(pole => {
   const kolo = pole.classList.contains('g') ? koloG : koloM;
   pole.querySelectorAll('button').forEach(b => b.onclick = () => kolo.o(+b.dataset.krok));
@@ -1023,17 +1022,17 @@ sprawdzWpisEl.onclick = () => {
 
 nowyWpis();
 
-// stan: '' — ustaw · 'zle' — na chwilę czerwone · 'dobrze' · 'pokaz' — po 2 błędach, wskazówki jadą same
+// stan: '' — set the hands · 'zle' — red for a moment · 'dobrze' · 'pokaz' — after 2 mistakes, the hands travel by themselves
 function pokazZadanie(stan = '') {
   zadanieEl.classList.toggle('dobrze', stan === 'dobrze');
   zadanieEl.classList.toggle('zle', stan === 'zle' || stan === 'pokaz');
   if (tryb !== 'odczytaj') pokazPole(stan);
-  const widac = tryb !== 'sluch' || stan === 'dobrze' || stan === 'pokaz';   // ze słuchu — napis dopiero po odpowiedzi
+  const widac = tryb !== 'sluch' || stan === 'dobrze' || stan === 'pokaz';   // by ear — the text only after the answer
   if (widac) zadTrescEl.textContent = tekstZadania(); else zadTrescEl.innerHTML = `${IKONA_GLOS} Posłuchaj`;
   zadTrescEl.classList.toggle('duze', widac && tryb === 'cyfry');
   sprawdzEl.disabled = stan === 'dobrze' || stan === 'pokaz';
 }
-zadTrescEl.onclick = () => { if (zad && tryb === 'sluch') mow(slowami(zad.cel)); };   // „🔊 Posłuchaj" też powtarza
+zadTrescEl.onclick = () => { if (zad && tryb === 'sluch') mow(slowami(zad.cel)); };   // „🔊 Posłuchaj" repeats it too
 
 function noweZadanie() {
   const n = 1440 / krok, stare = zad && zad.cel, jest = Math.round(t) % 720;
@@ -1043,7 +1042,7 @@ function noweZadanie() {
   if ((cel >= 720) !== popo) { popo = cel >= 720; zegar.popo(popo); zbudujPrzelaczniki(); }
   niebo.jedz(cel, 500);
   pokazZadanie();
-  if (tryb === 'sluch' && widok === 'zegar') mow(slowami(cel));   // nie na Starcie (pierwsze zadanie losuje się przy wczytaniu)
+  if (tryb === 'sluch' && widok === 'zegar') mow(slowami(cel));   // not on Start (the first task is drawn on load)
   log(`zadanie (${tryb}): ${cyfrowo(cel)} — ${slowami(cel)}`);
 }
 
@@ -1072,10 +1071,10 @@ sprawdzEl.onclick = () => {
 function zbudujPrzelaczniki() {
   [['u-krok', KROKI, String(krok), k => {
       krok = +k;
-      nowyCzas(Math.round(t / krok) * krok % 720);   // z 1 na 5 wskazówka od razu dociąga (11:58 → 12:00 zmienia połowę)
+      nowyCzas(Math.round(t / krok) * krok % 720);   // from 1 to 5 the hand snaps at once (11:58 → 12:00 switches the half of the day)
       zbudujZegar();
-      if (tryb !== 'odczytaj') noweZadanie();   // stare zadanie może nie leżeć na nowym kroku
-      koloM.co(krok);                           // kółko minut — co krok
+      if (tryb !== 'odczytaj') noweZadanie();   // the old task may not lie on the new step
+      koloM.co(krok);                           // minute wheel — in steps of krok
     }],
    ['u-po13', PO13, po13, k => { po13 = k; zbudujZegar(); }],
    ['u-dzwieki', DZWIEKI, Dzwiek.wlaczone ? 'tak' : 'nie', k => Dzwiek.wlacz(k === 'tak')],
@@ -1088,7 +1087,7 @@ function zbudujPrzelaczniki() {
       b.onclick = () => {
         if (k === wybrana) return;
         ustaw(k);
-        niebo.jedz(nieboCel(), 500);   // ☀/☾ w ⚙: słońce zachodzi, księżyc wschodzi (albo odwrotnie)
+        niebo.jedz(nieboCel(), 500);   // ☀/☾ in ⚙: the sun sets, the moon rises (or the other way round)
         try { localStorage.setItem('zegar-krok', krok); localStorage.setItem('zegar-po13', po13); localStorage.setItem('zegar-niebo', dzienNoc); } catch (e) {}
         log(`zegar: ${KROKI.find(([x]) => +x === krok)[1]} · po południu: ${PO13.find(([x]) => x === po13)[1]} · dźwięki: ${Dzwiek.wlaczone ? 'tak' : 'nie'} · animacja dnia i nocy: ${dzienNoc}`);
         ostatni = -1;
@@ -1101,9 +1100,9 @@ function zbudujPrzelaczniki() {
   document.getElementById('g-po13').hidden = !po13Tu();
 }
 
-// ---- Poznaj zegar: lekcje według podręcznika (klasa 4, rozdz. 2 „Zegary", s. 14–16) ----
-// lekcje 4–6 w osobnych plikach: lekcja-polowy.js, lekcja-razem.js, lekcja-uplyw.js
-// start jak w podręczniku: 8:00 i „20 minut po ósmej"; czas lekcji zostaje przy zmianie wyglądu
+// ---- Lekcje: lessons following the textbook (grade 4, ch. 2 „Zegary", pp. 14–16) ----
+// lessons 4–6 are in separate files: lekcja-polowy.js, lekcja-razem.js, lekcja-uplyw.js
+// start as in the textbook: 8:00 and „20 minut po ósmej"; a lesson's time survives a change of appearance
 const tLekcji = [0, 8 * 60, 8 * 60 + 20];
 const MINUTY = ['pełna godzina', 'pięć po', 'dziesięć po', 'piętnaście po', 'dwadzieścia po', 'dwadzieścia pięć po',
                 'wpół do', 'za dwadzieścia pięć', 'za dwadzieścia', 'za piętnaście', 'za dziesięć', 'za pięć'];
@@ -1113,7 +1112,6 @@ function lekcjaJednostki(box) {
    ['Godzina', 'ma 60 minut.', '1 godz. = 60 min'],
    ['Minuta', 'ma 60 sekund.', '1 min = 60 s']].forEach(([nazwa, ile, rownanie]) =>
     box.append(h('div', 'kafel', `<b>${nazwa}</b><span>${ile}</span><span class="rownanie">${rownanie}</span>`)));
-  // „TAK czy NIE?" z podręcznika — nie tu: zadania będą osobno (Lasha)
 }
 
 function zegarLekcji(box, nr, opcje, pokaz) {
@@ -1130,7 +1128,7 @@ function lekcjaGodziny(box) {
   const napisK = h('p', 'napis-karty');
   let ost = -1;
   const pokaz = (tt, puszczone) => {
-    const g = Math.round(tt / 60) % 12;        // 0 = dwunasta
+    const g = Math.round(tt / 60) % 12;        // 0 = twelve o'clock
     if (puszczone) log(`godzina: ${g ? `${g}:00 albo ${g + 12}:00` : '0:00 albo 12:00'}`);
     if (g === ost) return;
     ost = g;
@@ -1158,15 +1156,15 @@ function lekcjaMinuty(box) {
     ost = m;
     napisK.innerHTML = `<span class="m">${MINUTY[m / 5]}</span>`;
     uplyw.textContent = m ? `${m / 5} · 5 min = ${m} min` : '';
-    kwadrans.style.visibility = m === 15 ? '' : 'hidden';   // miejsce zostaje — nic nie skacze pod palcem
+    kwadrans.style.visibility = m === 15 ? '' : 'hidden';   // the space stays — nothing jumps under the finger
   };
   zegarLekcji(box, 2, { cyfry: 'minuty', tylko: 'm', sektor: true }, pokaz);
   box.append(napisK, uplyw, kwadrans);
   pokaz(tLekcji[2]);
 }
 
-// nazwa — na liście, w nagłówku i na przycisku „Dalej"; opis — jedna krótka linia na liście;
-// zegar — mały zegar na liście: przykład z lekcji, wskazówki jak w lekcji (tylko 'g' / 'm', sektor = zielone minuty)
+// nazwa — in the list, in the header and on the „Dalej" button; opis — one short line in the list;
+// zegar — the small clock in the list: an example from the lesson, hands as in the lesson (tylko 'g' / 'm', sektor = green minutes)
 const LEKCJE = [
   { nazwa: 'Jednostki czasu', opis: 'doba, godzina, minuta', zegar: { t: 0 }, buduj: lekcjaJednostki },
   { nazwa: 'Godziny', opis: '8:00 albo 20:00', zegar: { t: 8 * 60, tylko: 'g' }, buduj: lekcjaGodziny },
@@ -1175,11 +1173,11 @@ const LEKCJE = [
   { nazwa: 'Godzina i minuty', opis: '20 minut po ósmej', zegar: { t: 8 * 60 + 20 }, buduj: lekcjaRazem },
   { nazwa: 'Upływ czasu', opis: 'od 13:45 do 14:05', zegar: { t: 60 + 45 }, buduj: lekcjaUplyw },
 ];
-let lekcja = -1;   // -1 = lista lekcji
+let lekcja = -1;   // -1 = the lesson list
 
 const STRZALKA = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>';
 
-// kafelek listy Lekcje / Ćwiczenia (wariant ა z por-poziomy.html): mały zegar z numerem, nazwa + jedna linia, ›
+// a tile of the Lekcje / Ćwiczenia list: a small clock with a number, name + one line, ›
 function kafelListy(nr, nazwa, opis, zegar, cls) {
   const b = h('button', 'lista-kafel ' + cls,
     `<span class="lista-zeg"><span class="lista-nr">${nr}</span></span><span class="tekst"><b>${nazwa}</b><small>${opis}</small></span>${STRZALKA}`);
@@ -1215,9 +1213,9 @@ function otworzLekcje(n) {
 }
 document.getElementById('dalej').onclick = () => otworzLekcje(lekcja + 1 < LEKCJE.length ? lekcja + 1 : -1);
 
-// ---- Ćwiczenia: poziomy (Lasha 27.09: „როგორც ლეველების 1 ლეველი"); wejście: Start → Ćwiczenia albo ☰ ----
-// temat — na liście (bez „Poziom N"), w ☰ „Poziom N · temat"; opis — jedna krótka linia, same przykłady;
-// t + tylko — mały zegar na liście: przykład z poziomu, wskazówki jak w rundzie ('g' godzinowa · 'm' minutowa · '' obie)
+// ---- Ćwiczenia: levels; entry: Start → Ćwiczenia or ☰ ----
+// temat — in the list (without „Poziom N"), in ☰ „Poziom N · temat"; opis — one short line, examples only;
+// t + tylko — the small clock in the list: an example from the level, hands as in the round ('g' hour · 'm' minute · '' both)
 const POZIOMY = [
   { nazwa: 'Poziom 1', temat: 'Godziny',     opis: '05:00, piąta',              t: 5 * 60,      tylko: 'g' },
   { nazwa: 'Poziom 2', temat: 'Minuty',      opis: '5, 10 … 55 minut',          t: 35,          tylko: 'm' },
@@ -1229,13 +1227,12 @@ const POZIOMY = [
   { nazwa: 'Poziom 8', temat: 'Wcześniej, później', opis: '±10, ±15, ±20 minut', t: 2 * 60 + 5, tylko: '' },
   { nazwa: 'Poziom 9', temat: 'Ile minut?',  opis: '13:50 → 14:10',             t: 1 * 60 + 50, tylko: '' },
   { nazwa: 'Poziom 10', temat: 'Mistrz',     opis: '16:30, bez cyfr, XII',      t: 4 * 60 + 30, tylko: '' },
-  // bonus (Lasha 28.09 „კი"): na liście ★ zamiast numeru; po poziomie 10 „Następny poziom" prowadzi tutaj
+  // bonus: ★ instead of a number in the list; after level 10 „Następny poziom" leads here
   { nazwa: 'Bonus', temat: 'Ponad godzinę', opis: '08:20 + 1 godz. 25 min', t: 8 * 60 + 20, tylko: '', znak: '★' },
 ];
-let poziom = -1;   // -1 = lista poziomów
+let poziom = -1;   // -1 = the level list
 const cwBox = document.getElementById('widok-cw'), licznikEl = document.getElementById('licznik');
 
-// lista poziomów (Lasha 27.09, wariant ა z por-poziomy.html): mały zegar z numerem, temat + jedna linia
 function zbudujPoziomy() {
   const box = document.getElementById('widok-cw-lista');
   box.textContent = '';
@@ -1249,19 +1246,18 @@ function zbudujPoziomy() {
 function otworzPoziom(n) {
   poziom = n;
   pokazWidok();
-  if (n < 0) simScreen(ekran());   // runda sama zgłasza swoje ekrany (cwiczenia-1 …)
+  if (n < 0) simScreen(ekran());   // a round reports its own screens itself (cwiczenia-1 …)
 }
 
-// ---- widoki (Lasha 27.09 / 29.09): Start — zegar do przeciągania i dwa przyciski Trening · Ćwiczenia; ☰ na każdym ekranie
-// (zamiast ←): Start · Trening · Lekcje · poziomy ćwiczeń · Motyw. Trening = dawny ekran Zegar (klucz 'zegar'): Odczytaj ·
-// Słowami · Cyframi · 🔊, ⚙ zostaje. ----
+// ---- views: Start — the clock to drag and two buttons Trening · Ćwiczenia; ☰ on every screen (instead of ←):
+// Start · Trening · Lekcje · the exercise levels · Karty pracy · Motyw. Trening has the key 'zegar'. ----
 const WIDOKI = [['start', 'Start'], ['karty', 'Lekcje'], ['cwiczenia', 'Ćwiczenia'], ['zegar', 'Trening'], ['druk', 'Karty pracy']];
-let widok = 'start';   // aplikacja zawsze startuje ze Startu
+let widok = 'start';   // the app always opens on Start
 const ekran = () => widok === 'start' ? 'start' : widok === 'zegar' ? 'zegar' : widok === 'druk' ? 'druk'
   : widok === 'karty' ? (lekcja < 0 ? 'lekcje' : 'lekcja-' + (lekcja + 1))
   : poziom < 0 ? 'cwiczenia' : 'poziom-' + (poziom + 1);
 
-// ikony na przyciskach Startu: Trening — tarcza ze wskazówkami, Ćwiczenia — ★ (Lekcje, „i" — już tylko w ☰)
+// icons on the Start buttons: Trening — a dial with hands, Ćwiczenia — ★ (Lekcje, „i" — now only in ☰)
 const IKONA = d => `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
 const IKONY = {
   karty: IKONA('<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>'),
@@ -1270,10 +1266,8 @@ const IKONY = {
   druk: IKONA('<path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/><rect x="6" y="14" width="12" height="8" rx="1"/>')
 };
 
-// Start (Lasha 29.09: „პირველივე გვერდი უკვე იყოს სავარჯიშო"): 🏋 Trening jak na ekranie Zegar — zegar do
-// przeciągania od teraz; pod nim dwa małe przyciski Trening (dawny ekran Zegar: zgadywanie godziny) · Ćwiczenia.
-// Lekcje — w ☰ (Lasha 29.09: „ტრენინგი ჩასვი გაკვეთილების მაგივრად"). Nad zegarem pas „Karty pracy" (Lasha 30.09: „მე ზევით
-// ვფიქრობდი" → wariant დ)
+// Start: the very first screen is already practice — a clock to drag, starting from the current time; under it two small
+// buttons Trening · Ćwiczenia. Lekcje — in ☰. Above the clock the „Karty pracy" bar
 function zbudujStart() {
   const box = document.getElementById('widok-start');
   box.textContent = '';
@@ -1293,8 +1287,9 @@ function zbudujStart() {
   zbudujTrening(miejsce);
 }
 
-let motywOtwarty = false;   // podmenu Motyw — zostaje otwarte po wyborze (☰ przebudowuje się przy zmianie motywu)
-// ☰: Start · Trening · Lekcje · Ćwiczenia — podmenu z poziomami (dotknięcie = od razu runda) · kreska · Motyw — podmenu
+let motywOtwarty = false;   // the Motyw submenu — stays open after a choice (☰ is rebuilt when the theme changes)
+// ☰: Start · Trening · Lekcje · Ćwiczenia — a submenu with the levels (a tap starts the round at once) · Karty pracy · rule ·
+// Motyw — a submenu
 function zbudujNawigacje() {
   const ul = document.getElementById('menu-nawigacja');
   ul.textContent = '';
@@ -1306,8 +1301,8 @@ function zbudujNawigacje() {
   };
   pozycja('Start', widok === 'start', () => idzDo('start'));
   pozycja('Trening', widok === 'zegar', () => idzDo('zegar'));
-  pozycja('Lekcje', widok === 'karty', () => idzDo('karty'));   // Lekcje — już tylko tu (Lasha 29.09)
-  // Ćwiczenia — poziomy w jednym podmenu (Lasha 29.09); otwarte, gdy jesteśmy w Ćwiczeniach
+  pozycja('Lekcje', widok === 'karty', () => idzDo('karty'));   // Lekcje — reachable only from here
+  // Ćwiczenia — the levels in one submenu; open when we are in Ćwiczenia
   const li = h('li'), det = h('details'), pod = h('ul');
   det.open = widok === 'cwiczenia';
   det.append(h('summary', null, 'Ćwiczenia'), pod);
@@ -1318,8 +1313,7 @@ function zbudujNawigacje() {
     otworzPoziom(i);
   }, null, pod));
   pozycja('Karty pracy', widok === 'druk', () => idzDo('druk'));
-  // Motyw (Lasha 27.09: „ყველგან იყოს") — też podmenu (Lasha 29.09); dotknięcie zmienia od razu, menu i podmenu zostają
-  // otwarte; później tu też Język
+  // Motyw — a submenu too; a tap changes the theme at once, the menu and the submenu stay open; later Język goes here too
   const liM = h('li', 'oddzielnie'), detM = h('details'), podM = h('ul');
   detM.open = motywOtwarty;
   detM.ontoggle = () => { motywOtwarty = detM.open; };
@@ -1341,7 +1335,7 @@ function ustawMotyw(k) {
   log(`motyw: ${MOTYWY.find(([x]) => x === k)[1]}`);
   zbudujNawigacje();
 }
-// motyw wybrany w symulatorze (sim-bridge ustawił już data-theme) — zaznaczenie w ☰ idzie za nim
+// a theme chosen in the simulator (sim-bridge has already set data-theme) — the selection in ☰ follows it
 addEventListener('message', e => { if (e.data && e.data.type === 'theme') zbudujNawigacje(); });
 
 function pokazWidok() {
@@ -1353,13 +1347,13 @@ function pokazWidok() {
   cwBox.hidden = !wRundzie;
   document.getElementById('widok-zegar').hidden = widok !== 'zegar';
   document.getElementById('widok-druk').hidden = widok !== 'druk';
-  document.body.classList.toggle('ekran-druk', widok === 'druk');   // @media print: tylko kartka
-  document.getElementById('przycisk-ustawien').hidden = widok !== 'zegar';   // ⚙ tylko przy zegarze
-  document.getElementById('przycisk-wygladu').hidden = widok !== 'zegar' && widok !== 'start' && widok !== 'druk';   // 🕓 też na Starcie i przy kartce
-  document.getElementById('przycisk-start').hidden = widok === 'start';       // 🏠 wszędzie poza Startem
+  document.body.classList.toggle('ekran-druk', widok === 'druk');   // @media print: only the sheet
+  document.getElementById('przycisk-ustawien').hidden = widok !== 'zegar';   // ⚙ only in Trening
+  document.getElementById('przycisk-wygladu').hidden = widok !== 'zegar' && widok !== 'start' && widok !== 'druk';   // 🕓 also on Start and at the sheet
+  document.getElementById('przycisk-start').hidden = widok === 'start';       // 🏠 everywhere except Start
   licznikEl.hidden = !wRundzie;
   document.getElementById('przycisk-pomoc').hidden = !(wRundzie && samouczekJest(poziom));
-  if (widok === 'zegar') pokazTryb();   // ✓ w nagłówku w trybach Ustaw
+  if (widok === 'zegar') pokazTryb();
   document.getElementById('tytul').textContent = wLekcji ? LEKCJE[lekcja].nazwa : wRundzie ? POZIOMY[poziom].nazwa
     : WIDOKI.find(([k]) => k === widok)[1];
   zbudujNawigacje();
@@ -1367,16 +1361,16 @@ function pokazWidok() {
   if (widok === 'karty') { if (wLekcji) zbudujLekcje(); else zbudujListe(); }
   if (widok === 'cwiczenia' && !wRundzie) zbudujPoziomy();
   if (widok === 'druk') druk(document.getElementById('widok-druk'));
-  if (wRundzie) cwStart(cwBox, licznikEl, poziom, rundaPoziomu);   // za pierwszym razem najpierw samouczek
-  else { cwBox.cwZnak = null; cwBox.textContent = ''; }   // wyjście z rundy: jej spóźniony setTimeout nic już nie zrobi
+  if (wRundzie) cwStart(cwBox, licznikEl, poziom, rundaPoziomu);   // the first time, the tutorial comes first
+  else { cwBox.cwZnak = null; cwBox.textContent = ''; }   // leaving a round: its late setTimeout will do nothing any more
 }
 
-// runda poziomu; koniec rundy: „Następny poziom" (po ostatnim go nie ma) · „Poziomy" — lista
+// a level round; at the end of the round: „Następny poziom" (absent after the last one) · „Poziomy" — the list
 function rundaPoziomu() {
   const nast = poziom + 1 < POZIOMY.length ? poziom + 1 : -1;
   cwiczenia(cwBox, licznikEl, () => otworzPoziom(-1), poziom, undefined, nast < 0 ? null : () => otworzPoziom(nast));
 }
-// 💡 — samouczek poziomu jeszcze raz; „Wróć" na końcu — runda od nowa
+// 💡 — the level's tutorial once more; „Wróć" at the end — the round starts over
 document.getElementById('przycisk-pomoc').onclick = () => samouczek(cwBox, licznikEl, poziom, rundaPoziomu);
 
 function idzDo(k) {
@@ -1386,13 +1380,13 @@ function idzDo(k) {
   pokazWidok();
   simScreen(ekran());
 }
-// Wstecz (telefon / ◀ w symulatorze), krok po kroku: lekcja → lista lekcji, runda → lista poziomów, reszta → Start
+// Back (phone / ◀ in the simulator), step by step: lesson → lesson list, round → level list, the rest → Start
 const cofnij = () => widok === 'karty' && lekcja >= 0 ? otworzLekcje(-1)
   : widok === 'cwiczenia' && poziom >= 0 ? otworzPoziom(-1) : idzDo('start');
-// 🏠 — od razu na Start, także ze środka rundy (bez pytania, jak ☰ → Start)
+// 🏠 — straight to Start, also from the middle of a round (without asking, like ☰ → Start)
 document.getElementById('przycisk-start').onclick = () => idzDo('start');
 
-// 🕓 „Wygląd zegara": grupa z tytułem i podglądami 10:10
+// 🕓 „Wygląd zegara": a group with a title and 10:10 previews
 function grupa(ul, tytul, opcje, wybrana, podglad, wybierz) {
   ul.append(h('li', 'menu-title', tytul));
   opcje.forEach(([k, nazwa]) => {
@@ -1408,7 +1402,7 @@ function grupa(ul, tytul, opcje, wybrana, podglad, wybierz) {
   });
 }
 
-// przebudowuje tylko listę — szuflada 🕓 zostaje otwarta po wyborze
+// rebuilds only the list — the 🕓 drawer stays open after a choice
 function zbudujMenu() {
   const ul = document.getElementById('menu-wyglad');
   ul.textContent = '';
@@ -1432,7 +1426,7 @@ function zmienWyglad() {
   if (widok === 'druk') druk(document.getElementById('widok-druk'));
 }
 
-// ◀ w symulatorze / Wstecz na telefonie: najpierw zamyka menu / ustawienia / wygląd, potem cofnij(); na Starcie — wyjście
+// ◀ in the simulator / Back on the phone: first closes the menu / settings / appearance, then cofnij(); on Start — exit
 const ustawEl = document.getElementById('ustawienia');
 const wygladEl = document.getElementById('wyglad');
 window.simBack = () => {
@@ -1446,8 +1440,8 @@ menuEl.addEventListener('change', () => simScreen(menuEl.checked ? 'menu' : ekra
 ustawEl.addEventListener('change', () => simScreen(ustawEl.checked ? 'ustawienia' : ekran()));
 wygladEl.addEventListener('change', () => simScreen(wygladEl.checked ? 'wyglad' : ekran()));
 
-// do sprawdzania: ?menu=1 · ?ustawienia=1 · ?wyglad=1 (szuflada 🕓 „Wygląd zegara") · ?widok=start|zegar|karty|cwiczenia ·
-// ?lekcja=2 (od 1) · ?poziom=1 (od 1)
+// for checking: ?menu=1 · ?ustawienia=1 · ?wyglad=1 (the 🕓 „Wygląd zegara" drawer) · ?widok=start|zegar|karty|cwiczenia|druk ·
+// ?lekcja=2 (from 1) · ?poziom=1 (from 1)
 const q = new URLSearchParams(location.search);
 if (WIDOKI.some(([k]) => k === q.get('widok'))) widok = q.get('widok');
 if (q.get('lekcja')) { widok = 'karty'; lekcja = Math.min(LEKCJE.length, Math.max(1, +q.get('lekcja') || 1)) - 1; }
@@ -1460,7 +1454,7 @@ document.body.dataset.styl = styl;
 document.body.classList.toggle('bez-nieba', dzienNoc === 'nie');
 zbudujZegar();
 zbudujRodzaje();
-nastepne();                                  // pierwsze zadanie Treningu
+nastepne();                                  // the first Trening task
 zbudujPrzelaczniki();
 zbudujMenu();
 pokazNapis();

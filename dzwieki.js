@@ -1,17 +1,17 @@
-// dzwieki.js — dźwięki aplikacji (Lasha 27.09: „მოქმედებების ხმები … ღილაკებისთვის და საათის მოქმედებისთვის" → plan „ოკ").
-// Pliki z Numko (Matma-Robot/Audiof) w dzwieki/; gdy pliku brak — krótki generowany beep, jak w Numko.
-//   klik      — każdy przycisk i pozycja menu (sam, niżej); bez 🔊 i bez odpowiedzi w ćwiczeniach — te mają dobrze / źle
-//   tik       — wskazówka minęła liczbę (tarcza.js): minutowa co 5 minut, godzinowa co godzinę; generowany, bez pliku
-//   zatrzask  — wskazówka puszczona i dociągnięta (tarcza.js)
-//   ocena(b)  — dobra / zła odpowiedź (cwiczenia.js) · brawo — koniec rundy
-//   obrot     — karta „Która godzina?" się obraca (index.html, „Zakryj godzinę"); generowany, bez pliku
-//   wlacz(b)  — ⚙ „Dźwięki", pamiętane w localStorage 'zegar-dzwieki'
+// dzwieki.js — the app's sounds: for the buttons and for what the clock does.
+// Files from Numko (Matma-Robot/Audiof) in dzwieki/; when a file is missing — a short generated beep, as in Numko.
+//   klik      — every button and menu item (by itself, below); not 🔊, not the answers in the exercises — those have right / wrong
+//   tik       — a hand passed a number (tarcza.js): the minute hand every 5 minutes, the hour hand every hour; generated, no file
+//   zatrzask  — a hand released and snapped into place (tarcza.js)
+//   ocena(b)  — a right / wrong answer (cwiczenia.js) · brawo — the end of a round
+//   obrot     — the „Która godzina?" card flips (index.html, „Zakryj godzinę"); generated, no file
+//   wlacz(b)  — ⚙ „Dźwięki", remembered in localStorage 'zegar-dzwieki'
 (function () {
   "use strict";
   let wlaczone = true;
   try { wlaczone = localStorage.getItem('zegar-dzwieki') !== 'nie'; } catch (e) {}
 
-  // przeglądarka trzyma AudioContext uśpiony do pierwszego dotknięcia — ac() za każdym razem go budzi
+  // the browser keeps AudioContext suspended until the first touch — ac() wakes it on every call
   let AC = null;
   function ac() {
     try {
@@ -45,7 +45,7 @@
     zapas();
   }
 
-  // szum dl sekund przez filtr pasmowy; obwiednia(x) — głośność w chwili x = 0…1; bufor liczony raz, potem z pamięci
+  // dl seconds of noise through a band-pass filter; obwiednia(x) — volume at moment x = 0…1; buffer computed once, then reused
   const bufory = {};
   function szum(c, dl, obwiednia, glosnosc) {
     let b = bufory[dl];
@@ -62,7 +62,7 @@
     return f;
   }
 
-  // tik: 30 ms szumu — jak mechanizm zegara; przy szybkim kręceniu najwyżej jeden na 40 ms
+  // tik: 30 ms of noise — like a clock mechanism; when the hand is turned fast, at most one per 40 ms
   let ostTik = 0;
   function tik() {
     const teraz = performance.now();
@@ -72,8 +72,8 @@
     if (c) szum(c, .03, x => Math.pow(1 - x, 4), .6).frequency.value = 2500;
   }
 
-  // obrót karty „Która godzina?" (Lasha 27.09, z dwóch propozycji „1"): „ფშუ" — szum narasta i gaśnie, filtr jedzie
-  // w górę i z powrotem; 0.35 s, karta obraca się 0.45 s
+  // the „Która godzina?" card flipping: a whoosh — the noise swells and fades, the filter sweeps
+  // up and back; 0.35 s, the card turns for 0.45 s
   function obrot() {
     if (!wlaczone) return;
     const c = ac();
@@ -100,11 +100,11 @@
     obrot
   };
 
-  // klik przy każdym przycisku i pozycji menu. Bąbelkowanie, nie przechwytywanie: onclick przełącznika w ⚙ działa
-  // pierwszy — po „Włączone" klik już słychać, po „Wyłączone" już nie.
+  // klik on every button and menu item. Bubbling, not capture: the onclick of the switch in ⚙ runs
+  // first — after „Włączone" the click is already heard, after „Wyłączone" no longer.
   document.addEventListener('click', e => {
     if (!wlaczone) return;
-    ac();                                    // pierwsze dotknięcie budzi AudioContext — tik działa od pierwszego ruchu
+    ac();                                    // the first touch wakes AudioContext — tik works from the first move
     const b = e.target.closest('button, a, label.btn, summary');
     if (b && !b.closest('#powiedz, .cw-wybor, #sprawdz, .cw-sprawdz')) Dzwiek.klik();
   });

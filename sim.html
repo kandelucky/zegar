@@ -21,14 +21,14 @@
     --color-warning: var(--color-warning); --color-error: var(--color-error);
   }
 
-  /* თემის ღილაკები — თითო თავის ფერებში (data-theme ღილაკზევეა) */
+  /* theme buttons — each in its own colours (data-theme sits on the button itself) */
   #dev #devTheme button { @apply bg-base-100 text-base-content border border-base-content/20 rounded-lg px-2.5 py-1.5 text-xs flex items-center gap-1.5 cursor-pointer; }
   #dev #devTheme button.on { @apply ring-2 ring-white/70; }
   #dev #devTheme button i { @apply inline-block w-2.5 h-2.5 rounded-full; }
   #consoleBody .t { @apply text-base-content/40 mr-2; }
 </style>
 <style>
-  /* ── ტელეფონის ჩარჩო — Sunny-Librus/phone-preview.html-იდან, უცვლელი ── */
+  /* ── phone frame — from Sunny-Librus/phone-preview.html, unchanged ── */
   #stage { flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; min-width: 0; }
   #phone {
     background: #0b0d11;
@@ -77,7 +77,7 @@
 </head>
 <body class="h-full m-0 flex flex-col overflow-hidden bg-base-300 text-base-content">
 
-  <!-- 1. ზედა ზოლი: მოწყობილობა, დატრიალება, გადატვირთვა, ზოლები, W/H -->
+  <!-- 1. top bar: device, rotate, reload, system bars, W/H -->
   <div id="bar" class="shrink-0 flex items-center gap-2 flex-wrap px-3 py-2 bg-base-200 border-b border-base-content/10 text-xs text-base-content/60">
     <label>მოწყობილობა:</label>
     <select id="device" class="select select-xs w-auto"></select>
@@ -95,7 +95,7 @@
   </div>
 
   <div class="flex-1 flex min-h-0">
-    <!-- 2. სცენა: ტელეფონი -->
+    <!-- 2. stage: the phone -->
     <div id="stage">
       <div id="phone">
         <div id="glass">
@@ -125,7 +125,7 @@
       </div>
     </div>
 
-    <!-- 3. პულტი (მარჯვნივ). ჯერ: თემა · კონსოლი. -->
+    <!-- 3. control panel (on the right). So far: theme · console. -->
     <section id="dev" class="w-[400px] shrink-0 bg-base-200 border-l border-base-content/10 flex flex-col min-h-0">
       <div class="flex items-center gap-3 px-3 py-1.5 text-xs text-base-content/60 select-none">
         <b class="text-base-content">პულტი</b>
@@ -157,7 +157,7 @@
   function $(id) { return document.getElementById(id); }
   $("screen").src = APP;
 
-  // ---- ტაბები (player.html-ის tabs()) ----
+  // ---- tabs (tabs() from player.html) ----
   function tabs(tabsId, bodyId) {
     var t = $(tabsId), b = $(bodyId);
     t.onclick = function (e) {
@@ -168,7 +168,7 @@
   }
   tabs("devTabs", "devBody");
 
-  // ---- კონსოლი: აპის log-ები postMessage-ით ----
+  // ---- console: the app's log lines, via postMessage ----
   var conBody = $("consoleBody"), lines = 0;
   function log(msg) {
     var d = document.createElement("div");
@@ -179,7 +179,7 @@
   }
   $("consoleClear").onclick = function () { conBody.innerHTML = ""; lines = 0; $("consoleCount").textContent = "0 ხაზი"; };
 
-  // ---- აპთან კავშირი ----
+  // ---- link to the app ----
   var screen = $("screen");
   function toApp(msg) { if (screen.contentWindow) screen.contentWindow.postMessage(msg, "*"); }
   window.addEventListener("message", function (e) {
@@ -190,7 +190,7 @@
     else if (m.type === "error") log("<b class=\"text-error\">შეცდომა</b>: " + m.msg);
   });
 
-  // ---- თემა (player.html-ის კოდი; აპს postMessage-ით ეგზავნება) ----
+  // ---- theme (code from player.html; sent to the app via postMessage) ----
   var THEMES = ["szkola", "szkola-krem", "szkola-blekit", "szkola-noc", "milioni", "milioni-light", "dark", "night", "dim", "business", "dracula", "abyss", "black", "coffee", "forest", "halloween", "luxury", "sunset", "synthwave", "aqua",
     "light", "silk", "nord", "winter", "corporate", "wireframe", "lofi", "emerald", "garden", "cupcake", "pastel", "fantasy", "valentine",
     "caramellatte", "autumn", "lemonade", "bumblebee", "retro", "acid", "cyberpunk", "cmyk"];
@@ -211,7 +211,7 @@
   var savedTheme = null; try { savedTheme = localStorage.getItem(KEY + "-theme"); } catch (e) {}
   setTheme(THEMES.indexOf(savedTheme) !== -1 ? savedTheme : DEFAULT_THEME);
 
-  // ---- მოწყობილობები (phone-preview.html-ის DEVICES, CSS px) ----
+  // ---- devices (DEVICES from phone-preview.html, CSS px) ----
   var DEVICES = [
     { name: "Galaxy A15 / ტიპური Android (360×800)", w: 360, h: 800 },
     { name: "ძველი Android (360×640)",               w: 360, h: 640 },
@@ -230,7 +230,7 @@
   });
   var W = DEVICES[0].w, H = DEVICES[0].h;
 
-  // სისტემური ზოლები სიმაღლეს ჭამენ, როგორც APK-ში (adjustMarginsForEdgeToEdge): iframe = H − ზოლები
+  // the system bars eat into the height, as in the APK (adjustMarginsForEdgeToEdge): iframe = H − bars
   var BAR_H = { status: 28, gesture: 22, buttons: 44 };
   function bars() { return barsSel.value; }
   function sysH() { return bars() === "off" ? 0 : BAR_H.status; }

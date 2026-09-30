@@ -68,10 +68,10 @@
   const siatka = document.getElementById('siatka');
   const czasEl = document.getElementById('czas');
   const komorki = [];    // { styl, cyfry, kom, z }
-  let t = 8 * 60 + 20;   // 8:20 — przykład z podręcznika („20 minut po ósmej")
-  let rama = '1';        // rama wiersza ბ (minimalny)
+  let t = 8 * 60 + 20;   // 8:20 — the textbook's example („20 minut po ósmej")
+  let rama = '1';        // frame of the second row (minimalny)
   try { const r = localStorage.getItem('zegar-por-rama'); if (r !== null) rama = r; } catch (e) {}
-  const ramaUrl = new URLSearchParams(location.search).get('rama');   // ?rama=3 — do sprawdzania
+  const ramaUrl = new URLSearchParams(location.search).get('rama');   // ?rama=3 — for checking
   if (ramaUrl !== null) rama = ramaUrl;
 
   function zbuduj(c) {

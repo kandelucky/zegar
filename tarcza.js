@@ -1,33 +1,33 @@
-// tarcza.js — tarcza zegara w kilku wersjach i przeciąganie wskazówek.
+// tarcza.js — the clock dial in several versions, and dragging the hands.
 //
 //   const z = Zegar(svg, { styl, cyfry, rama, t, zmiana });
 //     styl  : 'szkolny' | 'minimalny' | 'klasyczny'
 //     cyfry : 'zwykle' | 'minuty' | 'brak' | 'cztery' | 'rzymskie'
-//     rama  : '' | '1' | '2' | '3' — obudowa wokół tarczy (RAMY niżej)
-//     t     : minuty od 12:00 (0…719)
-//     zmiana: (t, puszczone) => … — przy każdym ruchu; puszczone = true po dociągnięciu do kroku
-//     krok  : 5 (domyślnie) | 1 — do ilu minut dociąga minutowa po puszczeniu
-//     tylko : '' | 'g' | 'm' — lekcja o jednej wskazówce: 'g' = rusza się tylko godzinowa, minutowa stoi
-//             na 12, dociąga do pełnych godzin; 'm' = tylko minutowa, godzinowej nie widać
-//     godzinowa: tm — godzinowa stoi na stałe w tm (0…719), rusza się tylko minutowa
-//             (jak w podręczniku „Dorysuj wskazówkę minutową"); tylko wtedy bez znaczenia
-//     chwyt : 'm' — łapie się zawsze minutowa, godzinowa widać i jedzie za nią (Ćwiczenia, poziom 8)
-//     osobno: true — wskazówki niezależne, każda chodzi sama (Ćwiczenia, poziom 10 „Ustaw"); godzinowa dociąga co 5 minut
-//             (2,5°), więc staje też między liczbami; zmiana(t, puszczone, tg) — tg = gdzie stoi godzinowa (0…719)
-//     sektor: true — minuty od pełnej godziny zaznaczone na zielono (jak w podręczniku)
-//     popo  : true — po południu
-//     po13  : true — po południu (popo) cyfry 13 … 23 zamiast 1 … 11, u góry zostaje 12 (index.html daje to tylko
-//             cyfrom arabskim: zwykle, minuty)
-//     oba   : true — przy każdej liczbie 1 … 12 w środku mała 13 … 24 (Lasha 29.09: „12, 24 ან ორივე"; jak zegary w szkole)
-//   z.ustaw(t, tg) — ustawia wskazówki z zewnątrz (bez wywołania zmiana); tg — osobno: godzinowa gdzie indziej (domyślnie t)
-//   z.jedz(t, ms, koniec) — jak ustaw, ale wskazówki jadą tam przez ms, każda najkrótszą drogą; potem koniec()
-//   z.popo(b)  — przełącza połowę doby bez przebudowy (działa też w trakcie przeciągania)
-//   z.cyfry(c) — zmienia cyfry bez przebudowy: 'zwykle' | 'cztery' | 'brak' | 'rzymskie' (zegar zbudowany z wszystkimi 12,
-//             nie 'minuty' — ta ma inną skalę); samouczek poziomu 10
-//   z.osobno(b) — włącza / wyłącza osobno bez przebudowy (godzinowa wraca na t); samouczek poziomu 10
+//     rama  : '' | '1' | '2' | '3' — a case around the dial (RAMY below)
+//     t     : minutes from 12:00 (0…719)
+//     zmiana: (t, puszczone) => … — on every move; puszczone = true once the hand has snapped to the step
+//     krok  : 5 (default) | 1 — how many minutes the minute hand snaps to when released
+//     tylko : '' | 'g' | 'm' — a lesson about one hand: 'g' = only the hour hand moves, the minute hand stays
+//             on 12, snaps to full hours; 'm' = only the minute hand, the hour hand is hidden
+//     godzinowa: tm — the hour hand stays fixed at tm (0…719), only the minute hand moves
+//             (as in the textbook's „Dorysuj wskazówkę minutową"); tylko is then ignored
+//     chwyt : 'm' — the minute hand is always the one grabbed, the hour hand shows and follows it (Ćwiczenia, level 8)
+//     osobno: true — independent hands, each moves on its own (Ćwiczenia, level 10 „Ustaw"); the hour hand snaps every 5 minutes
+//             (2.5°), so it also stops between the numbers; zmiana(t, puszczone, tg) — tg = where the hour hand is (0…719)
+//     sektor: true — the minutes since the full hour are marked in green (as in the textbook)
+//     popo  : true — afternoon
+//     po13  : true — in the afternoon (popo) the digits are 13 … 23 instead of 1 … 11, 12 stays at the top (index.html
+//             gives this only to Arabic digits: zwykle, minuty)
+//     oba   : true — at every number 1 … 12 a small 13 … 24 on the inside (like the clocks at school)
+//   z.ustaw(t, tg) — sets the hands from outside (without calling zmiana); tg — osobno: the hour hand elsewhere (default t)
+//   z.jedz(t, ms, koniec) — like ustaw, but the hands travel there over ms, each the shortest way; then koniec()
+//   z.popo(b)  — switches the half of the day without a rebuild (also works mid-drag)
+//   z.cyfry(c) — changes the digits without a rebuild: 'zwykle' | 'cztery' | 'brak' | 'rzymskie' (for a clock built with all 12,
+//             not 'minuty' — that one has a different scale); the level 10 tutorial
+//   z.osobno(b) — turns osobno on / off without a rebuild (the hour hand returns to t); the level 10 tutorial
 //
-// Dźwięk (dzwieki.js, jeśli jest na stronie): tik, gdy ciągnięta wskazówka minie liczbę; zatrzask po dociągnięciu.
-// Kolory i czcionki: tarcza.css. Wszystko rysowane w viewBox 0 0 200 200, środek 100,100.
+// Sound (dzwieki.js, if it is on the page): tik when the dragged hand passes a number; zatrzask once it has snapped.
+// Colours and fonts: tarcza.css. Everything is drawn in viewBox 0 0 200 200, centre 100,100.
 (function () {
   "use strict";
   const NS = 'http://www.w3.org/2000/svg';
@@ -45,14 +45,14 @@
     const [x1, y1] = pol(r1, deg), [x2, y2] = pol(r2, deg);
     el(g, 'line', { x1, y1, x2, y2, class: cls, 'stroke-width': w });
   }
-  // napis przy godzinie h (1…12) albo null, gdy w tej wersji go nie ma; na13 = teraz 13 … 23 (po13 i po południu)
+  // the label at hour h (1…12), or null when this version has none; na13 = 13 … 23 right now (po13 and afternoon)
   function etykieta(h, cyfry, na13) {
     if (cyfry === 'brak') return null;
     if (cyfry === 'cztery' && h % 3) return null;
     if (cyfry === 'rzymskie') return RZYM[h % 12];
-    return String(na13 && h < 12 ? h + 12 : h);   // u góry zostaje 12
+    return String(na13 && h < 12 ? h + 12 : h);   // 12 stays at the top
   }
-  // zwraca [[h, <text>], …] — do z.popo()
+  // returns [[h, <text>], …] — for z.popo() and z.cyfry()
   function cyfry12(g, cyfry, r, cls, po) {
     const liczby = [];
     for (let h = 1; h <= 12; h++) {
@@ -64,9 +64,9 @@
     return liczby;
   }
 
-  // Każdy styl rysuje tarczę i zwraca dwie grupy wskazówek (obracane wokół 100,100).
+  // Each style draws the dial and returns the two hand groups (rotated around 100,100).
   const STYLE = {
-    // jak w podręczniku: kropki minut, cyfry w kolorze wskazówki godzinowej
+    // as in the textbook: minute dots, digits in the colour of the hour hand
     szkolny(g, cyfry, po) {
       el(g, 'circle', { cx: 100, cy: 100, r: 92, class: 's-tlo' });
       for (let i = 0; i < 60; i++) {
@@ -81,8 +81,8 @@
       el(g, 'circle', { cx: 100, cy: 100, r: 1.8, class: 'os2' });
       return { godz, min, liczby };
     },
-    // zwykły zegar ścienny bez kolorów (wzór Lashy, 27.09): cienki obrys, kreska co minutę,
-    // kwadracik co 5 minut, duże proste cyfry, czarne wskazówki
+    // a plain wall clock without colours: thin outline, a tick every minute,
+    // a small square every 5 minutes, big plain digits, black hands
     minimalny(g, cyfry, po) {
       el(g, 'circle', { cx: 100, cy: 100, r: 92, class: 'm-tlo' });
       for (let i = 0; i < 60; i++) {
@@ -97,7 +97,7 @@
       el(g, 'circle', { cx: 100, cy: 100, r: 1.5, class: 'os2' });
       return { godz, min, liczby };
     },
-    // zegar ścienny: podwójny obrys, „tor kolejowy" minut, cyfry szeryfowe, wskazówki z grotem
+    // a wall clock: double outline, a "railway track" of minutes, serif digits, hands with an arrowhead
     klasyczny(g, cyfry, po) {
       el(g, 'circle', { cx: 100, cy: 100, r: 92, class: 'k-tlo' });
       el(g, 'circle', { cx: 100, cy: 100, r: 87.5, class: 'k-linia', 'stroke-width': 0.8 });
@@ -114,35 +114,35 @@
     }
   };
 
-  // Ramy (obudowa) wokół tarczy, między r 92 a 99 — tarcza zostaje w środku bez własnego obrysu.
+  // Frames (the case) around the dial, between r 92 and 99 — the dial stays inside without an outline of its own.
   let nrFiltra = 0;
   const kolo = (p, r, cls, w, extra) => el(p, 'circle', Object.assign({ cx: 100, cy: 100, r, class: cls, 'stroke-width': w || 0 }, extra));
   const RAMY = {
-    // 1: cienka czarna obręcz, jak na zdjęciu Lashy, z ledwo widoczną linią od środka
+    // 1: a thin black rim with a barely visible line on the inside
     '1'(svg) {
       kolo(svg, 93.5, 'r-tlo');
       kolo(svg, 96, 'r-obr', 6);
       kolo(svg, 92.6, 'r-cien', 0.7);
     },
-    // 2: dwie cienkie linie
+    // 2: two thin lines
     '2'(svg) {
       kolo(svg, 99, 'r-tlo');
       kolo(svg, 98.4, 'r-obr', 1.2);
       kolo(svg, 95.2, 'r-obr', 1.2);
     },
-    // 3: jasna obudowa z miękkim cieniem
+    // 3: a light case with a soft shadow
     '3'(svg) {
       const id = 'rama-cien-' + (++nrFiltra);
       const f = el(el(svg, 'defs', {}), 'filter', { id, x: '-15%', y: '-15%', width: '130%', height: '130%' });
       el(f, 'feDropShadow', { dx: 0, dy: 1.5, stdDeviation: 1.6, 'flood-opacity': 0.3 });
       kolo(svg, 95.5, 'r-obud', 7, { filter: `url(#${id})` });
-      kolo(svg, 92, 'r-tlo');                // przykrywa cień od środka; pod podpisami minut też tło tarczy
+      kolo(svg, 92, 'r-tlo');                // covers the shadow on the inside; the minute labels get the dial background too
       kolo(svg, 99, 'r-cien', 0.6);
       kolo(svg, 92, 'r-cien', 0.8);
     }
   };
 
-  // wycinek od 12 do kąta deg (zgodnie z ruchem wskazówek)
+  // the sector from 12 to the angle deg (clockwise)
   function wycinek(r, deg) {
     if (deg < 0.5) return '';
     const [x0, y0] = pol(r, 0), [x1, y1] = pol(r, deg);
@@ -153,21 +153,21 @@
     svg.setAttribute('viewBox', '0 0 200 200');
     svg.classList.add('zegar');
     if (o.rama) { svg.classList.add('z-rama'); RAMY[o.rama](svg); }
-    // z ramą i podpisami minut całość trochę mniejsza, żeby podpisy nie weszły na ramę
+    // with a frame and minute labels the whole thing is a little smaller, so the labels stay off the frame
     const w = o.rama && o.cyfry === 'minuty' ? 0.93 : 1;
     const g0 = el(svg, 'g', { transform: `translate(100 100) scale(${w}) translate(-100 -100)` });
-    // z minutami: tarcza mniejsza, podpisy 00…55 na zewnątrz (jak w podręczniku)
+    // with minutes: a smaller dial, the labels 00…55 outside it (as in the textbook)
     const k = (o.cyfry === 'minuty' ? 0.82 : 1) * w;
     const g = el(g0, 'g', { transform: `translate(100 100) scale(${k / w}) translate(-100 -100)` });
     const { godz, min, liczby } = STYLE[o.styl](g, o.cyfry, !!o.po13 && !!o.popo);
-    if (o.oba) for (let h = 1; h <= 12; h++) {     // małe 13 … 24 bliżej środka, pod dużą liczbą (tylko Szkolny — index.html)
+    if (o.oba) for (let h = 1; h <= 12; h++) {     // small 13 … 24 nearer the centre, under the big number (Szkolny only — index.html)
       const [x, y] = pol(52, h * 30);
       el(g, 'text', { x, y, class: 's-cyfra24' }, String(h + 12));
     }
     const stoi = o.godzinowa;
     const tylko = stoi != null ? 'm' : o.tylko || '';
     if (tylko === 'm' && stoi == null) godz.style.display = 'none';
-    // sektor zaraz nad tłem tarczy — kreski i cyfry zostają na wierzchu
+    // the sector sits right above the dial background — ticks and digits stay on top
     const sektor = o.sektor ? g.insertBefore(document.createElementNS(NS, 'path'), g.firstChild.nextSibling) : null;
     if (sektor) sektor.setAttribute('class', 'sektor');
     if (o.cyfry === 'minuty') {
@@ -178,10 +178,10 @@
     }
 
     let t = o.t || 0, chwyt = null;
-    let tg = t, osobno = !!o.osobno;         // osobno: godzinowa ma własne miejsce
+    let tg = t, osobno = !!o.osobno;         // osobno: the hour hand has its own position
     const zmiana = o.zmiana || function () {};
 
-    // katy = to, co widać teraz — jedz() rusza stąd, także z połowy poprzedniej jazdy
+    // katy = what is on screen now — jedz() starts from here, also from the middle of a previous run
     let katy = null, jazda = 0;
     function obroc(aG, aM) {
       katy = { g: aG, m: aM };
@@ -206,20 +206,20 @@
     const roznica = (a, b) => { const d = Math.abs(a - b) % 360; return Math.min(d, 360 - d); };
 
     function przesun(p) {
-      if (p.d < 8) return;                   // przy samej osi kąt jest niepewny
+      if (p.d < 8) return;                   // right at the axis the angle is unreliable
       const co = chwyt === 'm' ? 5 : 60, ile = () => Math.floor((osobno && chwyt === 'g' ? tg : t) / co);
       const przed = ile();
       if (chwyt === 'm') {
         let d = p.a / 6 - t % 60;
         if (d > 30) d -= 60;
         if (d < -30) d += 60;
-        t = (t + d + 720) % 720;             // minutowa ciągnie za sobą godzinową (osobno — nie)
+        t = (t + d + 720) % 720;             // the minute hand pulls the hour hand along (not with osobno)
       } else if (osobno) {
         tg = p.a * 2;
       } else {
         t = p.a * 2;
       }
-      if (ile() !== przed && window.Dzwiek) Dzwiek.tik();   // ciągnięta wskazówka minęła liczbę
+      if (ile() !== przed && window.Dzwiek) Dzwiek.tik();   // the dragged hand passed a number
       rysuj();
       zmiana(t, false, tg);
     }
@@ -228,7 +228,7 @@
       const p = punkt(e);
       if (p.d > 98) return;
       const aG = (osobno ? tg : t % 720) / 2, aM = (t % 60) * 6;
-      // w środku tarczy łapie ta wskazówka, która jest bliżej palca; dalej zawsze minutowa
+      // in the middle of the dial the hand closer to the finger is grabbed; further out always the minute hand
       chwyt = tylko || o.chwyt || ((p.d < 60 * k && roznica(p.a, aG) < roznica(p.a, aM)) ? 'g' : 'm');
       svg.setPointerCapture(e.pointerId);
       svg.classList.add('ciagnie');
@@ -238,7 +238,7 @@
 
     function pusc() {
       if (!chwyt) return;
-      const godzinowa = osobno && chwyt === 'g';   // osobno: dociąga się tylko puszczona wskazówka
+      const godzinowa = osobno && chwyt === 'g';   // osobno: only the released hand snaps
       chwyt = null;
       svg.classList.remove('ciagnie');
       const co = tylko === 'g' ? 60 : (o.krok || 5);
@@ -257,7 +257,7 @@
     svg.addEventListener('pointerup', pusc);
     svg.addEventListener('pointercancel', pusc);
 
-    // napisy przy liczbach — tylko te, które zbudowano (liczby)
+    // the labels at the numbers — only the ones that were built (liczby)
     let na13 = !!o.po13 && !!o.popo, cyfry = o.cyfry;
     const napisy = () => liczby.forEach(([h, e]) => {
       e.textContent = etykieta(h, cyfry, na13) || '';
@@ -267,13 +267,13 @@
     rysuj();
     return {
       ustaw(nt, ng = nt) { if (!chwyt) { jazda++; t = nt; tg = ng; rysuj(); } },
-      // wskazówki jadą płynnie do nt, każda swoją najkrótszą drogą (🎲 losowa godzina); na końcu zatrzask i koniec().
-      // Złapana wskazówka przerywa jazdę — wtedy koniec() nie przychodzi (zmiana i tak mówi, gdzie jest).
+      // the hands travel smoothly to nt, each its own shortest way (🎲 random time); at the end zatrzask and koniec().
+      // Grabbing a hand interrupts the run — koniec() then never comes (zmiana says where the hand is anyway).
       jedz(nt, ms, koniec) {
         if (chwyt) return;
         const nr = ++jazda, od = katy, start = performance.now();
-        tg = nt;                             // osobno: obie jadą na nt
-        const droga = (a, b) => ((b - a) % 360 + 540) % 360 - 180;   // z a do b najkrótszą drogą, −180…180
+        tg = nt;                             // osobno: both travel to nt
+        const droga = (a, b) => ((b - a) % 360 + 540) % 360 - 180;   // from a to b the shortest way, −180…180
         const dG = droga(od.g, katG(nt)), dM = droga(od.m, katM(nt));
         t = nt;
         (function krok(n) {

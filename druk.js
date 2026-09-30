@@ -1,38 +1,36 @@
-// druk.js — Karty pracy: zadania do wydrukowania na kartce A4 (Lasha 30.09: „საათს ჰქონდეს დამატებითი ფუნქცია —
-// მაგალითების დაბეჭდვით"). Rodzaje zadań (pole ▾ nad kartką, takie jak w Treningu):
-//   Dorysuj wskazówkę — jak w podręczniku „Dorysuj wskazówkę minutową": na tarczy stoi tylko godzinowa, pod zegarem
-//     godzina cyframi, dziecko dorysowuje długą (Lasha: „დიდი ისარი უნდა დააკლდეს").
-//   Tak czy nie? — „Czy zegar pokazuje tę godzinę?" (Lasha: „სწორია თუ არა", plan „ოკ"): obie wskazówki, pod zegarem
-//     godzina i kratki TAK · NIE. Połowa napisów jest zła, pułapki jak w Ćwiczeniach: sąsiednia godzina (08:35 → 09:35,
-//     godzinowa blisko 9) albo liczba spod minutowej wzięta wprost (08:35 → 08:07). W każdej parze zadań jedno dobre,
-//     jedno złe — przy każdej liczbie zegarów wychodzi pół na pół.
-//   Narysuj wskazówki — tarcza bez wskazówek, pod zegarem godzina cyframi, dziecko rysuje obie (plan „კი").
-//   Która godzina? — obie wskazówki, pod zegarem dwie puste kratki „▢ : ▢" do wpisania godziny i minut (Lasha „კი";
-//     nazwa jak w Treningu). Odpowiedzi: napisy „1. 08:35".
-//   Przeczytaj i narysuj — jak „Narysuj wskazówki", ale godzina pod zegarem słowami („Za pięć siódma" — cwZdanie, zdania
-//     z Lekcji; plan „კარგია"). Miejsce zawsze na 2 wiersze — zegary w rzędzie stoją równo.
-//   Po południu — 12 ↔ 24 (plan „კი"): kartka jak „Która godzina?", ale dziecko wpisuje godzinę po południu — wskazówki
-//     na 8:35 → 20:35; dwunasta zostaje 12:xx. Odpowiedzi: napisy „1. 20:35".
-//   Upływ czasu — „Która godzina będzie?" (plan „კი"): obie wskazówki, pod zegarem „za 20 minut" (5 … 30, tylko
-//     naprzód) i kratki „▢ : ▢". Odpowiedzi: napisy „1. 09:10".
-//   Upływ czasu — trudniej (Lasha 30.09: „დაამატე რთული ვარიანტიც როცა გავიდა 1-3 საათიო"): to samo, ale mija od 1 do
-//     3 godzin, co 5 minut — „za 2 godziny" · „za 1 godz. 35 min".
-//   Zapisz słowami (Lasha 30.09: „საათის ციფერბლატი და ტექსტი უნდა დაწეროს ბავშვმა"): obie wskazówki, pod zegarem dwie
-//     linie do pisania. Odpowiedzi: zdania z cwZdanie — „1. Za pięć siódma".
-// Nad kartką jeszcze: ile zegarów — 4 · 6 · 9 · 12 (Lasha: „მშობელი თავად უნდა ირჩევდეს … ნებისმიერ დროს შეცვალოს") ·
-// „Z odpowiedziami" — druga strona (Lasha 30.09: „პასუხები აუცილებლად უნდა იყოს მეორე გვერდზე"), u jej góry, małe
-// i do góry nogami („ამოტრიალებული"; „ცოტა გაადიდე … და ზევით იყოს"): zegary z obiema wskazówkami albo „1 TAK · 2 NIE" ·
-// „Wydrukuj" — window.print() · 🎲 — inne godziny.
-// Kartka zawsze biała z ciemnym drukiem (także w motywie Nocnym), tarcza z 🕓 bez ramy. Wszystkie jej rozmiary to
-// wielokrotności --mm: na ekranie --mm = 1/210 szerokości podglądu, w druku 1 mm. Do druku idą kopie stron
-// w #do-druku — jedyne, co widać w @media print (CSS w index.html).
-// Godziny: 01:00 … 12:55 co 5 minut; na kartce każda godzina i każda liczba minut najwyżej raz.
-// W aplikacji: Start → pas nad zegarem albo ☰ (do sprawdzania: index.html?widok=druk&typ=czy&ile=12&odp=1).
-// Korzysta z globalnych z index.html: h, noweSvg, styl, cyfry, log, rzutKostki, IKONA_ROZWIN, cwTasuj, cwLos, cwCyfry24, cwZdanie (cwiczenia.js),
-// samCzas (samouczki.js), Zegar (tarcza.js).
+// druk.js — Karty pracy: tasks to print on an A4 sheet. Task types (the ▾ field above the sheet, the same as in Trening):
+//   Dorysuj wskazówkę — as in the textbook's „Dorysuj wskazówkę minutową": the dial shows only the hour hand, the time
+//     is under the clock in digits, the child draws the long hand.
+//   Tak czy nie? — „Czy zegar pokazuje tę godzinę?": both hands, under the clock a time and the boxes TAK · NIE. Half
+//     of the captions are wrong, with the traps from Ćwiczenia: the neighbouring hour (08:35 → 09:35, the hour hand is
+//     close to 9) or the number under the minute hand taken literally (08:35 → 08:07). Every pair of tasks has one
+//     right and one wrong caption — half and half for any number of clocks.
+//   Narysuj wskazówki — a dial without hands, the time under the clock in digits, the child draws both.
+//   Która godzina? — both hands, under the clock two empty boxes „▢ : ▢" for the hour and the minutes (named as in
+//     Trening). Answers: lines „1. 08:35".
+//   Przeczytaj i narysuj — like „Narysuj wskazówki", but the time under the clock is in words („Za pięć siódma" —
+//     cwZdanie, the sentences from Lekcje). Always room for 2 lines — the clocks in a row stay level.
+//   Po południu — 12 ↔ 24: a sheet like „Która godzina?", but the child writes the afternoon time — hands
+//     at 8:35 → 20:35; twelve stays 12:xx. Answers: lines „1. 20:35".
+//   Upływ czasu — „Która godzina będzie?": both hands, under the clock „za 20 minut" (5 … 30, forwards only)
+//     and the boxes „▢ : ▢". Answers: lines „1. 09:10".
+//   Upływ czasu — trudniej: the same, but 1 to 3 hours pass, in 5-minute steps — „za 2 godziny" · „za 1 godz. 35 min".
+//   Zapisz słowami: both hands, under the clock two lines to write on. Answers: sentences from cwZdanie —
+//     „1. Za pięć siódma".
+// Also above the sheet: the number of clocks — 4 · 6 · 9 · 12 · „Z odpowiedziami" — a second page with the answers at
+// its top, small and upside down on purpose (two pages may be printed on one sheet, and the child should not be able
+// to read the answers easily): clocks with both hands, „1 TAK · 2 NIE" or the lines listed above · „Wydrukuj" —
+// window.print() · 🎲 — other times.
+// The sheet is always white with dark print (also in the Nocny theme); the dial is the one chosen under 🕓, without
+// a frame. All its sizes are multiples of --mm: on screen --mm = 1/210 of the preview width, in print 1 mm. What gets
+// printed is the copies of the pages in #do-druku — the only thing visible in @media print (CSS in index.html).
+// Times: 01:00 … 12:55 in 5-minute steps; on one sheet each hour and each minute value at most once.
+// In the app: Start → the strip above the clock, or ☰ (for checking: index.html?widok=druk&typ=czy&ile=12&odp=1).
+// Uses globals from index.html: h, noweSvg, styl, cyfry, rzutKostki, IKONA_ROZWIN; log (sim-bridge.js); cwTasuj, cwLos,
+// cwCyfry24, cwZdanie (cwiczenia.js), samCzas (samouczki.js), Zegar (tarcza.js).
 "use strict";
 
-// klucz · nazwa w polu ▾ · polecenie na kartce
+// key · name in the ▾ field · instruction on the sheet
 const DRUK_TYPY = [['dorysuj', 'Dorysuj wskazówkę', 'Dorysuj wskazówkę minutową.'],
                    ['czy', 'Tak czy nie?', 'Czy zegar pokazuje tę godzinę?'],
                    ['narysuj', 'Narysuj wskazówki', 'Narysuj wskazówki.'],
@@ -42,53 +40,53 @@ const DRUK_TYPY = [['dorysuj', 'Dorysuj wskazówkę', 'Dorysuj wskazówkę minut
                    ['uplyw', 'Upływ czasu', 'Która godzina będzie?'],
                    ['uplyw2', 'Upływ czasu — trudniej', 'Która godzina będzie?'],
                    ['pisz', 'Zapisz słowami', 'Która godzina? Zapisz słowami.']];
-const DRUK_ILE = [4, 6, 9, 12];                  // zegarów na kartce (kolumny i rozmiary: .ile-4 … .ile-12 w index.html)
+const DRUK_ILE = [4, 6, 9, 12];                  // clocks per sheet (columns and sizes: .ile-4 … .ile-12 in index.html)
 const DRUK_IKONA = '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg>';
 const DRUK_KOSTKA = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><g class="oczka" fill="currentColor" stroke="none"><circle cx="8" cy="8" r="1.5"/><circle cx="16" cy="8" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="8" cy="16" r="1.5"/><circle cx="16" cy="16" r="1.5"/></g></svg>';
 
 let drukTyp = 'dorysuj', drukIle = 6, drukOdp = false;
-let drukGodziny = null;                          // 12 wylosowanych godzin; kartka bierze pierwsze drukIle
-let drukBledy = null;                            // „Tak czy nie?", dla każdej z 12: '' dobrze · 'g' zła godzina · 'm' złe minuty
-let drukUplyw = null;                            // „Upływ czasu", dla każdej z 12: za ile minut (5 … 30)
-let drukUplyw2 = null;                           // „Upływ czasu — trudniej": 60 … 180, co 5
+let drukGodziny = null;                          // 12 random times; the sheet takes the first drukIle
+let drukBledy = null;                            // „Tak czy nie?", for each of the 12: '' right · 'g' wrong hour · 'm' wrong minutes
+let drukUplyw = null;                            // „Upływ czasu", for each of the 12: minutes that pass (5 … 30)
+let drukUplyw2 = null;                           // „Upływ czasu — trudniej": 60 … 180, in steps of 5
 try {
   const typ = localStorage.getItem('zegar-druk-typ'), n = +localStorage.getItem('zegar-druk-ile');
   if (DRUK_TYPY.some(([k]) => k === typ)) drukTyp = typ;
   if (DRUK_ILE.includes(n)) drukIle = n;
   drukOdp = localStorage.getItem('zegar-druk-odp') === 'tak';
 } catch (e) {}
-{ // do sprawdzania: index.html?widok=druk&typ=czy&ile=12&odp=1
+{ // for checking: index.html?widok=druk&typ=czy&ile=12&odp=1
   const q = new URLSearchParams(location.search);
   if (DRUK_TYPY.some(([k]) => k === q.get('typ'))) drukTyp = q.get('typ');
   if (DRUK_ILE.includes(+q.get('ile'))) drukIle = +q.get('ile');
   if (q.get('odp') === '1') drukOdp = true;
 }
 
-// zmiana liczby zegarów albo rodzaju zadania nie losuje od nowa — te same godziny zostają, dochodzą albo znikają ostatnie
+// changing the number of clocks or the task type does not pick new times — the same ones stay, the last are added or dropped
 function drukLosuj() {
   const min = cwTasuj([...Array(12).keys()]);
   drukGodziny = cwTasuj([...Array(12).keys()]).map((g, i) => (g + 1) * 60 + min[i] * 5);
   drukBledy = cwTasuj(['g', 'm', 'g', 'm', 'g', 'm']).flatMap(b => cwTasuj(['', b]));
-  // od :35 zawsze przez pełną godzinę (08:50 + 20 → 09:10) — wychodzi blisko połowy zadań, jak w Ćwiczeniach
+  // from :35 on always across the full hour (08:50 + 20 → 09:10) — that comes to nearly half of the tasks, as in Ćwiczenia
   drukUplyw = drukGodziny.map(T => { const od = T % 60 >= 35 ? (60 - T % 60) / 5 : 1; return (od + cwLos(7 - od)) * 5; });
   drukUplyw2 = drukGodziny.map(() => 60 + cwLos(25) * 5);
 }
 
-// napis pod zegarem T (60 … 779) w „Tak czy nie?": dobry albo z pułapką
+// the caption under clock T (60 … 779) in „Tak czy nie?": the right one or one with a trap
 function drukNapis(T, blad) {
   const g = Math.floor(T / 60), m = T % 60;
-  if (blad === 'g') return ((g - 1 + (m >= 30 ? 1 : 11)) % 12 + 1) * 60 + m;   // godzinowa bliżej następnej liczby → +1, inaczej −1
-  if (blad === 'm') return g * 60 + (m / 5 || 12);                             // minutowa na 7 → „07"
+  if (blad === 'g') return ((g - 1 + (m >= 30 ? 1 : 11)) % 12 + 1) * 60 + m;   // hour hand closer to the next number → +1, otherwise −1
+  if (blad === 'm') return g * 60 + (m / 5 || 12);                             // minute hand on 7 → „07"
   return T;
 }
 
-// napis nad kratkami w „Upływie czasu": „za 20 minut" · „za 2 godziny" · „za 1 godz. 35 min"
+// the caption above the boxes in „Upływ czasu": „za 20 minut" · „za 2 godziny" · „za 1 godz. 35 min"
 function drukZa(d) {
   const g = Math.floor(d / 60), m = d % 60;
   return 'za ' + (!g ? `${m} minut` : !m ? `${g} ${g === 1 ? 'godzinę' : 'godziny'}` : `${g} godz. ${m} min`);
 }
 
-// zegar kartki; bez: 1 — widać tylko godzinową, 2 — żadnej wskazówki
+// a clock for the sheet; bez: 1 — only the hour hand shows, 2 — no hands at all
 function drukZegar(T, bez = 0) {
   const svg = noweSvg('');
   Zegar(svg, { styl, cyfry, t: T % 720 });
@@ -98,13 +96,13 @@ function drukZegar(T, bez = 0) {
   return svg;
 }
 
-// strony do druku: kartka z zadaniami i — z odpowiedziami — druga, tylko z nimi
+// the pages to print: the task sheet and — with answers on — a second one holding only the answers
 function drukStrony() {
   const czy = drukTyp === 'czy', popo = drukTyp === 'popo', slowa = drukTyp === 'slowa', pisz = drukTyp === 'pisz';
   const dlugi = drukTyp === 'uplyw2', uplyw = drukTyp === 'uplyw' || dlugi;
-  const godz = drukTyp === 'godzina' || popo || uplyw;   // pod zegarem kratki do wpisania godziny
+  const godz = drukTyp === 'godzina' || popo || uplyw;   // boxes under the clock for writing in the time
   const bez = czy || godz || pisz ? 0 : drukTyp === 'dorysuj' ? 1 : 2;
-  const klasa = `arkusz ile-${drukIle} typ-${uplyw ? 'uplyw' : drukTyp}`;   // oba „Upływy" — ta sama kartka
+  const klasa = `arkusz ile-${drukIle} typ-${uplyw ? 'uplyw' : drukTyp}`;   // both „Upływ czasu" types — the same sheet
   const a = h('div', klasa), siatka = h('div', 'ark-siatka'), odp = h('div', 'ark-odp');
   drukGodziny.slice(0, drukIle).forEach((T, i) => {
     const p = h('div', 'ark-zad'), blad = czy ? drukBledy[i] : '', d = uplyw ? (dlugi ? drukUplyw2 : drukUplyw)[i] : 0;
@@ -120,7 +118,7 @@ function drukStrony() {
     else if (pisz) o.textContent = `${i + 1}. ${cwZdanie(T)}`;
     else if (godz) o.textContent = `${i + 1}. ${cwCyfry24(
       uplyw ? (T + d - 60) % 720 + 60                      // 12:50 + 20 → 01:10
-      : popo && T < 720 ? T + 720 : T)}`;                  // po południu: 8:35 → 20:35, 12:35 zostaje
+      : popo && T < 720 ? T + 720 : T)}`;                  // afternoon: 8:35 → 20:35, 12:35 stays
     else o.append(drukZegar(T), h('span', null, i + 1));
     odp.append(o);
   });
@@ -135,7 +133,7 @@ function druk(box) {
   if (!drukGodziny) drukLosuj();
   box.textContent = '';
   const ster = h('div', 'druk-ster'), ile = h('div', 'join');
-  // rodzaj zadania: pole ▾ z listą — to samo co nad zegarem w Treningu (#pole i #rodzaj-menu w index.html)
+  // task type: the ▾ field with a list — the same as above the clock in Trening (#pole and #rodzaj-menu in index.html)
   const typ = h('div', 'dropdown dropdown-center pole-box'), pole = h('div', 'pole');
   const lista = h('ul', 'dropdown-content menu bg-base-100 rounded-box z-30 w-full p-2 shadow text-base');
   pole.tabIndex = lista.tabIndex = 0;
@@ -145,7 +143,7 @@ function druk(box) {
   const grupa = (tytul, join) => { const g = h('div', 'ustaw-grupa'); g.append(h('span', null, tytul), join); return g; };
   const odp = h('label', 'druk-odp', '<input type="checkbox" class="toggle toggle-primary"><span>Z odpowiedziami</span>');
   const dol = h('div', 'druk-dol'), drukuj = h('button', 'btn btn-primary', `${DRUK_IKONA}Wydrukuj`);
-  // 🎲 jak w Treningu (Lasha 30.09): klasa .losuj — rzutKostki() obraca kostkę i zmienia oczka
+  // 🎲 as in Trening: the class .losuj — rzutKostki() spins the die and changes its pips
   const losuj = h('button', 'btn btn-primary losuj druk-losuj', DRUK_KOSTKA), kartki = h('div', 'druk-kartki');
   losuj.setAttribute('aria-label', 'Inne godziny');
   dol.append(drukuj, losuj);
@@ -168,7 +166,7 @@ function druk(box) {
     lista.replaceChildren(...DRUK_TYPY.map(([k, nazwa]) => {
       const li = h('li'), a = h('a', k === drukTyp ? 'menu-active' : null, nazwa);
       a.onclick = () => {
-        document.activeElement.blur();                  // zamyka listę
+        document.activeElement.blur();                  // closes the list
         if (k !== drukTyp) { drukTyp = k; zapisz(); }
       };
       li.append(a);

@@ -1,43 +1,42 @@
-// samouczki.js — „Jak to działa?": krótki samouczek przed poziomem ćwiczeń (Lasha 27.09: „უფრო გასაგები ტუტორიალი",
-// plan z czatu „კი"): 3 kroki z „Dalej" (Lasha: „შეამოკლე 3 ნაბიჯამდე"), zegar sam pokazuje, co zdanie mówi (miga
-// wskazówka, kółko pod liczbą, wskazówka jedzie, palec ją ciągnie). Bez głosu (Lasha: „ხმები არ არის საჭირო").
-// Przy pierwszym wejściu w poziom sam, potem przez 💡 w nagłówku.
-// Na razie poziomy 1–10; bonus według tabeli z czatu, po jego „კი".
-// Cała pomoc w jednej ramce (Lasha: „მთლიანი დახმარება უნდა იყოს ჩარჩოში … რომ ეს არაა ჩვეულებრივი საათი"): zdanie (22),
-// zegar, pod nim duży napis (32), mały opis (17) i „Dalej" — w ostatnim kroku „Zaczynamy!" / „Wróć" (💡) → runda (Lasha: „Teraz ty!"
-// „არ არის ინტუიციური").
-// Podgląd: sim.html?app=cwiczenia.html%3Fpoziom%3D2%26samouczek%3D1 (&krok=N — od kroku N).
-// W aplikacji: index.html (cwStart przy wejściu w poziom, 💡 w nagłówku); podgląd osobno — cwiczenia.html.
-// Korzysta z globalnych: NS, h, noweSvg, styl, RAMA, log, simScreen, GODZ, duza, MINUTY, Zegar (tarcza.js),
+// samouczki.js — „Jak to działa?": a short tutorial before an exercise level: 3–4 steps with „Dalej", the clock itself
+// shows what the sentence says (a hand blinks, a circle under a number, a hand moves, a finger drags it). No voice.
+// Shown by itself on the first entry into a level, later through 💡 in the header.
+// Levels 1–10 for now; the bonus level has none yet.
+// The whole help sits in one frame, so it reads as help and not as the ordinary clock: the sentence (22),
+// the clock, under it the big caption (32), the small note (17) and „Dalej" — in the last step „Zaczynamy!" / „Wróć" (💡) → the round.
+// Preview: sim.html?app=cwiczenia.html%3Fpoziom%3D2%26samouczek%3D1 (&krok=N — from step N).
+// In the app: index.html (cwStart on entering a level, 💡 in the header); standalone preview — cwiczenia.html.
+// Uses globals: NS, h, noweSvg, styl, RAMA, log, simScreen, GODZ, duza, MINUTY, Zegar (tarcza.js),
 // uplywWycinek (lekcja-uplyw.js), cwKolko, cwCyfry, cwCyfry24, cwMost (cwiczenia.js).
 "use strict";
 
-const SAM_KLUCZ = n => `zegar-samouczek-${n + 1}`;   // localStorage: samouczek poziomu n + 1 już pokazany (sam tylko raz — Lasha 28.09)
-// szybciej (Lasha: „ანიმაცია ძალიან ნელია. ბავშვები ეგრევე შემდეგს აწვებიან"); „Dalej" nieczynne, póki coś jedzie
-const SAM_LICZBA_MS = 250;  // tyle wskazówka jedzie od liczby do liczby
-const SAM_PRZED_MS = 300, SAM_PO_MS = 150;   // pauza przed ruchem i po nim
-const SAM_12_6 = '12 — pełna godzina · 6 — wpół do';   // poziom 3, krok 1 — mały napis
-// poziom 3: nazwa minut k × 5 (MINUTY z index.html), słowa po / za w kolorach połówek tarczy
+const SAM_KLUCZ = n => `zegar-samouczek-${n + 1}`;   // localStorage: the tutorial of level n + 1 was already shown (by itself only once)
+// kept fast — with a slow animation children press „Dalej" right away; „Dalej" is disabled while something is moving
+const SAM_LICZBA_MS = 250;  // the hand takes this long from one number to the next
+const SAM_PRZED_MS = 300, SAM_PO_MS = 150;   // pause before the move and after it
+const SAM_12_6 = '12 — pełna godzina · 6 — wpół do';   // level 3, step 1 — the small caption
+// level 3: the name of minute k × 5 (MINUTY from index.html), the words po / za in the colours of the dial halves
 const samNazwa = k => MINUTY[k].replace(/\b(po|za)\b/, w => `<span class="sam-${w}">${w}</span>`);
 
-// wskazówka samouczka (s.reka 'g' | 'm') jedzie od od do cel (minuty), tik przy każdej liczbie; o.palec — 👆 na jej
-// końcu, jakby ją ciągnął; o.licz — przy każdej minionej liczbie zapala się jej podpis minut (05, 10 … — tarcza
-// z cyframi 'minuty') i rośnie duży napis „15 minut"; o.klatka(tt) — w każdej klatce, gdzie jest wskazówka (poziom 9:
-// wycinek i liczenie). o.sama 'g' | 'm' — osobno (poziom 10): jedzie tylko ta, druga stoi w o.stoi · o.ms — cała jazda
-// tyle ms (inaczej SAM_LICZBA_MS za liczbę) · o.przed — pauza przed nią (inaczej SAM_PRZED_MS). Na końcu gotowe().
-// cel < od — w tył (poziom 8): tik, gdy wskazówka dojdzie do liczby, nie gdy z niej zejdzie (bez o.licz).
-// s.zywy() = false, gdy krok już się zmienił.
-// s.jedzie() / s.stoi() — „Dalej" nieczynne od wywołania do końca (gotowe() przed s.stoi(), więc łańcuch — dalej nieczynne)
+// the tutorial hand (s.reka 'g' | 'm') moves from od to cel (minutes), a tick at every number; o.palec — 👆 at its
+// tip, as if dragging it; o.licz — at every number passed its minute label lights up (05, 10 … — a dial
+// with 'minuty' digits) and the big caption „15 minut" counts up; o.klatka(tt) — called every frame with the hand's position
+// (level 9: sector and counting). o.sama 'g' | 'm' — separately (level 10): only that hand moves, the other stays at o.stoi
+// · o.ms — the whole move takes this many ms (otherwise SAM_LICZBA_MS per number) · o.przed — the pause before it (otherwise
+// SAM_PRZED_MS). Ends with gotowe().
+// cel < od — backwards (level 8): the tick comes when the hand reaches a number, not when it leaves one (without o.licz).
+// s.zywy() = false once the step has changed.
+// s.jedzie() / s.stoi() — „Dalej" is disabled from the call to the end (gotowe() runs before s.stoi(), so in a chain it stays disabled)
 function samJedz(s, od, cel, gotowe, o = {}) {
   s.jedzie();
-  const m = (o.sama || s.reka) !== 'g', co = m ? 5 : 60;   // ile minut od liczby do liczby (obie wskazówki — jak minutowa)
-  const r = m ? 52 : 44;                         // palec przy końcu wskazówki, przed cyframi
+  const m = (o.sama || s.reka) !== 'g', co = m ? 5 : 60;   // minutes from one number to the next (both hands — as for the minute hand)
+  const r = m ? 52 : 44;                         // the finger near the tip of the hand, short of the digits
   let palec = null;
   if (o.palec) {
     palec = document.createElementNS(NS, 'text');
     palec.setAttribute('class', 'sam-palec');
     palec.textContent = '👆';
-    s.tarcza.append(palec);                      // w grupie tarczy — przy cyfrach 'minuty' skaluje się razem z nią
+    s.tarcza.append(palec);                      // inside the dial group — with 'minuty' digits it scales together with the dial
   }
   const stan = tt => {
     if (palec) {
@@ -62,9 +61,9 @@ function samJedz(s, od, cel, gotowe, o = {}) {
       const nL = w(tt / co);
       if (nL !== ost) {
         if (window.Dzwiek) Dzwiek.tik();
-        if (o.licz) {                            // wolna klatka może przeskoczyć liczbę — zapalają się wszystkie minione
+        if (o.licz) {                            // a slow frame may skip a number — all the passed ones light up
           for (let i = ost + 1; i <= nL; i++) s.podpis(i);
-          s.wynik(`<span class="m">${nL * 5 % 60}</span> minut`);   // od pełnej godziny (poziom 5: od 8:00)
+          s.wynik(`<span class="m">${nL * 5 % 60}</span> minut`);   // counted from the full hour (level 5: from 8:00)
         }
         ost = nL;
       }
@@ -75,8 +74,8 @@ function samJedz(s, od, cel, gotowe, o = {}) {
   }, o.przed ?? SAM_PRZED_MS);
 }
 
-// wskazówka stoi, zielony wycinek od minuty m0 rośnie o ile minut (uplywWycinek z lekcja-uplyw.js), tik przy każdej
-// liczbie, duży napis liczy „5 minut", „10 minut"; na końcu gotowe()
+// the hand stands still, the green sector from minute m0 grows by ile minutes (uplywWycinek from lekcja-uplyw.js), a tick
+// at every number, the big caption counts „5 minut", „10 minut"; ends with gotowe()
 function samKlin(s, m0, ile, gotowe) {
   s.jedzie();
   const klin = s.klin();
@@ -101,9 +100,9 @@ function samKlin(s, m0, ile, gotowe) {
   }, SAM_PRZED_MS);
 }
 
-// krok 4 poziomu 2: dziecko samo ciągnie minutową; wokół tarczy świecą podpisy 4 ostatnich minionych liczb
-// (05 · 10 · 15 · 20 → 05 gaśnie, zapala się 25 … bez końca, także przez 12 — Lasha 27.09); pod zegarem minuty.
-// Liczy się droga od startu (T, bez zawijania na 12); w tył od startu — bez podpisów.
+// level 2, step 4: the child drags the minute hand; around the dial the labels of the last 4 numbers passed are lit
+// (05 · 10 · 15 · 20 → 05 goes out, 25 lights up … endlessly, also across 12); the minutes under the clock.
+// The distance from the start counts (T, no wrapping at 12); backwards from the start — no labels.
 function samOstatnie4(s) {
   let T = 0, ost = 0;
   s.ciagnij(nt => {
@@ -119,26 +118,26 @@ function samOstatnie4(s) {
   });
 }
 
-// 🏋 Trening (index.html; Lasha 29.09: „დატოვე მხოლოდ ერთი ვარიანტი … დაბლა ორი ჩამრთველი"): jeden zegar, obie wskazówki —
-// łapie się ta bliżej palca. Start s.t (teraz, co 5 minut), cała doba: w przód przez 12 — 13:00 … 23:55 → 00:00, w tył tak samo
-// (liczy się droga od startu, bez zawijania na 12). Liczba godziny, którą krótka minęła, powiększona (Lasha: „როცა 8 საათია,
-// გადიდდეს ციფრი 8"; CSS .sam-teraz w index.html). Wokół tarczy świecą 4 ostatnie liczby, do których doszła minutowa —
-// w obie strony (w przód 00 · 05 · 10 · 15, w tył 00 · 55 · 50 · 45; po zawróceniu wymieniają się po jednej). Pod zegarem
-// duże „14:25" (godzina w kolorze krótkiej, minuty — długiej) i „Dwadzieścia pięć po drugiej po południu".
-// Pod spodem dwa przełączniki, włączenie jednego wyłącza drugi:
-//  „Po i za" — połówki tarczy po / za, pod zegarem zdanie z poziomu 6 („Za pięć siódma") i cyfry;
-//  „Upływ czasu" — od chwili włączenia za minutową zabarwia się miniony czas; przy końcu minutowej, za tarczą, „1 godz." ·
-//   „20 min" (najbliższe 5 minut), pod zegarem „08:00 → 09:20" i „Minęła 1 godzina i 20 minut.". W tył od startu
-//   (Lasha 29.09, _visual/por-uplyw.html) tak samo: „07:40 → 08:00" i „To było 20 minut temu.". Kolor jeden na kierunek
-//   („ან ერთი ფერი იქნება ან მეორე"): w przód zielony, w tył pomarańczowy; ponad godzinę — ostatnia godzina mocniej.
-//   4 liczby wtedy nie świecą (napis stoi w ich miejscu).
-const SAM_UPLYW_KOLOR = ['sektor', 'sam-pol-po'];   // w przód · w tył
-const SAM_ZA_TARCZA = 80;                        // napis zaczyna się tyle od środka — tuż za obrzeżem tarczy
+// 🏋 Trening (index.html): one clock, both hands — the one nearer the finger is grabbed.
+// Starts at s.t (now, to 5 minutes), the whole day: forwards across 12 — 13:00 … 23:55 → 00:00, backwards likewise
+// (the distance from the start counts, no wrapping at 12). The number of the hour the short hand has passed is enlarged
+// (CSS .sam-teraz in index.html). Around the dial the last 4 numbers the minute hand reached are lit —
+// both ways (forwards 00 · 05 · 10 · 15, backwards 00 · 55 · 50 · 45; after turning back they are replaced one at a time). Under
+// the clock a big „14:25" (hour in the short hand's colour, minutes — the long hand's) and „Dwadzieścia pięć po drugiej po południu".
+// Below, two switches; turning one on turns the other off:
+//  „Po i za" — the po / za dial halves, under the clock the sentence from level 6 („Za pięć siódma") and the digits;
+//  „Upływ czasu" — from the moment it is switched on the elapsed time is tinted behind the minute hand; at the tip of the minute
+//   hand, beyond the dial, „1 godz." · „20 min" (nearest 5 minutes), under the clock „08:00 → 09:20" and „Minęła 1 godzina
+//   i 20 minut.". Backwards from the start likewise: „07:40 → 08:00" and „To było 20 minut temu.". One colour per direction:
+//   forwards green, backwards orange; over an hour — the last hour stronger.
+//   The 4 numbers are not lit then (the caption stands in their place).
+const SAM_UPLYW_KOLOR = ['sektor', 'sam-pol-po'];   // forwards · backwards
+const SAM_ZA_TARCZA = 80;                        // the caption starts this far from the centre — just beyond the dial's rim
 function samTrening(s) {
-  const liczby = s.svg.querySelectorAll('.s-cyfra, .m-cyfra, .k-cyfra');   // 1 … 12, po kolei
-  let tryb = '', T = 0, ost = s.t % 720;         // tryb: '' · 'po' · 'uplyw' · T — droga od startu
-  let slad = [Math.round(ost % 60 / 5)];         // numery liczb (0 = 00 … 11 = 55), ostatnia pierwsza
-  let uplyw = null;                              // { T0, t0, m0, dol, gora, napis, byl } — od włączenia „Upływ czasu"
+  const liczby = s.svg.querySelectorAll('.s-cyfra, .m-cyfra, .k-cyfra');   // 1 … 12, in order
+  let tryb = '', T = 0, ost = s.t % 720;         // tryb: '' · 'po' · 'uplyw' · T — distance from the start
+  let slad = [Math.round(ost % 60 / 5)];         // number indices (0 = 00 … 11 = 55), latest first
+  let uplyw = null;                              // { T0, t0, m0, dol, gora, napis, byl } — since „Upływ czasu" was switched on
   const teraz = () => ((s.t + Math.round(T / 5) * 5) % 1440 + 1440) % 1440;
 
   function rysujUplyw(u) {
@@ -146,8 +145,8 @@ function samTrening(s) {
     const kolor = `${SAM_UPLYW_KOLOR[wtyl ? 1 : 0]} sam-klin`;
     u.gora.setAttribute('class', kolor);
     u.dol.setAttribute('class', kolor);
-    u.gora.style.fillOpacity = g ? .55 : '';     // ostatnia godzina mocniej, pod nią poprzednia
-    // gora — ostatnie m minut, dol — reszta tarczy z poprzedniej godziny; pełne 60 — łuk znika
+    u.gora.style.fillOpacity = g ? .55 : '';     // the last hour stronger, the previous one under it
+    // gora — the last m minutes, dol — the rest of the dial from the previous hour; at a full 60 the arc vanishes
     u.gora.setAttribute('d', wtyl ? uplywWycinek(u.m0 - m, m) : uplywWycinek(u.m0, m));
     u.dol.setAttribute('d', !g ? '' : wtyl ? uplywWycinek(u.m0, Math.min(60 - m, 59.9)) : uplywWycinek(u.m0 + m, Math.min(60 - m, 59.9)));
     const d = Math.round(x / 5) * 5, wiersze = [];
@@ -158,7 +157,7 @@ function samTrening(s) {
       u.napis.textContent = '';
       wiersze.forEach(w => { const t = document.createElementNS(NS, 'tspan'); t.textContent = w; u.napis.append(t); });
     }
-    if (wiersze.length) {                        // środek napisu na przedłużeniu minutowej, bliższy brzeg tuż za tarczą
+    if (wiersze.length) {                        // caption centred on the minute hand's extension, its near edge just beyond the dial
       const b = u.napis.getBBox(), a = ost % 60 * 6 * Math.PI / 180;
       const r = SAM_ZA_TARCZA + Math.abs(Math.sin(a)) * b.width / 2 + Math.abs(Math.cos(a)) * b.height / 2;
       const cx = 100 + r * Math.sin(a), cy = 100 - r * Math.cos(a);
@@ -178,7 +177,7 @@ function samTrening(s) {
     s.podpisy(uplyw ? [] : slad);
     if (uplyw) rysujUplyw(uplyw);
     else if (tryb === 'po') s.wynik(samZdanie(q), samCzas(q, cwCyfry24));
-    else s.wynik(samCzas(q, cwCyfry24), slowami(q));   // jak w „Odczytaj" (Lasha: „საათის სწორი ტექსტი")
+    else s.wynik(samCzas(q, cwCyfry24), slowami(q));   // as in „Odczytaj"
   }
 
   function ustawTryb(k) {
@@ -196,7 +195,7 @@ function samTrening(s) {
     pisz();
   }
 
-  // przełączniki pod zegarem (w .sam-pod, pod napisami)
+  // the switches under the clock (in .sam-pod, below the captions)
   const rzad = h('div', 'sam-przelaczniki');
   const przelaczniki = [['po', 'Po i za'], ['uplyw', 'Upływ czasu']].map(([k, nazwa]) => {
     const l = h('label'), we = h('input', 'toggle toggle-primary');
@@ -216,7 +215,7 @@ function samTrening(s) {
     ost = nt;
     const T1 = T;
     T += d;
-    const doszla = [];                           // liczby po drodze, po kolei: w przód (T1, T], w tył [T, T1)
+    const doszla = [];                           // numbers passed on the way, in order: forwards (T1, T], backwards [T, T1)
     if (T > T1) for (let k = Math.floor(T1 / 5) + 1; k * 5 <= T; k++) doszla.push(k);
     else for (let k = Math.ceil(T1 / 5) - 1; k * 5 >= T; k--) doszla.push(k);
     const o = Math.round(s.t % 720 % 60 / 5);
@@ -228,8 +227,8 @@ const TRENING = { tylko: '', cyfry: 'minuty', dwa: true, kroki: [
   { zdanie: 'Przesuwaj wskazówki palcem.', t: 480, pokaz: samTrening }
 ] };
 
-// „Minęła 1 godzina i 20 minut." · „To było 1 godzinę i 20 minut temu." — d minut (co 5, więc zawsze „minut");
-// 1 godzina (przy „temu" godzinę) · 2–4, 22–24 godziny · 5–21 godzin; godziny w kolorze godzinowej, minuty — minutowej
+// „Minęła 1 godzina i 20 minut." · „To było 1 godzinę i 20 minut temu." — d minutes (in steps of 5, so always „minut");
+// 1 godzina (with „temu" godzinę) · 2–4, 22–24 godziny · 5–21 godzin; hours in the hour hand's colour, minutes — the minute hand's
 const samGodzin = (g, temu) => g === 1 ? (temu ? 'godzinę' : 'godzina')
   : g % 10 >= 2 && g % 10 <= 4 && (g % 100 < 12 || g % 100 > 14) ? 'godziny' : 'godzin';
 function samMinelo(d, temu) {
@@ -241,28 +240,28 @@ function samMinelo(d, temu) {
   return `${cz} ${czesci.join(' i ')}.`;
 }
 
-// „07:45" — godzina w kolorze godzinowej, minuty w kolorze minutowej
+// „07:45" — hour in the hour hand's colour, minutes in the minute hand's
 const samCzas =(tm, zapis = cwCyfry) => zapis(tm).replace(/^(\d+):(\d+)$/, '<span class="g">$1</span>:<span class="m">$2</span>');
-// poziom 6: zdanie („Za pięć siódma") z po / za w kolorach połówek tarczy; całe w jednym <span> — .sam-dwa .sam-duzy
-// stawia je na środku miejsca na 2 wiersze
+// level 6: the sentence („Za pięć siódma") with po / za in the colours of the dial halves; all in one <span> — .sam-dwa .sam-duzy
+// centres it in the room for 2 lines
 const samZdanie = tm => `<span>${cwZdanie(tm).replace(/\b(po|za|Za)\b/,
                                                      w => `<span class="sam-${w.toLowerCase()}">${w}</span>`)}</span>`;
 
-// krok 1 poziomu 4: minutowa jedzie kawałek po kawałku 12 → 3 → 6 → 9 → 12 (od 7:00, do 60 — Lasha), miniony kawałek się zabarwia,
-// pod zegarem „15 minut", „30 minut", „45 minut", „60 minut" i od pierwszego kawałka mały „15 minut to kwadrans."; na końcu kółko
-// pod 12. Każdy kawałek ma swoją zieleń, od jasnej (12 → 3) do ciemnej (9 → 12) — CSS .sam-cwiartka.c0 … c3
+// level 4, step 1: the minute hand moves piece by piece 12 → 3 → 6 → 9 → 12 (from 7:00, up to 60), each piece passed gets tinted,
+// under the clock „15 minut", „30 minut", „45 minut", „60 minut" and from the first piece on the small „15 minut to kwadrans.";
+// at the end a circle under 12. Each piece has its own green, from light (12 → 3) to dark (9 → 12) — CSS .sam-cwiartka.c0 … c3
 function samCwiartki(s) {
   (function kawalek(i) {
     samJedz(s, 420 + i * 15, 435 + i * 15, () => {
       s.cwiartki([...Array(i + 1).keys()]);
-      s.wynik(`<span class="m">${15 * (i + 1)}</span> minut`, '15 minut to <b>kwadrans</b>.');   // Lasha: „ამას მეორენაირად ჰქვია კვადრანსი"
+      s.wynik(`<span class="m">${15 * (i + 1)}</span> minut`, '15 minut to <b>kwadrans</b>.');
       if (i < 3) kawalek(i + 1); else s.kolko(0);
     });
   })(0);
 }
 
-// krok 3 poziomu 4: dziecko ciągnie minutową, godzinowa jedzie za nią; zabarwia się kawałek, w którym stoi minutowa
-// (na 3 — jeszcze ten 12 → 3, na pełnej godzinie żaden); pod zegarem najbliższe 15 minut: „07:15" · „Piętnaście po siódmej"
+// level 4, step 3: the child drags the minute hand, the hour hand follows; the piece the minute hand stands in gets tinted
+// (at 3 — still the 12 → 3 one, at the full hour none); under the clock the nearest 15 minutes: „07:15" · „Piętnaście po siódmej"
 function samKawalek(s) {
   const pisz = nt => {
     const tt = (nt % 720 + 720) % 720, q = Math.round(tt / 15) * 15 % 720;
@@ -273,10 +272,10 @@ function samKawalek(s) {
   s.ciagnij(pisz);
 }
 
-// poziom 7: 14:25 i 00:40 jak na liście poziomów (na tarczy 2:25 = t 145, 12:40 = t 40); tarcza z po13 — po południu
-// cyfry 13 … 23 (s.z.popo)
-const SAM_13_MS = 1000;     // krok 1: tyle stoi „02:25", zanim cyfry staną się 13 … 23
-// krok 1 poziomu 7: „02:25" → po chwili cyfry 1 … 11 stają się 13 … 23, pod zegarem „14:25" · „2 + 12 = 14"
+// level 7: 14:25 and 00:40 as in the level list (on the dial 2:25 = t 145, 12:40 = t 40); a dial with po13 — in the afternoon
+// the digits are 13 … 23 (s.z.popo)
+const SAM_13_MS = 1000;     // step 1: „02:25" stays this long before the digits turn into 13 … 23
+// level 7, step 1: „02:25" → after a moment the digits 1 … 11 turn into 13 … 23, under the clock „14:25" · „2 + 12 = 14"
 function samDodaj12(s) {
   s.jedzie();
   setTimeout(() => {
@@ -287,9 +286,9 @@ function samDodaj12(s) {
     s.stoi();
   }, SAM_13_MS);
 }
-// krok 3 poziomu 7: dziecko samo przesuwa wskazówki od 12:00 (południe); pod zegarem na żywo „17:25" · „Wieczorem" —
-// cała doba, najbliższe 5 minut; po południu tarcza pokazuje 13 … 23, od północy do południa 1 … 11. Liczy się droga od
-// startu (bez zawijania na 12).
+// level 7, step 3: the child moves the hands from 12:00 (noon); under the clock, live, „17:25" · „Wieczorem" —
+// the whole day, nearest 5 minutes; in the afternoon the dial shows 13 … 23, from midnight to noon 1 … 11. The distance from
+// the start counts (no wrapping at 12).
 function samPoludnieCiagnij(s) {
   let D = 0, ost = 0;
   const pisz = () => {
@@ -308,10 +307,10 @@ function samPoludnieCiagnij(s) {
   });
 }
 
-// poziom 8: 14:05 jak na liście poziomów (na tarczy 2:05 = t 125)
-const SAM_1405 = 845;       // minuty od północy
-// później — kolor „po" z poziomów 3 i 6, wcześniej — „za" (Lasha: „ფერები უნდა განსხვავდებოდეს"): wycinki od 05 do minutowej,
-// x minut od 14:05 (+ w przód, − w tył), najwyżej pełne koło (przy 60 łuk znika)
+// level 8: 14:05 as in the level list (on the dial 2:05 = t 125)
+const SAM_1405 = 845;       // minutes from midnight
+// later — the „po" colour from levels 3 and 6, earlier — „za", so the two directions differ: sectors from 05 to the minute hand,
+// x minutes from 14:05 (+ forwards, − backwards), at most a full circle (at 60 the arc vanishes)
 function samPrzesunKliny(s) {
   const po = s.klin('sam-pol-po'), za = s.klin('sam-pol-za');
   return x => {
@@ -320,11 +319,12 @@ function samPrzesunKliny(s) {
     za.setAttribute('d', uplywWycinek(5 + Math.min(0, x), Math.max(0, -x)));
   };
 }
-// pod zegarem „14:20" · „15 minut później" (d minut od 14:05; słowo w kolorze swojego wycinka), d = 0 — sama godzina
+// under the clock „14:20" · „15 minut później" (d minutes from 14:05; the word in its sector's colour), d = 0 — the time alone
 const samPrzesunNapis = (s, d, maly) => s.wynik(samCzas(((SAM_1405 + d) % 1440 + 1440) % 1440, cwCyfry24), maly ??
   (d > 0 ? `${d} minut <span class="sam-po">później</span>` : d < 0 ? `${-d} minut <span class="sam-za">wcześniej</span>` : ''));
-// kroki 1 i 2 poziomu 8: 👆 ciągnie minutową o d minut (10 — później, −10 — wcześniej, przez 12), godzinowa jedzie za nią,
-// wycinek rośnie za minutową, pod zegarem na żywo „14:10" · „5 minut później"; na końcu maly (jeśli jest) zamiast „10 minut…"
+// level 8, steps 1 and 2: 👆 drags the minute hand by d minutes (10 — later, −10 — earlier, across 12), the hour hand follows,
+// the sector grows behind the minute hand, under the clock, live, „14:10" · „5 minut później"; at the end maly (if given)
+// instead of „10 minut…"
 function samPrzesun(s, d, maly) {
   const klin = samPrzesunKliny(s);
   let ost = 0;
@@ -335,8 +335,8 @@ function samPrzesun(s, d, maly) {
     if (n !== ost) { samPrzesunNapis(s, n); ost = n; }
   } });
 }
-// krok 3 poziomu 8: dziecko ciągnie minutową od 14:05, godzinowa jedzie za nią; wycinek za wskazówką, pod zegarem na żywo
-// jak w krokach 1 i 2 — najbliższe 5 minut. Liczy się droga od startu (bez zawijania na 12).
+// level 8, step 3: the child drags the minute hand from 14:05, the hour hand follows; the sector behind the hand, under the clock,
+// live, as in steps 1 and 2 — nearest 5 minutes. The distance from the start counts (no wrapping at 12).
 function samPrzesunCiagnij(s) {
   const klin = samPrzesunKliny(s);
   let D = 0, ost = 125;
@@ -352,30 +352,30 @@ function samPrzesunCiagnij(s) {
   });
 }
 
-// poziom 9: most 13:50 → 14:00 → 14:10 jak na liście poziomów (na tarczy 1:50 = t 110), skoki 10 + 10
-const SAM_MOST = 830;       // 13:50 — minuty od północy
-// most z rundy (cwMost) pod zegarem, bez wiersza „razem" — razem to duży napis pod nim; wycinek od 50 w dwóch
-// kawałkach: do 12 zielony, za 12 w kolorze „po" z poziomów 3 i 6 (Lasha: „12-ის შემდეგ სხვა ფერი დაიწყოს")
+// level 9: the bridge 13:50 → 14:00 → 14:10 as in the level list (on the dial 1:50 = t 110), jumps 10 + 10
+const SAM_MOST = 830;       // 13:50 — minutes from midnight
+// the bridge from the round (cwMost) under the clock, without the „razem" row — the total is the big caption below it; the sector
+// from 50 in two pieces: up to 12 green, past 12 in the „po" colour from levels 3 and 6
 function samMostPod(s) {
   const m = cwMost(SAM_MOST, 10, 10);
   m.razem.remove();
   s.pod(m.el);
   const kliny = [s.klin(), s.klin('sam-pol-po')];
-  return { m, klin: x => {                       // x — ile minut od 50
+  return { m, klin: x => {                       // x — minutes from 50
     kliny[0].setAttribute('d', uplywWycinek(50, Math.min(x, 10)));
     kliny[1].setAttribute('d', uplywWycinek(0, x - 10));
   } };
 }
-// napis nad strzałką „+10 min": jeszcze liczony — liczba w żółtej plakietce jak „?" w rundzie, gotowy — zielony
+// the caption above the arrow „+10 min": still being counted — the number in a yellow badge like „?" in the round, done — green
 function samSkok(el, x, gotowy) {
   el.classList.toggle('teraz', !gotowy);
   el.classList.toggle('zrobione', gotowy);
   el.innerHTML = `+<b>${x}</b> min`;
 }
 
-// kroki 1 i 2 poziomu 9: skok i (0 — do pełnej godziny, 1 — reszta) — nad strzałką „+? min", wskazówki jadą 10 minut,
-// wycinek rośnie za minutową, duży napis liczy „5 minut", „10 minut"; na końcu „+10 min" zielone i kółko pod 12 (krok 1)
-// albo „razem: 20 minut" · „10 + 10" (krok 2)
+// level 9, steps 1 and 2: jump i (0 — to the full hour, 1 — the rest) — above the arrow „+? min", the hands move 10 minutes,
+// the sector grows behind the minute hand, the big caption counts „5 minut", „10 minut"; at the end „+10 min" turns green and
+// a circle under 12 (step 1) or „razem: 20 minut" · „10 + 10" (step 2)
 function samMost(s, i) {
   const { m, klin } = samMostPod(s), skok = m.skoki[i], od = 110 + 10 * i;
   if (i) samSkok(m.skoki[0], 10, true);
@@ -391,10 +391,10 @@ function samMost(s, i) {
   } });
 }
 
-// krok 3 poziomu 9: dziecko ciągnie minutową od 13:50, godzinowa jedzie za nią; most rośnie za wskazówką — do 14:00
-// jeden skok (13:50 → 13:55 · +5), dalej dwa (13:50 → 14:00 → 14:25 · +10 · +25), wycinek od 50; pod spodem
-// „razem: 35 minut" · „10 + 25". Liczy się droga od startu (bez zawijania na 12); w tył od startu — sam start.
-// Co 60 minut od nowa (Lasha: „როცა მივა 60 წუთზე რესეტდებოდეს"): start tam, gdzie wskazówka — 14:50, 15:50 …
+// level 9, step 3: the child drags the minute hand from 13:50, the hour hand follows; the bridge grows behind the hand — up to 14:00
+// one jump (13:50 → 13:55 · +5), beyond it two (13:50 → 14:00 → 14:25 · +10 · +25), the sector from 50; below
+// „razem: 35 minut" · „10 + 25". The distance from the start counts (no wrapping at 12); backwards from the start — just the start.
+// Every 60 minutes it starts over: the start moves to where the hand is — 14:50, 15:50 …
 function samMostCiagnij(s) {
   const { m, klin } = samMostPod(s), [s1, s2] = m.skoki, [c1, c2, c3] = m.czasy;
   let D = 0, ost = 110;
@@ -422,20 +422,19 @@ function samMostCiagnij(s) {
   });
 }
 
-// poziom 10: 16:30 jak na liście poziomów (na tarczy 4:30 = t 270)
+// level 10: 16:30 as in the level list (on the dial 4:30 = t 270)
 const SAM_1630 = '<span class="g">16</span>:<span class="m">30</span>';
-// krok 1 poziomu 10 (Lasha: „სწრაფად აჩვენე ორივე ისარის ანიმაცია და მერე დალეი" · „11 საათიდან გადმოიტანოს"): od 11:00
-// 👆 długa 12 → 6 (krótka stoi na 11), zaraz potem krótka 11 → 12 → 1 … → pół drogi od 4 do 5 (długa stoi), tik przy każdej
-// liczbie; razem ~2,7 s, na końcu „16:30" i reguła ze „Sprawdź"
+// level 10, step 1: from 11:00 👆 moves the long hand 12 → 6 (the short one stays at 11), right after that the short hand
+// 11 → 12 → 1 … → halfway from 4 to 5 (the long one stays), a tick at every number; ~2.7 s in all, at the end „16:30" and
+// the rule from „Sprawdź"
 function samOsobno(s) {
   samJedz(s, 660, 690, () => samJedz(s, 660, 990, () => s.wynik(SAM_1630, '<b class="g">Krótka</b> — między 4 a 5.'),
                                      { palec: true, sama: 'g', stoi: 690, przed: 100 }),
           { palec: true, sama: 'm', stoi: 660, ms: 600 });
 }
-// kroki 2–4 poziomu 10: tarcza z rundy (CW_NIETYPOWE), dziecko samo przesuwa wskazówki — razem, jak w zwykłym zegarze
-// (osobno dałoby godzinę nie do zapisania); pod zegarem na żywo „16:35" — cała doba od 16:30 (jak w kroku 1 i w Ustaw):
-// w przód 23:55 → 00:00 → 01:00 …, w tył tak samo (Lasha: „ყველა ახალ ციფერბლატზე … გადაწიოს ისრები და ქვევით დაეწერება
-// ეხლა რომელი საათია ციფრებით" · „რატომ არ არის 1,2,3?" → „ბ მთელი დღე"). Liczy się droga od startu (bez zawijania na 12).
+// level 10, steps 2–4: a dial from the round (CW_NIETYPOWE), the child moves the hands — together, as on an ordinary clock
+// (separately would give a time that cannot be written down); under the clock, live, „16:35" — the whole day from 16:30 (as in
+// step 1 and in Ustaw): forwards 23:55 → 00:00 → 01:00 …, backwards likewise. The distance from the start counts (no wrapping at 12).
 function samTarczaCiagnij(s) {
   let D = 0, ost = 270;
   const pisz = () => s.wynik(samCzas(((990 + Math.round(D / 5) * 5) % 1440 + 1440) % 1440, cwCyfry24),   // 990 = 16:30
@@ -451,17 +450,19 @@ function samTarczaCiagnij(s) {
   });
 }
 
-// poziom: tylko — jak w jego ćwiczeniach ('g' | 'm' | '' obie) · chwyt 'm' — łapie się zawsze minutowa (tarcza.js)
-// · cwiartki — tarcza pocięta na 4 kawałki (poziom 4), kawałki zabarwia s.cwiartki(lista) · cyfry — tarcza (domyślnie 'zwykle'; 'minuty' — podpisy 05 … 55
-// ukryte, zapalają się przy liczeniu) · po13 — tarcza umie po południu pokazać 13 … 23 (poziom 7; włącza s.z.popo) · kroki.
-// krok: zdanie — w ramce · t — gdzie stoją wskazówki · osobno — każda wskazówka chodzi sama (tarcza.js; poziom 10, krok 1)
-// · cyfry — w tym kroku inna tarcza (z.cyfry; poziom 10) · swieci 'g' | 'm' — która miga · kolko — pod którą liczbą zielone
-// kółko (0 = 12) · pol 'po' | 'za' | 'oba' — która połowa tarczy zabarwiona · bez 'g' — godzinowej nie widać · duzy, maly — pod zegarem · pokaz(s) — animacja kroku (s.wynik(duzy, maly), s.kolko(H) na końcu;
-// s.ciagnij(fn) — w tym kroku dziecko samo ciągnie wskazówkę, fn(t, puszczone) przy każdym ruchu; s.pod(el) — el pod
-// zegarem, nad dużym napisem, tylko w tym kroku — poziom 9: most). Poziom bez samouczka — null.
-// Krok 4 (Lasha 27.09: „მეოთხე გვერდი სადაც ბავშვი გადაწევს ისარს") — dziecko samo, bez palca.
+// level: tylko — as in its exercises ('g' | 'm' | '' both) · chwyt 'm' — the minute hand is always the one grabbed (tarcza.js)
+// · cwiartki — the dial cut into 4 pieces (level 4), s.cwiartki(lista) tints the pieces · cyfry — the dial (default 'zwykle';
+// 'minuty' — the labels 05 … 55 are hidden and light up while counting) · po13 — the dial can show 13 … 23 in the afternoon
+// (level 7; switched on by s.z.popo) · kroki.
+// step: zdanie — in the frame · t — where the hands stand · osobno — each hand moves on its own (tarcza.js; level 10, step 1)
+// · cyfry — a different dial in this step (z.cyfry; level 10) · swieci 'g' | 'm' — which hand blinks · kolko — the number with
+// the green circle under it (0 = 12) · pol 'po' | 'za' | 'oba' — which half of the dial is tinted · bez 'g' — the hour hand
+// is hidden · duzy, maly — under the clock · pokaz(s) — the step's animation (s.wynik(duzy, maly), s.kolko(H) at the end;
+// s.ciagnij(fn) — in this step the child drags the hand, fn(t, puszczone) on every move; s.pod(el) — el under
+// the clock, above the big caption, only in this step — level 9: the bridge). A level without a tutorial — null.
+// The last step — the child drags the hand itself, without the finger.
 const CW_SAMOUCZKI = [
-  { tylko: 'g', kroki: [                         // 1 · Godziny: przykład 05:00 jak na liście poziomów
+  { tylko: 'g', kroki: [                         // 1 · Godziny: the example 05:00 as in the level list
     { zdanie: '<b class="g">Krótka wskazówka</b> pokazuje godzinę.', t: 300, swieci: 'g', kolko: 5,
       duzy: '<span class="g">Piąta</span>' },
     { zdanie: '<b class="m">Długa wskazówka</b> na 12 — pełna godzina.', t: 300, swieci: 'm', kolko: 0,
@@ -470,13 +471,13 @@ const CW_SAMOUCZKI = [
       pokaz: s => samJedz(s, 300, 540, () => { s.kolko(9); s.wynik('<span class="g">Dziewiąta</span>', '09:00'); },
                           { palec: true }) },
     { zdanie: 'Przesuwaj <b class="g">krótką wskazówkę</b> palcem.', t: 300,
-      pokaz: s => {                              // pod zegarem na żywo „Szósta · 06:00" (Lasha: „ქვემოთ ცოცხალი საათი")
+      pokaz: s => {                              // under the clock, live, „Szósta · 06:00"
         const pisz = nt => { const H = Math.round(nt / 60) % 12; s.wynik(`<span class="g">${duza(GODZ[H])}</span>`, cwCyfry(H * 60)); };
         pisz(300);
         s.ciagnij(pisz);
       } }
   ] },
-  { tylko: 'm', cyfry: 'minuty', kroki: [        // 2 · Minuty: przykład 35 jak na liście poziomów
+  { tylko: 'm', cyfry: 'minuty', kroki: [        // 2 · Minuty: the example 35 as in the level list
     { zdanie: '<b class="m">Długa wskazówka</b> pokazuje minuty.', t: 35, swieci: 'm', kolko: 7,
       duzy: '<span class="m">35</span> minut' },
     { zdanie: 'Każda liczba to <b class="m">5 minut</b>. Licz piątkami.', t: 0,
@@ -485,21 +486,21 @@ const CW_SAMOUCZKI = [
       pokaz: s => samJedz(s, 0, 20, () => s.kolko(4), { palec: true, licz: true }) },
     { zdanie: 'Przesuwaj <b class="m">długą wskazówkę</b> palcem.', t: 0, pokaz: samOstatnie4 }
   ] },
-  { tylko: 'm', kroki: [                         // 3 · Po i za: przykład 50 „za dziesięć" jak na liście poziomów
+  { tylko: 'm', kroki: [                         // 3 · Po i za: the example 50 „za dziesięć" as in the level list
     { zdanie: 'Po prawej — <b class="sam-po">po</b>.', t: 0, pol: 'po', maly: SAM_12_6,
       pokaz: s => samJedz(s, 0, 10, () => { s.kolko(2); s.wynik('dziesięć <span class="sam-po">po</span>', SAM_12_6); }) },
     { zdanie: 'Po lewej — <b class="sam-za">za</b>: ile brakuje do 12.', t: 50, pol: 'za',
       pokaz: s => samKlin(s, 50, 10, () => { s.kolko(10); s.wynik('<span class="sam-za">za</span> dziesięć'); }) },
-    // bez kroku „Popatrz, jak przesunąć" (Lasha: „ბავშვმა უკვე იცის როგორ უნდა გადაათრიოს დიდი და პატარა ისარი")
+    // no „Popatrz, jak przesunąć" step — by now the child knows how to drag both hands
     { zdanie: 'Przesuwaj <b class="m">długą wskazówkę</b> palcem.', t: 0, pol: 'oba',
-      pokaz: s => {                              // pod zegarem na żywo „pięć po" … „za pięć" (Lasha: „საათი ეუბნებოდეს რომელია ზა თუ პო")
+      pokaz: s => {                              // under the clock, live, „pięć po" … „za pięć"
         const pisz = nt => s.wynik(samNazwa(Math.round(nt / 5) % 12));
         pisz(0);
         s.ciagnij(pisz);
       } }
   ] },
-  // 4 · Co 15 minut: pizza z 4 kawałków, godzina 7 jak na liście poziomów (07:45); bez kroku „Przesuń" (Lasha: „ბავშვმა
-  // ამ ლეველამდე უკვე კარგად გაიგო როგორ მოქმედებს საათი")
+  // 4 · Co 15 minut: a pizza of 4 pieces, hour 7 as in the level list (07:45); no „Przesuń" step — by this level
+  // the child already knows how the clock works
   { tylko: '', chwyt: 'm', cwiartki: true, kroki: [
     { zdanie: '<b class="m">4&nbsp;kawałki</b> po 15 minut, czyli <b class="m">4&nbsp;kwadranse</b>.', t: 420, bez: 'g', pokaz: samCwiartki },
     { zdanie: '<b class="g">Krótka wskazówka</b> też idzie — powoli.', t: 420, swieci: 'g',
@@ -507,7 +508,8 @@ const CW_SAMOUCZKI = [
       pokaz: s => samJedz(s, 420, 450, () => s.wynik(samCzas(450), 'Wpół do ósmej')) },
     { zdanie: 'Przesuwaj <b class="m">długą wskazówkę</b> palcem.', t: 420, pokaz: samKawalek }
   ] },
-  // 5 · Co 5 minut: najpierw krótka, potem długa; 08:35 jak na liście poziomów. Krok 1 — na pułapkę 09:35, krok 2 — na 08:07
+  // 5 · Co 5 minut: first the short hand, then the long one; 08:35 as in the level list. Step 1 — against the trap 09:35,
+  // step 2 — against 08:07
   { tylko: '', chwyt: 'm', cyfry: 'minuty', kroki: [
     { zdanie: 'Najpierw <b class="g">krótka</b>: liczba, którą minęła.', t: 515, swieci: 'g', kolko: 8,
       duzy: '<span class="g">08</span>', maly: 'jeszcze nie 9' },
@@ -515,28 +517,28 @@ const CW_SAMOUCZKI = [
       pokaz: s => samJedz(s, 480, 515, () => { s.kolko(7); s.wynik(samCzas(515), '7 to 35 minut, a nie 07'); },
                           { licz: true }) },
     { zdanie: 'Przesuwaj <b class="m">długą wskazówkę</b> palcem.', t: 515,
-      pokaz: s => {                              // pod zegarem na żywo „08:40", „08:45" … — najbliższe 5 minut
+      pokaz: s => {                              // under the clock, live, „08:40", „08:45" … — nearest 5 minutes
         const pisz = nt => s.wynik(samCzas(Math.round(nt / 5) * 5 % 720));
         pisz(515);
         s.ciagnij(pisz);
       } }
   ] },
-  // 6 · Słowami: po → godzina, którą krótka minęła · za → ta, do której idzie (pułapka „Za pięć szósta"); 6:55 jak na
-  // liście poziomów. dwa — pod zegarem miejsce na 2 wiersze („Dwadzieścia pięć po szóstej" nie mieści się w jednym)
+  // 6 · Słowami: po → the hour the short hand has passed · za → the one it is heading to (the trap „Za pięć szósta"); 6:55 as in
+  // the level list. dwa — room for 2 lines under the clock („Dwadzieścia pięć po szóstej" does not fit in one)
   { tylko: '', chwyt: 'm', dwa: true, kroki: [
-    // napis przez pokaz, nie duzy: cwZdanie potrzebuje MINUTY / GODZ_EJ, a te strona definiuje dopiero po samouczki.js
+    // the caption comes through pokaz, not duzy: cwZdanie needs MINUTY / GODZ_EJ, and the page defines those only after samouczki.js
     { zdanie: '<b class="sam-po">Po</b> — godzina, którą krótka minęła.', t: 370, pol: 'po', swieci: 'g', kolko: 6,
       pokaz: s => s.wynik(samZdanie(370), cwCyfry(370)) },
     { zdanie: '<b class="sam-za">Za</b> — godzina, do której krótka idzie.', t: 415, pol: 'za',
       pokaz: s => samKlin(s, 55, 5, () => { s.kolko(7); s.wynik(samZdanie(415), 'za pięć minut będzie siódma'); }) },
     { zdanie: 'Przesuwaj <b class="m">długą wskazówkę</b> palcem.', t: 415, pol: 'oba',
-      pokaz: s => {                              // pod zegarem na żywo zdanie i cyfry — najbliższe 5 minut
+      pokaz: s => {                              // under the clock, live, the sentence and the digits — nearest 5 minutes
         const pisz = nt => { const q = Math.round(nt / 5) * 5 % 720; s.wynik(samZdanie(q), cwCyfry(q)); };
         pisz(s.t);
         s.ciagnij(pisz);
       } }
   ] },
-  // 7 · Po południu: dodaj 12 · po północy 00 (pułapki z Wybierz: 02:25 i 12:40); plan z czatu → „კი"
+  // 7 · Po południu: add 12 · after midnight 00 (the traps from Wybierz: 02:25 and 12:40)
   { tylko: '', po13: true, kroki: [
     { zdanie: '<b>Po południu</b> — dodaj <b class="g">12</b>.', t: 145, swieci: 'g', duzy: samCzas(145),
       pokaz: samDodaj12 },
@@ -544,27 +546,25 @@ const CW_SAMOUCZKI = [
       duzy: samCzas(40, cwCyfry24), maly: 'W nocy' },
     { zdanie: 'Przesuwaj wskazówki palcem.', t: 0, pokaz: samPoludnieCiagnij }
   ] },
-  // 8 · Wcześniej, później: 14:05 jak na liście poziomów; w tył przez 12 — pułapka 14:55 z Wybierz (plan z czatu → „ოკ";
-  // „długa wskazówka przesuwa się…" w 2 wierszach się nie mieściło → krótko, Lasha: „Później — do przodu.")
+  // 8 · Wcześniej, później: 14:05 as in the level list; backwards across 12 — the trap 14:55 from Wybierz; the sentences are
+  // short („Później — do przodu.") because „długa wskazówka przesuwa się…" did not fit in 2 lines
   { tylko: '', chwyt: 'm', kroki: [
     { zdanie: '<b class="sam-po">Później</b> — do przodu.', t: 125, pokaz: s => samPrzesun(s, 10) },
     { zdanie: '<b class="sam-za">Wcześniej</b> — do tyłu.', t: 125,
       pokaz: s => samPrzesun(s, -10, 'Przez 12 — jest już 13, nie 14.') },
     { zdanie: 'Przesuwaj <b class="m">długą wskazówkę</b> palcem.', t: 125, pokaz: samPrzesunCiagnij }
   ] },
-  // 9 · Ile minut?: most z rundy, najpierw do pełnej godziny, potem reszta, razem = oba skoki (plan z czatu → Lasha „ოკ")
+  // 9 · Ile minut?: the bridge from the round, first to the full hour, then the rest, the total = both jumps
   { tylko: '', chwyt: 'm', kroki: [
     { zdanie: 'Najpierw — do <b class="m">pełnej godziny</b>.', t: 110, pokaz: s => samMost(s, 0) },
     { zdanie: 'Potem — to, co <b class="m">zostało</b>.', t: 120, pokaz: s => samMost(s, 1) },
     { zdanie: 'Przesuwaj <b class="m">długą wskazówkę</b> palcem.', t: 110, pokaz: samMostCiagnij }
   ] },
-  // 10 · Mistrz: wskazówki osobno jak w rundzie Ustaw (👆 na krótkiej pokazuje, gdzie ją łapać), potem każda tarcza z rundy
-  // w swoim kroku — dziecko patrzy, przesuwa i samo idzie dalej (Lasha: „თავად გადავა მომდევნოზე როცა … გაიაზრებს ახალ
-  // პირობას"); plan z czatu → „კი"
+  // 10 · Mistrz: the hands separately as in the Ustaw round (👆 on the short hand shows where to grab it), then each dial from the round
+  // in its own step — the child looks, moves the hands and goes on by itself once it has taken in the new dial
   { tylko: '', kroki: [
     { zdanie: 'Tu każda wskazówka chodzi <b>osobno</b>.', t: 660, osobno: true, swieci: 'g', pokaz: samOsobno },
-    // najpierw, że zegar może wyglądać inaczej, potem jak czytać tę tarczę (Lasha: „დამატებითი ახსნა რომ საათი შეიძლება
-    // გამოიყურებოდეს სხვადასხვანაირად" → „ოკ"); <br> — dwa wiersze łamane po sensie (Lasha: „წინასწარ სწორი გადასვლით")
+    // first that a clock may look different, then how to read this dial; <br> — two lines, broken at the sense break
     { zdanie: 'Zegary bywają różne.<br>Tu są tylko 12, 3, 6 i 9.', t: 270, cyfry: 'cztery', pokaz: samTarczaCiagnij },
     { zdanie: 'Czasem nie ma liczb.<br>12 jest na górze, 6 na dole.', t: 270, cyfry: 'brak', pokaz: samTarczaCiagnij },
     { zdanie: 'Czasem liczby są rzymskie:<br>IV to 4, V to 5.', t: 270, cyfry: 'rzymskie', pokaz: samTarczaCiagnij }
@@ -574,14 +574,14 @@ const CW_SAMOUCZKI = [
 const samouczekJest = n => !!CW_SAMOUCZKI[n];
 function samouczekByl(n) { try { return !!localStorage.getItem(SAM_KLUCZ(n)); } catch (e) { return false; } }
 
-// samouczek poziomu nrPoz (od 0); licznik — „2/3" w nagłówku; potem() — po ostatnim przycisku; odKroku — do sprawdzania;
-// koniec — napis ostatniego przycisku: „Wróć" (💡), „Zaczynamy!" przy pierwszym wejściu w poziom (Lasha 28.09)
-// nrPoz może też być samym samouczkiem ({ tylko, kroki … }) — 🏋 Trening w index.html; jego t0 (0 … 1439) — start
-// każdego kroku zamiast k.t (Start: teraz — Lasha 29.09). Funkcje pokaz dostają start w s.t (z porą doby).
+// the tutorial of level nrPoz (from 0); licznik — „2/3" in the header; potem() — after the last button; odKroku — for checking;
+// koniec — the label of the last button: „Wróć" (💡), „Zaczynamy!" on the first entry into a level
+// nrPoz may also be a tutorial object itself ({ tylko, kroki … }) — 🏋 Trening in index.html; its t0 (0 … 1439) — the start
+// of every step instead of k.t (Start: the current time). The pokaz functions get the start in s.t (with the time of day).
 function samouczek(box, licznik, nrPoz, potem, odKroku = 0, koniec = 'Wróć') {
   const sam = typeof nrPoz === 'object' ? nrPoz : CW_SAMOUCZKI[nrPoz], kroki = sam.kroki;
   const tKroku = k => sam.t0 != null ? sam.t0 : k.t;
-  const znak = box.cwZnak = {};                 // spóźnione setTimeout / rAF (rundy albo kroku) nic nie piszą
+  const znak = box.cwZnak = {};                 // late setTimeout / rAF callbacks (of a round or a step) write nothing
   box.textContent = '';
   const ramka = h('div', 'sam-ramka' + (sam.dwa ? ' sam-dwa' : '')), pyt = h('div', 'sam-gora'),
         miejsce = h('div', 'sam-zegar'), cel = h('div', 'sam-pod');
@@ -594,20 +594,20 @@ function samouczek(box, licznik, nrPoz, potem, odKroku = 0, koniec = 'Wróć') {
 
   const svg = noweSvg('duzy');
   miejsce.append(svg);
-  let naRuch = null;                             // krok, w którym dziecko samo ciągnie (s.ciagnij), inaczej tylko do patrzenia
+  let naRuch = null;                             // set in a step where the child drags (s.ciagnij), otherwise the clock is only to look at
   const z = Zegar(svg, { styl, cyfry: sam.cyfry || 'zwykle', rama: RAMA[styl] || '', t: tKroku(kroki[0]) % 720, tylko: sam.tylko,
                          chwyt: sam.chwyt, po13: sam.po13,
                          zmiana: (nt, puszczone) => { if (naRuch) naRuch(nt, puszczone); } });
-  const wsk = svg.querySelectorAll('.w-godz, .w-min, .m-wsk, .k-wsk');   // [godzinowa, minutowa] — w każdym stylu w tej kolejności
-  const tarcza = wsk[1].parentNode.parentNode;   // grupa z cyframi i wskazówkami
-  const podpisy = svg.querySelectorAll('.s-min, .m-min, .k-min');         // 00, 05 … 55 (tylko przy cyfrach 'minuty')
-  // połówki tarczy (poziom 3): prawa „po", lewa „za" — nad tłem, pod cyframi; zielony wycinek (s.klin) nad nimi
+  const wsk = svg.querySelectorAll('.w-godz, .w-min, .m-wsk, .k-wsk');   // [hour hand, minute hand] — in this order in every style
+  const tarcza = wsk[1].parentNode.parentNode;   // the group with the digits and the hands
+  const podpisy = svg.querySelectorAll('.s-min, .m-min, .k-min');         // 00, 05 … 55 (only with 'minuty' digits)
+  // the dial halves (level 3): right „po", left „za" — above the background, under the digits; the green sector (s.klin) above them
   const polowa = (klasa, d) => { const p = document.createElementNS(NS, 'path'); p.setAttribute('class', klasa);
                                  p.setAttribute('d', d); return p; };
   const po = polowa('sam-pol-po', 'M100 100 V11 A89 89 0 0 1 100 189 Z'),
         za = polowa('sam-pol-za', 'M100 100 V189 A89 89 0 0 1 100 11 Z');
   svg.querySelector('.s-tlo, .m-tlo, .k-tlo').after(po, za);
-  // poziom 4: 4 kawałki po 15 minut (zabarwia s.cwiartki) i cięcia 12 · 3 · 6 · 9 od środka do cyfr
+  // level 4: 4 pieces of 15 minutes (tinted by s.cwiartki) and the cuts 12 · 3 · 6 · 9 from the centre to the digits
   const cwiartki = [];
   if (sam.cwiartki) {
     for (let i = 0; i < 4; i++) cwiartki.push(polowa(`sektor sam-cwiartka c${i} sam-ukryty`, uplywWycinek(i * 15, 15)));
@@ -615,7 +615,7 @@ function samouczek(box, licznik, nrPoz, potem, odKroku = 0, koniec = 'Wróć') {
   }
 
   let nr = Math.min(kroki.length - 1, odKroku);
-  let dodatek = null;                            // s.pod — pod zegarem, tylko w swoim kroku
+  let dodatek = null;                            // s.pod — under the clock, only in its own step
   function krok() {
     const k = kroki[nr], moj = box.samKrok = {};
     const zywy = () => box.cwZnak === znak && box.samKrok === moj;
@@ -631,7 +631,7 @@ function samouczek(box, licznik, nrPoz, potem, odKroku = 0, koniec = 'Wróć') {
     wsk.forEach(w => w.classList.remove('sam-swieci'));
     wsk[0].classList.toggle('sam-ukryty', k.bez === 'g');
     z.osobno(k.osobno);
-    if (sam.po13) z.popo(false);                 // poziom 7: każdy krok od cyfr 1 … 12, 13 … 23 włącza pokaz
+    if (sam.po13) z.popo(false);                 // level 7: every step starts with the digits 1 … 12, pokaz switches on 13 … 23
     if (k.cyfry) z.cyfry(k.cyfry);
     z.ustaw(tKroku(k) % 720);
     if (k.swieci) wsk[k.swieci === 'g' ? 0 : 1].classList.add('sam-swieci');
@@ -641,13 +641,13 @@ function samouczek(box, licznik, nrPoz, potem, odKroku = 0, koniec = 'Wróć') {
     maly.innerHTML = k.maly || '';
     dalejB.textContent = nr < kroki.length - 1 ? 'Dalej' : koniec;
     dalejB.disabled = false;
-    let ruchy = 0;                               // ile animacji kroku jeszcze jedzie — póki > 0, „Dalej" nieczynne
+    let ruchy = 0;                               // how many of the step's animations are still running — while > 0, „Dalej" is disabled
     if (k.pokaz) k.pokaz({ z, svg, tarcza, zywy, reka: sam.tylko, t: tKroku(k),
       jedzie: () => { ruchy++; dalejB.disabled = true; },
       stoi: () => { if (--ruchy <= 0) dalejB.disabled = false; },
       kolko: H => cwKolko(svg, H, true, true),
       podpis: n => { if (podpisy[n % 12]) podpisy[n % 12].classList.remove('sam-ukryty'); },
-      podpisy: lista => {                        // świecą tylko te (liczby bez zawijania: 13 = 05)
+      podpisy: lista => {                        // only these are lit (numbers without wrapping: 13 = 05)
         const widac = new Set(lista.map(n => (n % 12 + 12) % 12));
         podpisy.forEach((e, i) => e.classList.toggle('sam-ukryty', !widac.has(i)));
       },
@@ -669,8 +669,8 @@ function samouczek(box, licznik, nrPoz, potem, odKroku = 0, koniec = 'Wróć') {
   krok();
 }
 
-// wejście w poziom nrPoz (od 0): za pierwszym razem najpierw samouczek (jeśli poziom go ma), potem runda();
-// zapisany od razu — wyjście w połowie nie pokaże go znowu, dalej tylko przez 💡
+// entering level nrPoz (from 0): the first time the tutorial comes first (if the level has one), then runda();
+// saved right away — leaving halfway will not show it again, from then on only through 💡
 function cwStart(box, licznik, nrPoz, runda) {
   if (!samouczekJest(nrPoz) || samouczekByl(nrPoz)) return runda();
   try { localStorage.setItem(SAM_KLUCZ(nrPoz), '1'); } catch (e) {}
