@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Zegar</string>
+    <string name="title_activity_main">Zegar</string>
+    <string name="package_name">ge.kandelaki.zegar</string>
+    <string name="custom_url_scheme">ge.kandelaki.zegar</string>
+</resources>

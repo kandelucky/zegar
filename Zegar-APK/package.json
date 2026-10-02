@@ -1,0 +1,17 @@
+{
+  "name": "zegar-apk",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Capacitor build project for the Zegar APK",
+  "dependencies": {
+    "@capacitor-community/text-to-speech": "^8.0.2",
+    "@capacitor/android": "^8.5.0",
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/cli": "^8.5.0",
+    "@capacitor/core": "^8.5.0",
+    "@capgo/capacitor-pdf-generator": "^8.0.39",
+    "@capgo/capacitor-printer": "^8.1.4",
+    "capacitor-native-settings": "^8.2.0",
+    "sharp": "^0.35.3"
+  }
+}

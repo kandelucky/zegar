@@ -2,3 +2,7 @@ PXL_*.jpg
 Photos-*.zip
 dev-log.md
 _visual/
+*.apk
+Zegar-APK/node_modules/
+Zegar-APK/www/
+Zegar-APK/icon-preview.png

@@ -145,6 +145,7 @@
   .ustaw-grupa > span { font-size: 14px; font-weight: 600; color: color-mix(in oklab, var(--color-base-content) 60%, transparent); }
   .ustaw-grupa .join { width: 100%; }
   .ustaw-grupa .btn { flex: 1; }
+  .ustaw-grupa p { font-size: 13px; color: color-mix(in oklab, var(--color-base-content) 60%, transparent); }
   .podglad { width: 44px; height: 44px; flex: none; pointer-events: none; }
 
   /* the Lekcje and Ćwiczenia lists — cards of equal height, a small clock with an example and a number in the colour of
@@ -363,16 +364,20 @@
      does not jump; the sentence is in a single <span> (samZdanie), so flex only centres it */
   .sam-dwa .sam-duzy { min-height: 2.4em; display: flex; align-items: center; justify-content: center; text-align: center; }
 
-  /* Karty pracy (druk.js): above the sheet a ▾ field with the task type (as in Trening) · how many clocks ·
-     „Z odpowiedziami" · „Wydrukuj" + 🎲, below it the preview of the A4 sheet */
+  /* Karty pracy (druk.js): above the sheet a ▾ field with the task type (as in Trening) · a smaller ▾ with how many
+     clocks + „Odpowiedzi" · „Zapisz" (APK only) + „Wydrukuj" + 🎲, below it the preview of the A4 sheet */
   .druk-ster { width: min(100%, 30rem); flex: none; display: flex; flex-direction: column; gap: 10px; }
   .druk-ster .pole-box { width: 100%; }
-  .druk-ster .ustaw-grupa { padding: 0; }
+  .druk-srodek { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .druk-ster .druk-ile { width: auto; }
+  .druk-ile .pole { font-size: 18px; }
   .druk-odp { display: flex; align-items: center; gap: 8px; font-size: var(--r-drobny); cursor: pointer; }
   .druk-dol { display: flex; align-items: center; gap: 8px; }
   .druk-dol .btn { height: 52px; font-size: var(--r-przycisk); }
   .druk-dol .btn:first-child { flex: 1; gap: 10px; }
   .druk-dol .druk-losuj { flex: none; width: 52px; padding: 0; }
+  .druk-dol.dwa .btn:not(.druk-losuj) { flex: 1; gap: 6px; padding-inline: 10px; font-size: 18px; }   /* „Zapisz" + „Wydrukuj" + 🎲 */
+  .druk-dol.dwa .btn:not(.druk-losuj) svg { width: 22px; height: 22px; }
   .druk-kartki { width: min(100%, 30rem); flex: none; display: flex; flex-direction: column; gap: 12px; }   /* pages one under another */
   .druk-podglad { aspect-ratio: 210 / 297; container-type: inline-size; background: #fff; box-shadow: 0 4px 14px rgb(0 0 0 / .18); }
   /* sheet: sizes in --mm (on screen 1/210 of the preview width, in print 1 mm); fixed colours — white also in the Nocny theme */
@@ -563,6 +568,10 @@
       <div class="ustaw-grupa"><span>Wskazówka minutowa</span><div class="join" id="u-krok"></div></div>
       <div class="ustaw-grupa" id="g-po13"><span>Cyfry po południu</span><div class="join" id="u-po13"></div></div>
       <div class="ustaw-grupa"><span>Dźwięki</span><div class="join" id="u-dzwieki"></div></div>
+      <div class="ustaw-grupa" id="g-glos" hidden><span>Głos</span>
+        <div class="join"><button class="join-item btn btn-sm" id="u-glos">Ustawienia głosu</button></div>
+        <p>Google ⚙ → Zainstaluj dane głosowe → polski</p>
+      </div>
     </nav>
   </div>
 </div>
@@ -654,11 +663,14 @@ function pokazNapis() {
 }
 
 // ---- voice: the phone speaks Polish (also for future tasks) ----
-const glos = 'speechSynthesis' in window ? window.speechSynthesis : null;
-if (glos) glos.getVoices();                  // Chrome loads the voices only after the first request
+// the APK's WebView has no speechSynthesis — there the phone's own TTS goes through the plugin, with the same cancel()
+const tts = window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.TextToSpeech;
+const glos = tts ? { cancel: () => tts.stop() } : 'speechSynthesis' in window ? window.speechSynthesis : null;
+if (glos && !tts) glos.getVoices();          // Chrome loads the voices only after the first request
 function mow(tekst) {
   if (!glos) return;
   glos.cancel();                             // a new press interrupts the previous one
+  if (tts) { tts.speak({ text: tekst, lang: 'pl-PL' }).catch(e => log(`mow: ${e.message}`)); return; }
   const u = new SpeechSynthesisUtterance(tekst);
   u.lang = 'pl-PL';
   const pl = glos.getVoices().find(v => /^pl/i.test(v.lang));
@@ -673,6 +685,13 @@ powiedzEl.onclick = () => {
   mow(tekst);
   log(`powiedz: ${tekst}`);
 };
+
+// ⚙ „Głos" — APK only: opens the phone's text-to-speech settings, where the Polish voice is installed
+const ustawieniaTel = window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.NativeSettings;
+if (ustawieniaTel) {
+  document.getElementById('g-glos').hidden = false;
+  document.getElementById('u-glos').onclick = () => ustawieniaTel.openAndroid({ option: 'text_to_speech' });
+}
 
 // ---- clock appearance ----
 const STYLE = [['szkolny', 'Szkolny'], ['minimalny', 'Minimalny'], ['klasyczny', 'Klasyczny']];
@@ -1429,13 +1448,17 @@ function zmienWyglad() {
 // ◀ in the simulator / Back on the phone: first closes the menu / settings / appearance, then cofnij(); on Start — exit
 const ustawEl = document.getElementById('ustawienia');
 const wygladEl = document.getElementById('wyglad');
+const capApp = window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.App;   // only in the APK
 window.simBack = () => {
   if (menuEl.checked) menuEl.checked = false;
   else if (ustawEl.checked) ustawEl.checked = false;
   else if (wygladEl.checked) wygladEl.checked = false;
   else if (widok !== 'start') cofnij();
+  else if (capApp) capApp.exitApp();
   else history.back();
 };
+// APK: the phone's Back button goes through simBack instead of closing the app
+if (capApp) capApp.addListener('backButton', () => simBack());
 menuEl.addEventListener('change', () => simScreen(menuEl.checked ? 'menu' : ekran()));
 ustawEl.addEventListener('change', () => simScreen(ustawEl.checked ? 'ustawienia' : ekran()));
 wygladEl.addEventListener('change', () => simScreen(wygladEl.checked ? 'wyglad' : ekran()));

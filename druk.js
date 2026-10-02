@@ -17,10 +17,10 @@
 //   Upływ czasu — trudniej: the same, but 1 to 3 hours pass, in 5-minute steps — „za 2 godziny" · „za 1 godz. 35 min".
 //   Zapisz słowami: both hands, under the clock two lines to write on. Answers: sentences from cwZdanie —
 //     „1. Za pięć siódma".
-// Also above the sheet: the number of clocks — 4 · 6 · 9 · 12 · „Z odpowiedziami" — a second page with the answers at
+// Also above the sheet: the number of clocks (▾ 4 · 6 · 9 · 12) · „Odpowiedzi" — a second page with the answers at
 // its top, small and upside down on purpose (two pages may be printed on one sheet, and the child should not be able
-// to read the answers easily): clocks with both hands, „1 TAK · 2 NIE" or the lines listed above · „Wydrukuj" —
-// window.print() · 🎲 — other times.
+// to read the answers easily): clocks with both hands, „1 TAK · 2 NIE" or the lines listed above · „Zapisz" (APK only) —
+// the pages as a PDF into Android's share window · „Wydrukuj" — window.print() · 🎲 — other times.
 // The sheet is always white with dark print (also in the Nocny theme); the dial is the one chosen under 🕓, without
 // a frame. All its sizes are multiples of --mm: on screen --mm = 1/210 of the preview width, in print 1 mm. What gets
 // printed is the copies of the pages in #do-druku — the only thing visible in @media print (CSS in index.html).
@@ -42,7 +42,8 @@ const DRUK_TYPY = [['dorysuj', 'Dorysuj wskazówkę', 'Dorysuj wskazówkę minut
                    ['pisz', 'Zapisz słowami', 'Która godzina? Zapisz słowami.']];
 const DRUK_ILE = [4, 6, 9, 12];                  // clocks per sheet (columns and sizes: .ile-4 … .ile-12 in index.html)
 const DRUK_IKONA = '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg>';
-const DRUK_KOSTKA = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><g class="oczka" fill="currentColor" stroke="none"><circle cx="8" cy="8" r="1.5"/><circle cx="16" cy="8" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="8" cy="16" r="1.5"/><circle cx="16" cy="16" r="1.5"/></g></svg>';
+const ZAPISZ_IKONA = '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></svg>';
+const DRUK_KOSTKA ='<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><g class="oczka" fill="currentColor" stroke="none"><circle cx="8" cy="8" r="1.5"/><circle cx="16" cy="8" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="8" cy="16" r="1.5"/><circle cx="16" cy="16" r="1.5"/></g></svg>';
 
 let drukTyp = 'dorysuj', drukIle = 6, drukOdp = false;
 let drukGodziny = null;                          // 12 random times; the sheet takes the first drukIle
@@ -132,47 +133,54 @@ function drukStrony() {
 function druk(box) {
   if (!drukGodziny) drukLosuj();
   box.textContent = '';
-  const ster = h('div', 'druk-ster'), ile = h('div', 'join');
-  // task type: the ▾ field with a list — the same as above the clock in Trening (#pole and #rodzaj-menu in index.html)
-  const typ = h('div', 'dropdown dropdown-center pole-box'), pole = h('div', 'pole');
-  const lista = h('ul', 'dropdown-content menu bg-base-100 rounded-box z-30 w-full p-2 shadow text-base');
-  pole.tabIndex = lista.tabIndex = 0;
-  pole.setAttribute('role', 'button');
-  pole.setAttribute('aria-label', 'Zadanie');
-  typ.append(pole, lista);
-  const grupa = (tytul, join) => { const g = h('div', 'ustaw-grupa'); g.append(h('span', null, tytul), join); return g; };
-  const odp = h('label', 'druk-odp', '<input type="checkbox" class="toggle toggle-primary"><span>Z odpowiedziami</span>');
+  const ster = h('div', 'druk-ster');
+  // a ▾ field with a list — the same as above the clock in Trening (#pole and #rodzaj-menu in index.html)
+  function rozwijane(klasa, etykieta) {
+    const rama = h('div', 'dropdown pole-box ' + klasa), pole = h('div', 'pole');
+    const lista = h('ul', 'dropdown-content menu bg-base-100 rounded-box z-30 w-full p-2 shadow text-base');
+    pole.tabIndex = lista.tabIndex = 0;
+    pole.setAttribute('role', 'button');
+    pole.setAttribute('aria-label', etykieta);
+    rama.append(pole, lista);
+    return [rama, pole, lista];
+  }
+  const [typ, pole, lista] = rozwijane('dropdown-center', 'Zadanie');
+  // how many clocks — a smaller ▾ field, in one row with „Odpowiedzi"
+  const [ile, ilePole, ileLista] = rozwijane('druk-ile', 'Zegarów na kartce');
+  const odp = h('label', 'druk-odp', '<input type="checkbox" class="toggle toggle-primary"><span>Odpowiedzi</span>');
+  const srodek = h('div', 'druk-srodek');
+  srodek.append(ile, odp);
   const dol = h('div', 'druk-dol'), drukuj = h('button', 'btn btn-primary', `${DRUK_IKONA}Wydrukuj`);
   // 🎲 as in Trening: the class .losuj — rzutKostki() spins the die and changes its pips
   const losuj = h('button', 'btn btn-primary losuj druk-losuj', DRUK_KOSTKA), kartki = h('div', 'druk-kartki');
   losuj.setAttribute('aria-label', 'Inne godziny');
+  const pdf = window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.PdfGenerator;   // only in the APK
+  const zapiszPdf = pdf ? h('button', 'btn btn-primary', `${ZAPISZ_IKONA}Zapisz`) : null;
+  if (zapiszPdf) { dol.classList.add('dwa'); dol.append(zapiszPdf); }   // .dwa — smaller letters, so the row fits 360 px
   dol.append(drukuj, losuj);
-  ster.append(typ, grupa('Zegarów na kartce', ile), odp, dol);
+  ster.append(typ, srodek, dol);
   box.append(ster, kartki);
 
-  function guziki(join, opcje, wybrana, ustaw) {
-    join.textContent = '';
-    opcje.forEach(([k, nazwa]) => {
-      const b = h('button', 'join-item btn btn-sm' + (k === wybrana ? ' btn-primary' : ''), nazwa);
-      b.onclick = () => { if (k !== wybrana) { ustaw(k); zapisz(); } };
-      join.append(b);
-    });
+  const zegarow = n => `${n} ${n < 5 ? 'zegary' : 'zegarów'}`;
+  // fills a ▾ field and its list; a tap on an item closes the list and saves the choice
+  function wybor(pole, lista, opcje, wybrana, ustaw) {
+    pole.innerHTML = `<span>${opcje.find(([k]) => k === wybrana)[1]}</span>` + IKONA_ROZWIN;
+    lista.replaceChildren(...opcje.map(([k, nazwa]) => {
+      const li = h('li'), a = h('a', k === wybrana ? 'menu-active' : null, nazwa);
+      a.onclick = () => {
+        document.activeElement.blur();                  // closes the list
+        if (k !== wybrana) { ustaw(k); zapisz(); }
+      };
+      li.append(a);
+      return li;
+    }));
   }
   function rysuj() {
     const strony = drukStrony();
     kartki.replaceChildren(...strony.map(s => { const p = h('div', 'druk-podglad'); p.append(s); return p; }));
     document.getElementById('do-druku').replaceChildren(...strony.map(s => s.cloneNode(true)));
-    pole.innerHTML = `<span>${DRUK_TYPY.find(([k]) => k === drukTyp)[1]}</span>` + IKONA_ROZWIN;
-    lista.replaceChildren(...DRUK_TYPY.map(([k, nazwa]) => {
-      const li = h('li'), a = h('a', k === drukTyp ? 'menu-active' : null, nazwa);
-      a.onclick = () => {
-        document.activeElement.blur();                  // closes the list
-        if (k !== drukTyp) { drukTyp = k; zapisz(); }
-      };
-      li.append(a);
-      return li;
-    }));
-    guziki(ile, DRUK_ILE.map(n => [n, n]), drukIle, n => { drukIle = n; });
+    wybor(pole, lista, DRUK_TYPY, drukTyp, k => { drukTyp = k; });
+    wybor(ilePole, ileLista, DRUK_ILE.map(n => [n, zegarow(n)]), drukIle, n => { drukIle = n; });
   }
   function zapisz() {
     try {
@@ -187,6 +195,24 @@ function druk(box) {
   we.checked = drukOdp;
   we.onchange = () => { drukOdp = we.checked; zapisz(); };
   losuj.onclick = () => { rzutKostki(); drukLosuj(); log('karty pracy: inne godziny'); rysuj(); };
-  drukuj.onclick = () => { log('karty pracy: drukuj'); window.print(); };
+  // the APK's WebView ignores window.print() — there the plugin prints the same page through Android's print dialog
+  const drukarka = window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.Printer;
+  drukuj.onclick = () => {
+    log('karty pracy: drukuj');
+    if (drukarka) drukarka.printWebView({ name: 'Zegar - karta pracy' }).catch(e => log(`drukuj: ${e.message}`));
+    else window.print();
+  };
+  // the PDF is drawn in a separate WebView that cannot reach the app's files — so the pages go with all the CSS inline
+  if (zapiszPdf) zapiszPdf.onclick = () => {
+    log('karty pracy: zapisz PDF');
+    const css = [...document.styleSheets].map(s => {
+      try { return [...s.cssRules].map(r => r.cssText).join('\n'); } catch (e) { return ''; }
+    }).join('\n');
+    const html = document.documentElement.cloneNode(false), body = document.body.cloneNode(false);
+    body.append(document.getElementById('do-druku').cloneNode(true));
+    html.append(h('head', null, `<meta charset="utf-8"><style>${css}</style>`), body);
+    pdf.fromData({ data: '<!doctype html>' + html.outerHTML, documentSize: 'A4', type: 'share', fileName: 'Zegar - karta pracy.pdf' })
+      .catch(e => log(`zapisz PDF: ${e.message}`));
+  };
   rysuj();
 }
